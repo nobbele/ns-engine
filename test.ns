@@ -1,0 +1,26 @@
+: It’s freezing cold recently, there’s so much snow. It’s also so dark outside at this time of the year.
+
+: I should get some hot chocolate to warm myself; if I remember correctly there should be a vending machine over there.
+
+: “The feeling of warm chocolate going in my body never gets old. I should get an extra one for my late movie night.”
+
+: There are usually a lot of ducks around the bridge during the day.
+: I need to get going now.
+
+: “I catch a glimpse of a girl who was sitting on the side of the bridge.”
+
+: “It looks like she’s feeling down. Is she crying?”
+
+[Ignore / Walk up to her]
+if choice = 2
+
+    : “I try to always help people who look to be in need of help or comfort”
+
+    : Hey there, how are you?
+
+    Girl: *sniffle* I’m fine.
+
+end
+if choice = 1
+    : I walk away and leave her alone
+end
