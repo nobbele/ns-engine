@@ -13,10 +13,12 @@ use ggez::{
     graphics::{self, drawable_size},
 };
 use helpers::{get_item_index, get_item_y, Position};
+use tween::Tween;
 
 mod draw;
 mod helpers;
 mod node;
+mod tween;
 
 pub enum Placement {
     Left,
@@ -27,6 +29,7 @@ pub struct Character {
     _name: String,
     image: graphics::Image,
     position: Option<Placement>,
+    alpha: f32,
 }
 
 pub struct MainState {
@@ -36,7 +39,7 @@ pub struct MainState {
     hovered_choice: u32,
     resources: Resources,
     current_background: Option<graphics::Image>,
-    current_characters: Vec<Character>,
+    current_characters: Vec<Box<dyn Tween<Character>>>,
 }
 
 impl MainState {
@@ -66,7 +69,10 @@ impl MainState {
 }
 
 impl event::EventHandler for MainState {
-    fn update(&mut self, _ctx: &mut Context) -> ggez::GameResult {
+    fn update(&mut self, ctx: &mut Context) -> ggez::GameResult {
+        for character in &mut self.current_characters {
+            character.update(ggez::timer::delta(ctx).as_secs_f32());
+        }
         Ok(())
     }
 
@@ -89,6 +95,7 @@ impl event::EventHandler for MainState {
         }
 
         for (n, character) in self.current_characters.iter().enumerate() {
+            let character = character.get_current();
             let x_position = (drawable_size(ctx).0 as f32
                 / (self.current_characters.len() as f32 + 1.0))
                 * (n as f32 + 1.0);
@@ -108,6 +115,10 @@ impl event::EventHandler for MainState {
                         target_size.y / character.image.height() as f32,
                     ]
                     .into(),
+                    color: graphics::Color {
+                        a: character.alpha,
+                        ..graphics::WHITE
+                    },
                     ..Default::default()
                 },
             )?;
