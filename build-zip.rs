@@ -1,11 +1,16 @@
-use std::{env, fs::File, io::Seek, io::Write, path::Path, path::PathBuf, io::Read};
+use std::{fs::File, io::Read, io::Seek, io::Write, path::Path, path::PathBuf};
 
 use walkdir::WalkDir;
-use zip::{write::FileOptions, result::ZipError};
+use zip::{result::ZipError, write::FileOptions};
 
-fn zip_dir<T>(it: &mut dyn Iterator<Item=walkdir::DirEntry>, prefix: &str, writer: T, method: zip::CompressionMethod)
-              -> zip::result::ZipResult<()>
-    where T: Write+Seek
+fn zip_dir<T>(
+    it: &mut dyn Iterator<Item = walkdir::DirEntry>,
+    prefix: &str,
+    writer: T,
+    method: zip::CompressionMethod,
+) -> zip::result::ZipResult<()>
+where
+    T: Write + Seek,
 {
     let mut zip = zip::ZipWriter::new(writer);
     let options = FileOptions::default()
@@ -21,24 +26,28 @@ fn zip_dir<T>(it: &mut dyn Iterator<Item=walkdir::DirEntry>, prefix: &str, write
         // Some unzip tools unzip files with directory paths correctly, some do not!
         if path.is_file() {
             println!("adding file {:?} as {:?} ...", path, name);
-            zip.start_file_from_path(name, options)?;
+            zip.start_file(name.to_string_lossy(), options)?;
             let mut f = File::open(path)?;
 
             f.read_to_end(&mut buffer)?;
             zip.write_all(&*buffer)?;
             buffer.clear();
-        } else if name.as_os_str().len() != 0 {
+        } else if !name.as_os_str().is_empty() {
             // Only if not root! Avoids path spec / warning
             // and mapname conversion failed error on unzip
             println!("adding dir {:?} as {:?} ...", path, name);
-            zip.add_directory_from_path(name, options)?;
+            zip.add_directory(name.to_string_lossy(), options)?;
         }
     }
     zip.finish()?;
     Result::Ok(())
 }
 
-fn doit(src: &PathBuf, path: &PathBuf, method: zip::CompressionMethod) -> zip::result::ZipResult<()> {
+fn doit(
+    src: &PathBuf,
+    path: &PathBuf,
+    method: zip::CompressionMethod,
+) -> zip::result::ZipResult<()> {
     if !src.is_dir() {
         return Err(ZipError::FileNotFound);
     }
@@ -48,7 +57,12 @@ fn doit(src: &PathBuf, path: &PathBuf, method: zip::CompressionMethod) -> zip::r
     let walkdir = WalkDir::new(src);
     let it = walkdir.into_iter();
 
-    zip_dir(&mut it.filter_map(|e| e.ok()), src.to_str().unwrap(), file, method)?;
+    zip_dir(
+        &mut it.filter_map(|e| e.ok()),
+        src.to_str().unwrap(),
+        file,
+        method,
+    )?;
 
     Ok(())
 }
@@ -56,8 +70,13 @@ fn doit(src: &PathBuf, path: &PathBuf, method: zip::CompressionMethod) -> zip::r
 fn main() {
     println!("cargo:rerun-if-changed=resources/*");
 
-    doit(&Path::new("resources").to_path_buf(), &Path::new("resources.zip").to_path_buf(), zip::CompressionMethod::Stored).unwrap();
-    
+    doit(
+        &Path::new("resources").to_path_buf(),
+        &Path::new("resources.zip").to_path_buf(),
+        zip::CompressionMethod::Stored,
+    )
+    .unwrap();
+
     /*fs_extra::dir::copy(
         "resources",
         out_dir,

@@ -1,6 +1,7 @@
 use std::io::BufReader;
 
-use ggez::{filesystem, nalgebra as na};
+use ggez::filesystem;
+use ggez::mint as na;
 use ggez::{
     self,
     event::{KeyCode, KeyMods, MouseButton},
@@ -12,17 +13,19 @@ use ggez::{
 };
 use ggez::{event, graphics::Color};
 
-struct MainState<'a> {
-    it: novelscript::NovelIterator<'a>,
-    current_node: Option<&'a novelscript::SceneNodeData>,
+struct MainState {
+    novel: novelscript::Novel,
+    state: novelscript::NovelState,
+    current_node: Option<novelscript::SceneNodeData>,
     hovered_choice: u32,
     resources: Resources,
 }
 
-impl<'a> MainState<'a> {
-    fn new(novel: &'a novelscript::Novel, resources: Resources) -> MainState<'a> {
+impl MainState {
+    fn new(novel: novelscript::Novel, resources: Resources) -> MainState {
         MainState {
-            it: novel.iter("start"),
+            state: novel.new_state("start"),
+            novel,
             current_node: None,
             hovered_choice: 0,
             resources,
@@ -63,28 +66,25 @@ impl Position {
 
     pub fn add_in_from(&self, rect: &graphics::Rect, offset: (f32, f32)) -> na::Point2<f32> {
         match self {
-            Position::TopLeft => na::Point2::new(rect.x + offset.0, rect.y + offset.1),
-            Position::TopRight => na::Point2::new((rect.x + rect.w) - offset.0, rect.y + offset.1),
-            Position::BottomLeft => {
-                na::Point2::new(rect.x + offset.0, (rect.y + rect.h) - offset.1)
-            }
-            Position::BottomRight => {
-                na::Point2::new((rect.x + rect.w) - offset.0, (rect.y + rect.h) - offset.1)
-            }
-            Position::Center => na::Point2::new(
+            Position::TopLeft => [rect.x + offset.0, rect.y + offset.1],
+            Position::TopRight => [(rect.x + rect.w) - offset.0, rect.y + offset.1],
+            Position::BottomLeft => [rect.x + offset.0, (rect.y + rect.h) - offset.1],
+            Position::BottomRight => [(rect.x + rect.w) - offset.0, (rect.y + rect.h) - offset.1],
+            Position::Center => [
                 (rect.x + rect.w) / 2.0 + offset.0,
                 (rect.y + rect.h) / 2.0 + offset.1,
-            ),
+            ],
         }
+        .into()
     }
 }
 
 fn points_to_rect(a: na::Point2<f32>, b: na::Point2<f32>) -> graphics::Rect {
     graphics::Rect {
-        x: a.coords.x,
-        y: a.coords.y,
-        w: b.coords.x - a.coords.x,
-        h: b.coords.y - a.coords.y,
+        x: a.x,
+        y: a.y,
+        w: b.x - a.x,
+        h: b.y - a.y,
     }
 }
 
@@ -96,7 +96,7 @@ fn draw_text(
     ctx: &mut Context,
     resources: &Resources,
     speaker: &Option<String>,
-    content: &String,
+    content: &str,
 ) -> ggez::GameResult {
     let layer_bounds = {
         let bounds = points_to_rect(
@@ -120,29 +120,26 @@ fn draw_text(
             ctx,
             image,
             graphics::DrawParam::new()
-                .dest(na::Point2::new(bounds.x, bounds.y))
-                .scale(na::Vector2::new(
+                .dest([bounds.x, bounds.y])
+                .scale([
                     bounds.w / image.width() as f32,
                     bounds.h / image.height() as f32,
-                )),
+                ]),
         )?;
         bounds
     };
     if let Some(speaker) = speaker {
         let mut text = graphics::Text::new(speaker.as_str());
-        text.set_bounds(
-            na::Point2::new(f32::INFINITY, f32::INFINITY),
-            graphics::Align::Left,
-        );
+        text.set_bounds([f32::INFINITY, f32::INFINITY], graphics::Align::Left);
         graphics::draw(
             ctx,
             &text,
             (Position::TopLeft.add_in_from(&layer_bounds, (15.0, 20.0)),),
         )?;
     }
-    let mut text = graphics::Text::new(content.as_str());
+    let mut text = graphics::Text::new(content);
     text.set_bounds(
-        na::Point2::new(layer_bounds.w - 10.0, layer_bounds.h - 10.0),
+        [layer_bounds.w - 10.0, layer_bounds.h - 10.0],
         graphics::Align::Left,
     );
     graphics::draw(
@@ -153,15 +150,16 @@ fn draw_text(
     Ok(())
 }
 
-fn draw_choices(ctx: &mut Context, choices: &Vec<String>, hovered_choice: u32) -> ggez::GameResult {
+fn draw_choices(ctx: &mut Context, choices: &[String], hovered_choice: u32) -> ggez::GameResult {
     for (n, choice) in choices.iter().enumerate() {
         let layer_bounds = {
             let size = (210.0, 40.0);
-            let pos = na::Point2::new(
+            let pos: na::Point2<f32> = [
                 Position::Center.add_in(ctx, (-size.0 / 2.0, 0.0)).x,
                 get_item_y(ctx, n as f32, choices.len() as f32),
-            );
-            let bounds = points_to_rect(pos, na::Point2::new(pos.x + size.0, pos.y + size.1));
+            ]
+            .into();
+            let bounds = points_to_rect(pos, [pos.x + size.0, pos.y + size.1].into());
             let layer = graphics::Mesh::new_rectangle(
                 ctx,
                 graphics::DrawMode::fill(),
@@ -182,12 +180,12 @@ fn draw_choices(ctx: &mut Context, choices: &Vec<String>, hovered_choice: u32) -
                     }
                 },
             )?;
-            graphics::draw(ctx, &layer, (na::Point2::new(0.0, 0.0),))?;
+            graphics::draw(ctx, &layer, ([0.0, 0.0],))?;
             bounds
         };
         let mut text = graphics::Text::new(choice.as_str());
         text.set_bounds(
-            na::Point2::new(layer_bounds.w - 10.0, layer_bounds.h - 10.0),
+            [layer_bounds.w - 10.0, layer_bounds.h - 10.0],
             graphics::Align::Center,
         );
 
@@ -200,7 +198,7 @@ fn draw_choices(ctx: &mut Context, choices: &Vec<String>, hovered_choice: u32) -
     Ok(())
 }
 
-impl<'a> event::EventHandler for MainState<'a> {
+impl event::EventHandler for MainState {
     fn update(&mut self, _ctx: &mut Context) -> ggez::GameResult {
         Ok(())
     }
@@ -208,7 +206,7 @@ impl<'a> event::EventHandler for MainState<'a> {
     fn draw(&mut self, ctx: &mut Context) -> ggez::GameResult {
         graphics::clear(ctx, [0.1, 0.2, 0.3, 1.0].into());
 
-        if let Some(node) = self.current_node {
+        if let Some(node) = &self.current_node {
             if let novelscript::SceneNodeData::Text { speaker, content } = node {
                 draw_text(ctx, &self.resources, speaker, content)?;
             } else if let novelscript::SceneNodeData::Choice(choices) = node {
@@ -227,7 +225,7 @@ impl<'a> event::EventHandler for MainState<'a> {
                     self.current_node,
                     Some(novelscript::SceneNodeData::Choice(..))
                 ) {
-                    self.current_node = self.it.next();
+                    self.current_node = self.novel.next(&mut self.state);
                 }
             }
             _ => (),
@@ -235,7 +233,7 @@ impl<'a> event::EventHandler for MainState<'a> {
     }
 
     fn mouse_motion_event(&mut self, ctx: &mut Context, _x: f32, y: f32, _dx: f32, _dy: f32) {
-        if let Some(novelscript::SceneNodeData::Choice(choices)) = self.current_node {
+        if let Some(novelscript::SceneNodeData::Choice(choices)) = &self.current_node {
             if y > get_item_y(ctx, 0.0, choices.len() as f32)
                 && y < get_item_y(ctx, choices.len() as f32, choices.len() as f32)
             {
@@ -251,14 +249,14 @@ impl<'a> event::EventHandler for MainState<'a> {
         _x: f32,
         y: f32,
     ) {
-        if let Some(novelscript::SceneNodeData::Choice(choices)) = self.current_node {
+        if let Some(novelscript::SceneNodeData::Choice(choices)) = &self.current_node {
             if y > get_item_y(ctx, 0.0, choices.len() as f32)
                 && y < get_item_y(ctx, choices.len() as f32, choices.len() as f32)
             {
                 let idx = get_item_index(ctx, y, choices.len() as f32);
-                self.it.set_variable("choice".into(), idx as i32 + 1);
+                self.state.set_variable("choice".into(), idx as i32 + 1);
                 self.hovered_choice = 0;
-                self.current_node = self.it.next();
+                self.current_node = self.novel.next(&mut self.state);
             }
         }
     }
@@ -276,22 +274,22 @@ pub fn main() -> ggez::GameResult {
             WindowMode::default()
                 .dimensions(1280.0, 720.0)
                 .resizable(true),
-        );
-        //.add_zipfile_bytes(include_bytes!("../resources.zip").to_vec());
-    let (ctx, event_loop) = &mut cb.build()?;
+        )
+        .add_zipfile_bytes(include_bytes!("../resources.zip").to_vec());
+    let (mut ctx, event_loop) = cb.build()?;
 
     let mut novel = novelscript::Novel::new();
     novel
         .add_scene(
             "start".into(),
-            BufReader::new(filesystem::open(ctx, "/test.ns").unwrap()),
+            BufReader::new(filesystem::open(&mut ctx, "/test.ns").unwrap()),
         )
         .unwrap();
 
     let resources = Resources {
-        text_box: graphics::Image::new(ctx, "/TextBox.png")?,
+        text_box: graphics::Image::new(&mut ctx, "/TextBox.png")?,
     };
 
-    let state = &mut MainState::new(&novel, resources);
+    let state = MainState::new(novel, resources);
     event::run(ctx, event_loop, state)
 }
