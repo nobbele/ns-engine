@@ -1,5 +1,6 @@
 use std::io::BufReader;
 
+use ggez::event;
 use ggez::filesystem;
 use ggez::mint as na;
 use ggez::{
@@ -11,19 +12,23 @@ use ggez::{
     conf::{WindowMode, WindowSetup},
     graphics::{self, drawable_size},
 };
-use ggez::{event, graphics::Color};
+use helpers::{get_item_index, get_item_y, Position};
 
-enum Placement {
-    Left, Right,
+mod draw;
+mod helpers;
+
+pub enum Placement {
+    Left,
+    Right,
 }
 
-struct Character {
+pub struct Character {
     _name: String,
     image: graphics::Image,
-    position: Option<Placement>
+    position: Option<Placement>,
 }
 
-struct MainState {
+pub struct MainState {
     novel: novelscript::Novel,
     state: novelscript::NovelState,
     current_node: Option<novelscript::SceneNodeData>,
@@ -49,206 +54,8 @@ impl MainState {
     }
 }
 
-fn get_item_y(ctx: &Context, n: f32, max: f32) -> f32 {
-    let offset = (-50.0 * max / 2.0) + (50.0 * n);
-    Position::Center.add_in(ctx, (0.0, offset)).y
-}
-
-fn get_item_index(ctx: &Context, y: f32, max: f32) -> u32 {
-    let start_y = get_item_y(ctx, 0.0, max);
-    ((y - start_y) / 50.0) as u32
-}
-
-pub enum Position {
-    TopLeft,
-    TopRight,
-    BottomLeft,
-    BottomRight,
-    Center,
-}
-
-impl Position {
-    pub fn add_in(&self, ctx: &Context, offset: (f32, f32)) -> na::Point2<f32> {
-        self.add_in_from(
-            &graphics::Rect {
-                x: 0.0,
-                y: 0.0,
-                w: drawable_size(ctx).0,
-                h: drawable_size(ctx).1,
-            },
-            offset,
-        )
-    }
-
-    pub fn add_in_from(&self, rect: &graphics::Rect, offset: (f32, f32)) -> na::Point2<f32> {
-        match self {
-            Position::TopLeft => [rect.x + offset.0, rect.y + offset.1],
-            Position::TopRight => [(rect.x + rect.w) - offset.0, rect.y + offset.1],
-            Position::BottomLeft => [rect.x + offset.0, (rect.y + rect.h) - offset.1],
-            Position::BottomRight => [(rect.x + rect.w) - offset.0, (rect.y + rect.h) - offset.1],
-            Position::Center => [
-                (rect.x + rect.w) / 2.0 + offset.0,
-                (rect.y + rect.h) / 2.0 + offset.1,
-            ],
-        }
-        .into()
-    }
-}
-
-fn points_to_rect(a: na::Point2<f32>, b: na::Point2<f32>) -> graphics::Rect {
-    graphics::Rect {
-        x: a.x,
-        y: a.y,
-        w: b.x - a.x,
-        h: b.y - a.y,
-    }
-}
-
-struct Resources {
+pub struct Resources {
     text_box: graphics::Image,
-}
-
-fn draw_text(
-    ctx: &mut Context,
-    resources: &Resources,
-    speaker: &Option<String>,
-    content: &str,
-) -> ggez::GameResult {
-    let layer_bounds = {
-        let bounds = points_to_rect(
-            Position::BottomLeft.add_in(ctx, (0.0, 200.0)),
-            Position::BottomRight.add_in(ctx, (0.0, 0.0)),
-        );
-        /*let layer = graphics::Mesh::new_rectangle(
-            ctx,
-            graphics::DrawMode::fill(),
-            bounds,
-            Color {
-                r: 1.0,
-                g: 1.0,
-                b: 1.0,
-                a: 0.25,
-            },
-        )?;
-        graphics::draw(ctx, &layer, (na::Point2::new(0.0, 0.0),))?;*/
-        let image = &resources.text_box;
-        graphics::draw(
-            ctx,
-            image,
-            graphics::DrawParam::new()
-                .dest([bounds.x, bounds.y])
-                .scale([
-                    bounds.w / image.width() as f32,
-                    bounds.h / image.height() as f32,
-                ]),
-        )?;
-        bounds
-    };
-    if let Some(speaker) = speaker {
-        let mut text = graphics::Text::new(speaker.as_str());
-        text.set_bounds([f32::INFINITY, f32::INFINITY], graphics::Align::Left);
-        graphics::draw(
-            ctx,
-            &text,
-            (Position::TopLeft.add_in_from(&layer_bounds, (15.0, 20.0)),),
-        )?;
-    }
-    let mut text = graphics::Text::new(content);
-    text.set_bounds(
-        [layer_bounds.w - 10.0, layer_bounds.h - 10.0],
-        graphics::Align::Left,
-    );
-    graphics::draw(
-        ctx,
-        &text,
-        (Position::TopLeft.add_in_from(&layer_bounds, (15.0, 55.0)),),
-    )?;
-    Ok(())
-}
-
-fn draw_choices(ctx: &mut Context, choices: &[String], hovered_choice: u32) -> ggez::GameResult {
-    for (n, choice) in choices.iter().enumerate() {
-        let layer_bounds = {
-            let size = (210.0, 40.0);
-            let pos: na::Point2<f32> = [
-                Position::Center.add_in(ctx, (-size.0 / 2.0, 0.0)).x,
-                get_item_y(ctx, n as f32, choices.len() as f32),
-            ]
-            .into();
-            let bounds = points_to_rect(pos, [pos.x + size.0, pos.y + size.1].into());
-            let layer = graphics::Mesh::new_rectangle(
-                ctx,
-                graphics::DrawMode::fill(),
-                bounds,
-                if n == hovered_choice as usize {
-                    Color {
-                        r: 1.0,
-                        g: 1.0,
-                        b: 1.0,
-                        a: 0.25,
-                    }
-                } else {
-                    Color {
-                        r: 0.25,
-                        g: 0.25,
-                        b: 0.25,
-                        a: 0.25,
-                    }
-                },
-            )?;
-            graphics::draw(ctx, &layer, ([0.0, 0.0],))?;
-            bounds
-        };
-        let mut text = graphics::Text::new(choice.as_str());
-        text.set_bounds(
-            [layer_bounds.w - 10.0, layer_bounds.h - 10.0],
-            graphics::Align::Center,
-        );
-
-        let text_pos = Position::TopLeft.add_in_from(
-            &layer_bounds,
-            (0.0, layer_bounds.h / 2.0 - text.height(ctx) as f32 / 2.0),
-        );
-        graphics::draw(ctx, &text, (text_pos,))?;
-    }
-    Ok(())
-}
-
-fn draw_node(state: &mut MainState, ctx: &mut Context) -> ggez::GameResult {
-    if let Some(node) = &state.current_node {
-        if let novelscript::SceneNodeData::Text { speaker, content } = node {
-            draw_text(ctx, &state.resources, speaker, content)?;
-        } else if let novelscript::SceneNodeData::Choice(choices) = node {
-            draw_choices(ctx, choices, state.hovered_choice)?;
-        } else if let novelscript::SceneNodeData::LoadCharacter {
-            character,
-            expression,
-            placement,
-        } = node
-        {
-            let entry = Character {
-                _name: character.clone(),
-                image: graphics::Image::new(ctx, format!("/char/{}/{}.png", character, expression))?,
-                position: match &placement[..] {
-                    "Left" => Some(Placement::Left),
-                    "Right" => Some(Placement::Right),
-                    _ => None,
-                }
-            };
-            state.current_characters.insert(match entry.position {
-                Some(Placement::Left) => 0,
-                Some(Placement::Right) => state.current_characters.len(),
-                None => 0,
-            }, entry);
-            state.continue_text();
-        } else if let novelscript::SceneNodeData::LoadBackground { name } = node {
-            state.current_background =
-                Some(graphics::Image::new(ctx, format!("/bg/{}.png", name))?);
-            state.continue_text();
-            draw_node(state, ctx)?;
-        }
-    }
-    Ok(())
 }
 
 impl MainState {
@@ -281,21 +88,31 @@ impl event::EventHandler for MainState {
         }
 
         for (n, character) in self.current_characters.iter().enumerate() {
-            let x_position = (drawable_size(ctx).0 as f32 / (self.current_characters.len() as f32 + 1.0)) * (n as f32 + 1.0);
-            let height = drawable_size(ctx).1 * (4.0/5.0);
-            let target_size: na::Point2<f32> = [height * (character.image.width() as f32 / character.image.height() as f32), height].into();
+            let x_position = (drawable_size(ctx).0 as f32
+                / (self.current_characters.len() as f32 + 1.0))
+                * (n as f32 + 1.0);
+            let height = drawable_size(ctx).1 * (4.0 / 5.0);
+            let target_size: na::Point2<f32> = [
+                height * (character.image.width() as f32 / character.image.height() as f32),
+                height,
+            ]
+            .into();
             graphics::draw(
                 ctx,
                 &character.image,
                 graphics::DrawParam {
                     dest: Position::BottomLeft.add_in(ctx, (x_position, target_size.y)),
-                    scale: [target_size.x / character.image.width() as f32, target_size.y / character.image.height() as f32].into(),
+                    scale: [
+                        target_size.x / character.image.width() as f32,
+                        target_size.y / character.image.height() as f32,
+                    ]
+                    .into(),
                     ..Default::default()
                 },
             )?;
         }
 
-        draw_node(self, ctx)?;
+        draw::draw_node(self, ctx)?;
 
         graphics::present(ctx)?;
         Ok(())
@@ -303,7 +120,7 @@ impl event::EventHandler for MainState {
 
     fn key_down_event(&mut self, _ctx: &mut Context, key: KeyCode, _mods: KeyMods, _: bool) {
         match key {
-            KeyCode::Space => {
+            KeyCode::Space | KeyCode::Escape => {
                 if !matches!(
                     self.current_node,
                     Some(novelscript::SceneNodeData::Choice(..))
@@ -337,7 +154,7 @@ impl event::EventHandler for MainState {
                 && y < get_item_y(ctx, choices.len() as f32, choices.len() as f32)
             {
                 let idx = get_item_index(ctx, y, choices.len() as f32);
-                self.state.set_variable("choice".into(), idx as i32 + 1);
+                self.state.set_choice(idx as i32 + 1);
                 self.hovered_choice = 0;
                 self.current_node = self.novel.next(&mut self.state);
             }
@@ -345,8 +162,8 @@ impl event::EventHandler for MainState {
     }
 
     fn resize_event(&mut self, ctx: &mut Context, width: f32, height: f32) {
-        let new_rect = graphics::Rect::new(0.0, 0.0, width, height);
-        graphics::set_screen_coordinates(ctx, new_rect).unwrap();
+        graphics::set_screen_coordinates(ctx, graphics::Rect::new(0.0, 0.0, width, height))
+            .unwrap();
     }
 }
 

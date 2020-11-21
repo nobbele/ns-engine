@@ -286,7 +286,7 @@ version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f4aedb84272dbe89af497cf81375129abda4fc0a9e7c5d317498c15cc30c0d27"
 dependencies = [
- "nom",
+ "nom 5.1.2",
 ]
 
 [[package]]
@@ -1680,9 +1680,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "nom"
+version = "6.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4489ccc7d668957ddf64af7cd027c081728903afa6479d35da7e99bf5728f75f"
+dependencies = [
+ "memchr",
+ "version_check",
+]
+
+[[package]]
 name = "novelscript"
 version = "0.1.0"
-source = "git+https://github.com/nobbele/novelscript#f237ce6cbc83e9cc478f94cf355788f42e754d58"
+source = "git+https://github.com/nobbele/novelscript#a30c56ecb81acdfb84396e73cedca0b14e9bd102"
 dependencies = [
  "thiserror",
 ]
@@ -1822,9 +1832,9 @@ dependencies = [
 
 [[package]]
 name = "ogg"
-version = "0.7.0"
+version = "0.7.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d79f1db9148be9d0e174bb3ac890f6030fcb1ed947267c5a91ee4c91b5a91e15"
+checksum = "13e571c3517af9e1729d4c63571a27edd660ade0667973bfc74a67c660c2b651"
 dependencies = [
  "byteorder",
 ]
@@ -3017,11 +3027,11 @@ dependencies = [
 
 [[package]]
 name = "xcursor"
-version = "0.3.2"
+version = "0.3.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d3a481cfdefd35e1c50073ae33a8000d695c98039544659f5dc5dd71311b0d01"
+checksum = "3a9a231574ae78801646617cefd13bfe94be907c0e4fa979cfd8b770aa3c5d08"
 dependencies = [
- "nom",
+ "nom 6.0.0",
 ]
 
 [[package]]
