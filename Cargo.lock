@@ -1682,7 +1682,7 @@ dependencies = [
 [[package]]
 name = "novelscript"
 version = "0.1.0"
-source = "git+https://github.com/nobbele/novelscript#28385fefab5c851a6377a594a289ca4b00fc003e"
+source = "git+https://github.com/nobbele/novelscript#f237ce6cbc83e9cc478f94cf355788f42e754d58"
 dependencies = [
  "thiserror",
 ]

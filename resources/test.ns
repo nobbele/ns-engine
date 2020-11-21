@@ -1,8 +1,12 @@
 : It’s freezing cold recently, there’s so much snow. It’s also so dark outside at this time of the year.
 
+load Yukio normal at Left
+
 : I should get some hot chocolate to warm myself; if I remember correctly there should be a vending machine over there.
 
 : “The feeling of warm chocolate going in my body never gets old. I should get an extra one for my late movie night.”
+
+scene Bridge
 
 : There are usually a lot of ducks around the bridge during the day.
 : I need to get going now.
@@ -17,6 +21,8 @@ if choice = 2
     : “I try to always help people who look to be in need of help or comfort”
 
     : Hey there, how are you?
+
+    load Souma normal at Left
 
     Girl: *sniffle* I’m fine.
 

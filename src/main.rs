@@ -13,23 +13,39 @@ use ggez::{
 };
 use ggez::{event, graphics::Color};
 
+enum Placement {
+    Left, Right,
+}
+
+struct Character {
+    _name: String,
+    image: graphics::Image,
+    position: Option<Placement>
+}
+
 struct MainState {
     novel: novelscript::Novel,
     state: novelscript::NovelState,
     current_node: Option<novelscript::SceneNodeData>,
     hovered_choice: u32,
     resources: Resources,
+    current_background: Option<graphics::Image>,
+    current_characters: Vec<Character>,
 }
 
 impl MainState {
     fn new(novel: novelscript::Novel, resources: Resources) -> MainState {
-        MainState {
+        let mut state = MainState {
             state: novel.new_state("start"),
             novel,
             current_node: None,
             hovered_choice: 0,
             resources,
-        }
+            current_background: None,
+            current_characters: Vec::new(),
+        };
+        state.continue_text();
+        state
     }
 }
 
@@ -198,6 +214,49 @@ fn draw_choices(ctx: &mut Context, choices: &[String], hovered_choice: u32) -> g
     Ok(())
 }
 
+fn draw_node(state: &mut MainState, ctx: &mut Context) -> ggez::GameResult {
+    if let Some(node) = &state.current_node {
+        if let novelscript::SceneNodeData::Text { speaker, content } = node {
+            draw_text(ctx, &state.resources, speaker, content)?;
+        } else if let novelscript::SceneNodeData::Choice(choices) = node {
+            draw_choices(ctx, choices, state.hovered_choice)?;
+        } else if let novelscript::SceneNodeData::LoadCharacter {
+            character,
+            expression,
+            placement,
+        } = node
+        {
+            let entry = Character {
+                _name: character.clone(),
+                image: graphics::Image::new(ctx, format!("/char/{}/{}.png", character, expression))?,
+                position: match &placement[..] {
+                    "Left" => Some(Placement::Left),
+                    "Right" => Some(Placement::Right),
+                    _ => None,
+                }
+            };
+            state.current_characters.insert(match entry.position {
+                Some(Placement::Left) => 0,
+                Some(Placement::Right) => state.current_characters.len(),
+                None => 0,
+            }, entry);
+            state.continue_text();
+        } else if let novelscript::SceneNodeData::LoadBackground { name } = node {
+            state.current_background =
+                Some(graphics::Image::new(ctx, format!("/bg/{}.png", name))?);
+            state.continue_text();
+            draw_node(state, ctx)?;
+        }
+    }
+    Ok(())
+}
+
+impl MainState {
+    fn continue_text(&mut self) {
+        self.current_node = self.novel.next(&mut self.state);
+    }
+}
+
 impl event::EventHandler for MainState {
     fn update(&mut self, _ctx: &mut Context) -> ggez::GameResult {
         Ok(())
@@ -206,13 +265,37 @@ impl event::EventHandler for MainState {
     fn draw(&mut self, ctx: &mut Context) -> ggez::GameResult {
         graphics::clear(ctx, [0.1, 0.2, 0.3, 1.0].into());
 
-        if let Some(node) = &self.current_node {
-            if let novelscript::SceneNodeData::Text { speaker, content } = node {
-                draw_text(ctx, &self.resources, speaker, content)?;
-            } else if let novelscript::SceneNodeData::Choice(choices) = node {
-                draw_choices(ctx, choices, self.hovered_choice)?;
-            }
+        if let Some(background) = &self.current_background {
+            graphics::draw(
+                ctx,
+                background,
+                graphics::DrawParam {
+                    scale: [
+                        drawable_size(ctx).0 / background.width() as f32,
+                        drawable_size(ctx).1 / background.height() as f32,
+                    ]
+                    .into(),
+                    ..Default::default()
+                },
+            )?;
         }
+
+        for (n, character) in self.current_characters.iter().enumerate() {
+            let x_position = (drawable_size(ctx).0 as f32 / (self.current_characters.len() as f32 + 1.0)) * (n as f32 + 1.0);
+            let height = drawable_size(ctx).1 * (4.0/5.0);
+            let target_size: na::Point2<f32> = [height * (character.image.width() as f32 / character.image.height() as f32), height].into();
+            graphics::draw(
+                ctx,
+                &character.image,
+                graphics::DrawParam {
+                    dest: Position::BottomLeft.add_in(ctx, (x_position, target_size.y)),
+                    scale: [target_size.x / character.image.width() as f32, target_size.y / character.image.height() as f32].into(),
+                    ..Default::default()
+                },
+            )?;
+        }
+
+        draw_node(self, ctx)?;
 
         graphics::present(ctx)?;
         Ok(())
@@ -225,7 +308,7 @@ impl event::EventHandler for MainState {
                     self.current_node,
                     Some(novelscript::SceneNodeData::Choice(..))
                 ) {
-                    self.current_node = self.novel.next(&mut self.state);
+                    self.continue_text();
                 }
             }
             _ => (),
