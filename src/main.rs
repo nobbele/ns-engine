@@ -16,6 +16,7 @@ use helpers::{get_item_index, get_item_y, Position};
 
 mod draw;
 mod helpers;
+mod node;
 
 pub enum Placement {
     Left,
@@ -112,7 +113,7 @@ impl event::EventHandler for MainState {
             )?;
         }
 
-        draw::draw_node(self, ctx)?;
+        node::draw_node(self, ctx)?;
 
         graphics::present(ctx)?;
         Ok(())
