@@ -9,3 +9,8 @@ edition = "2018"
 [dependencies]
 ggez = "0.5.1"
 novelscript = { git = "https://github.com/nobbele/novelscript" }
+
+[build-dependencies]
+fs_extra = "1.2.0"
+zip = "0.5.8"
+walkdir = "2.3.1"
