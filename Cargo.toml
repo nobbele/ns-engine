@@ -9,7 +9,7 @@ build = "build-zip.rs"
 
 [dependencies]
 #ggez = "0.5.1"
-ggez = { git = "https://github.com/ggez/ggez", branch="devel" }
+ggez = { git = "https://github.com/ggez/ggez", rev = "1000695" }
 novelscript = { git = "https://github.com/nobbele/novelscript" }
 
 [build-dependencies]

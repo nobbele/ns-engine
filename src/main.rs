@@ -13,7 +13,7 @@ use ggez::{
     graphics::{self, drawable_size},
 };
 use helpers::{get_item_index, get_item_y, Position};
-use tween::Tween;
+use tween::{TransitionTweenBox, TweenBox};
 
 mod draw;
 mod helpers;
@@ -32,14 +32,26 @@ pub struct Character {
     alpha: f32,
 }
 
+#[derive(Debug, Clone)]
+pub struct FadeableImage {
+    fade: f32,
+    image: graphics::Image,
+}
+
+impl FadeableImage {
+    pub fn new(image: graphics::Image) -> Self {
+        Self { fade: 0.0, image }
+    }
+}
+
 pub struct MainState {
     novel: novelscript::Novel,
     state: novelscript::NovelState,
     current_node: Option<novelscript::SceneNodeData>,
     hovered_choice: u32,
     resources: Resources,
-    current_background: Option<graphics::Image>,
-    current_characters: Vec<Box<dyn Tween<Character>>>,
+    current_background: Option<TransitionTweenBox<FadeableImage>>,
+    current_characters: Vec<TweenBox<Character>>,
 }
 
 impl MainState {
@@ -73,6 +85,9 @@ impl event::EventHandler for MainState {
         for character in &mut self.current_characters {
             character.update(ggez::timer::delta(ctx).as_secs_f32());
         }
+        if let Some(current_background) = &mut self.current_background {
+            current_background.update(ggez::timer::delta(ctx).as_secs_f32());
+        }
         Ok(())
     }
 
@@ -80,15 +95,39 @@ impl event::EventHandler for MainState {
         graphics::clear(ctx, [0.1, 0.2, 0.3, 1.0].into());
 
         if let Some(background) = &self.current_background {
+            let background = background.get_current();
+            if let Some(FadeableImage { fade, image }) = &background.0 {
+                graphics::draw(
+                    ctx,
+                    image,
+                    graphics::DrawParam {
+                        scale: [
+                            drawable_size(ctx).0 / image.width() as f32,
+                            drawable_size(ctx).1 / image.height() as f32,
+                        ]
+                        .into(),
+                        color: graphics::Color {
+                            a: *fade,
+                            ..graphics::WHITE
+                        },
+                        ..Default::default()
+                    },
+                )?;
+            }
+            let FadeableImage { fade, image } = &background.1;
             graphics::draw(
                 ctx,
-                background,
+                image,
                 graphics::DrawParam {
                     scale: [
-                        drawable_size(ctx).0 / background.width() as f32,
-                        drawable_size(ctx).1 / background.height() as f32,
+                        drawable_size(ctx).0 / image.width() as f32,
+                        drawable_size(ctx).1 / image.height() as f32,
                     ]
                     .into(),
+                    color: graphics::Color {
+                        a: *fade,
+                        ..graphics::WHITE
+                    },
                     ..Default::default()
                 },
             )?;

@@ -3,7 +3,8 @@ use ggez::{graphics, Context};
 use crate::{
     draw::{draw_choices, draw_text},
     tween::TargetTweener,
-    Character, MainState, Placement,
+    tween::TransitionTweener,
+    Character, FadeableImage, MainState, Placement,
 };
 
 pub fn draw_node(state: &mut MainState, ctx: &mut Context) -> ggez::GameResult {
@@ -21,7 +22,7 @@ pub fn draw_node(state: &mut MainState, ctx: &mut Context) -> ggez::GameResult {
             let tween = TargetTweener {
                 time: 0.0,
                 target: 0.75,
-                update: |cur: &mut Character, _time, _dt, progress| {
+                update: |cur: &mut Character, progress| {
                     cur.alpha = progress;
                 },
                 current: Character {
@@ -48,8 +49,31 @@ pub fn draw_node(state: &mut MainState, ctx: &mut Context) -> ggez::GameResult {
             );
             state.continue_text();
         } else if let novelscript::SceneNodeData::LoadBackground { name } = node {
-            state.current_background =
-                Some(graphics::Image::new(ctx, format!("/bg/{}.png", name))?);
+            let prev_clone = state
+                .current_background
+                .as_ref()
+                .map(|n| n.get_current().1.clone())
+                .map(|mut n| {
+                    n.fade = 0.0;
+                    n
+                });
+            state.current_background = Some(Box::new(TransitionTweener {
+                time: 0.0,
+                target: 0.5,
+                set_instantly_if_no_prev: true,
+                current: (
+                    prev_clone,
+                    FadeableImage::new(graphics::Image::new(ctx, format!("/bg/{}.png", name))?),
+                ),
+                update: |prev: &mut Option<FadeableImage>,
+                         to: &mut FadeableImage,
+                         progress| {
+                    if let Some(prev) = prev {
+                        prev.fade = 1.0 / progress;
+                    }
+                    to.fade = progress;
+                },
+            }));
             state.continue_text();
             draw_node(state, ctx)?;
         }
