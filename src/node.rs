@@ -4,8 +4,52 @@ use crate::{
     draw::{draw_choices, draw_text},
     tween::TargetTweener,
     tween::TransitionTweener,
-    Character, FadeableImage, MainState, Placement,
+    Character, Background, MainState, Placement,
 };
+
+pub fn load_character_tween(
+    ctx: &mut Context,
+    character: &String,
+    expression: &String,
+    placement: &String,
+) -> ggez::GameResult<TargetTweener<Character, impl Fn(&mut Character, f32)>> {
+    Ok(TargetTweener {
+        time: 0.0,
+        target: 0.75,
+        update: |cur: &mut Character, progress| {
+            cur.alpha = progress;
+        },
+        current: Character {
+            alpha: 0.0,
+            name: character.clone(),
+            expression: expression.clone(),
+            image: graphics::Image::new(ctx, format!("/char/{}/{}.png", character, expression))?,
+            position: match &placement[..] {
+                "Left" => Some(Placement::Left),
+                "Right" => Some(Placement::Right),
+                _ => None,
+            },
+        },
+    })
+}
+
+pub fn load_background_tween(ctx: &mut Context, prev_clone: Option<Background>, name: &String) -> ggez::GameResult<TransitionTweener<Background, impl Fn(&mut Option<Background>, &mut Background, f32)>> {
+    Ok(TransitionTweener {
+        time: 0.0,
+        target: 0.5,
+        set_instantly_if_no_prev: true,
+        current: (
+            prev_clone,
+            Background::new(name.clone(), graphics::Image::new(ctx, format!("/bg/{}.png", name))?),
+        ),
+        update: |prev: &mut Option<Background>, to: &mut Background, progress| {
+            if let Some(prev) = prev {
+                prev.fade = 1.0 / progress;
+            }
+            to.fade = progress;
+        },
+    })
+}
 
 pub fn draw_node(state: &mut MainState, ctx: &mut Context) -> ggez::GameResult {
     if let Some(node) = &state.current_node {
@@ -19,26 +63,7 @@ pub fn draw_node(state: &mut MainState, ctx: &mut Context) -> ggez::GameResult {
             placement,
         } = node
         {
-            let tween = TargetTweener {
-                time: 0.0,
-                target: 0.75,
-                update: |cur: &mut Character, progress| {
-                    cur.alpha = progress;
-                },
-                current: Character {
-                    alpha: 0.0,
-                    _name: character.clone(),
-                    image: graphics::Image::new(
-                        ctx,
-                        format!("/char/{}/{}.png", character, expression),
-                    )?,
-                    position: match &placement[..] {
-                        "Left" => Some(Placement::Left),
-                        "Right" => Some(Placement::Right),
-                        _ => None,
-                    },
-                },
-            };
+            let tween = load_character_tween(ctx, character, expression, placement)?;
             state.current_characters.insert(
                 match tween.current.position {
                     Some(Placement::Left) => 0,
@@ -57,23 +82,7 @@ pub fn draw_node(state: &mut MainState, ctx: &mut Context) -> ggez::GameResult {
                     n.fade = 0.0;
                     n
                 });
-            state.current_background = Some(Box::new(TransitionTweener {
-                time: 0.0,
-                target: 0.5,
-                set_instantly_if_no_prev: true,
-                current: (
-                    prev_clone,
-                    FadeableImage::new(graphics::Image::new(ctx, format!("/bg/{}.png", name))?),
-                ),
-                update: |prev: &mut Option<FadeableImage>,
-                         to: &mut FadeableImage,
-                         progress| {
-                    if let Some(prev) = prev {
-                        prev.fade = 1.0 / progress;
-                    }
-                    to.fade = progress;
-                },
-            }));
+            state.current_background = Some(Box::new(load_background_tween(ctx, prev_clone, name)?));
             state.continue_text();
             draw_node(state, ctx)?;
         }

@@ -1694,6 +1694,7 @@ name = "novelscript"
 version = "0.1.0"
 source = "git+https://github.com/nobbele/novelscript#6e9c4c62485daeb94a11b55750063bfbaa42fbd3"
 dependencies = [
+ "serde",
  "thiserror",
 ]
 
@@ -1704,6 +1705,8 @@ dependencies = [
  "fs_extra",
  "ggez",
  "novelscript",
+ "serde",
+ "serde_json",
  "walkdir",
  "zip",
 ]
@@ -2286,6 +2289,9 @@ name = "serde"
 version = "1.0.117"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b88fa983de7720629c9387e9f517353ed404164b1e482c970a90c1a4aaf7dc1a"
+dependencies = [
+ "serde_derive",
+]
 
 [[package]]
 name = "serde_derive"

@@ -13,6 +13,7 @@ use ggez::{
     graphics::{self, drawable_size},
 };
 use helpers::{get_item_index, get_item_y, Position};
+use node::{load_background_tween, load_character_tween};
 use tween::{TransitionTweenBox, TweenBox};
 
 mod draw;
@@ -26,21 +27,23 @@ pub enum Placement {
 }
 
 pub struct Character {
-    _name: String,
+    name: String,
+    expression: String,
     image: graphics::Image,
     position: Option<Placement>,
     alpha: f32,
 }
 
 #[derive(Debug, Clone)]
-pub struct FadeableImage {
+pub struct Background {
+    name: String,
     fade: f32,
     image: graphics::Image,
 }
 
-impl FadeableImage {
-    pub fn new(image: graphics::Image) -> Self {
-        Self { fade: 0.0, image }
+impl Background {
+    pub fn new(name: String, image: graphics::Image) -> Self {
+        Self { name, fade: 0.0, image }
     }
 }
 
@@ -50,7 +53,7 @@ pub struct MainState {
     current_node: Option<novelscript::SceneNodeData>,
     hovered_choice: u32,
     resources: Resources,
-    current_background: Option<TransitionTweenBox<FadeableImage>>,
+    current_background: Option<TransitionTweenBox<Background>>,
     current_characters: Vec<TweenBox<Character>>,
 }
 
@@ -68,6 +71,13 @@ impl MainState {
         state.continue_text();
         state
     }
+}
+
+#[derive(serde::Serialize, serde::Deserialize)]
+pub struct SaveData {
+    state: novelscript::NovelState,
+    current_background: Option<String>,
+    current_characters: Vec<(String, String)>,
 }
 
 pub struct Resources {
@@ -96,7 +106,7 @@ impl event::EventHandler for MainState {
 
         if let Some(background) = &self.current_background {
             let background = background.get_current();
-            if let Some(FadeableImage { fade, image }) = &background.0 {
+            if let Some(Background { name: _, fade, image }) = &background.0 {
                 graphics::draw(
                     ctx,
                     image,
@@ -114,7 +124,7 @@ impl event::EventHandler for MainState {
                     },
                 )?;
             }
-            let FadeableImage { fade, image } = &background.1;
+            let Background { name: _, fade, image } = &background.1;
             graphics::draw(
                 ctx,
                 image,
@@ -169,13 +179,50 @@ impl event::EventHandler for MainState {
         Ok(())
     }
 
-    fn key_down_event(&mut self, _ctx: &mut Context, key: KeyCode, _mods: KeyMods, _: bool) {
+    fn key_down_event(&mut self, ctx: &mut Context, key: KeyCode, _mods: KeyMods, _: bool) {
         match key {
             KeyCode::Space | KeyCode::Escape => {
                 if !matches!(
                     self.current_node,
                     Some(novelscript::SceneNodeData::Choice(..))
                 ) {
+                    self.continue_text();
+                }
+            }
+            KeyCode::S => {
+                println!("Saving game");
+                serde_json::to_writer(
+                    ggez::filesystem::create(ctx, "/save.json").unwrap(),
+                    &SaveData {
+                        state: self.state.clone(),
+                        current_characters: self
+                            .current_characters
+                            .iter()
+                            .map(|n| { let cur = n.get_current(); (cur.name.clone(), cur.expression.clone()) })
+                            .collect(),
+                        current_background: self.current_background.as_ref().map(|n| n.get_current().1.name.clone())
+                    },
+                )
+                .unwrap();
+                println!("Saved game!");
+            }
+            KeyCode::L => {
+                if ggez::filesystem::exists(ctx, "/save.json") {
+                    let file = ggez::filesystem::open(ctx, "/save.json").unwrap();
+                    let savedata: SaveData = serde_json::from_reader(file).unwrap();
+                    self.state = savedata.state;
+                    self.current_characters = Vec::new();
+                    for (name, expression) in &savedata.current_characters {
+                        let character = load_character_tween(ctx, name, expression, &"".into()).unwrap();
+                        self.current_characters.push(Box::new(character));
+                    }
+                    if let Some(name) = &savedata.current_background {
+                        let background = load_background_tween(ctx, None, name).unwrap();
+                        self.current_background = Some(Box::new(background));
+                    } else {
+                        self.current_background = None;
+                    }
+
                     self.continue_text();
                 }
             }

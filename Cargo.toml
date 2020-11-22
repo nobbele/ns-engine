@@ -10,7 +10,9 @@ build = "build-zip.rs"
 [dependencies]
 #ggez = "0.5.1"
 ggez = { git = "https://github.com/ggez/ggez", rev = "1000695" }
-novelscript = { git = "https://github.com/nobbele/novelscript" }
+novelscript = { git = "https://github.com/nobbele/novelscript", features = ["serde"] }
+serde_json = "1.0"
+serde = "1.0.117"
 
 [build-dependencies]
 fs_extra = "1.2.0"
