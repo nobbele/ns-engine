@@ -42,8 +42,8 @@ pub struct Background {
 }
 
 impl Background {
-    pub fn new(name: String, image: graphics::Image) -> Self {
-        Self { name, fade: 0.0, image }
+    pub fn new(image: graphics::Image, name: String) -> Self {
+        Self { image, name, fade: 0.0 }
     }
 }
 
@@ -86,7 +86,7 @@ pub struct Resources {
 
 impl MainState {
     fn continue_text(&mut self) {
-        self.current_node = self.novel.next(&mut self.state).cloned();
+        self.current_node = self.novel.next(&mut self.state).cloned(); // Must clone because struct cannot store reference to it's own field
     }
 }
 
@@ -194,13 +194,13 @@ impl event::EventHandler for MainState {
                 serde_json::to_writer(
                     ggez::filesystem::create(ctx, "/save.json").unwrap(),
                     &SaveData {
-                        state: self.state.clone(),
+                        state: self.state.clone(), // Must clone to be able to be serialized
                         current_characters: self
                             .current_characters
                             .iter()
-                            .map(|n| { let cur = n.get_current(); (cur.name.clone(), cur.expression.clone()) })
+                            .map(|n| { let cur = n.get_current(); (cur.name.clone(), cur.expression.clone()) }) // Must clone to be able to be serialized
                             .collect(),
-                        current_background: self.current_background.as_ref().map(|n| n.get_current().1.name.clone())
+                        current_background: self.current_background.as_ref().map(|n| n.get_current().1.name.clone()) // Must clone to be able to be serialized
                     },
                 )
                 .unwrap();
@@ -212,11 +212,11 @@ impl event::EventHandler for MainState {
                     let savedata: SaveData = serde_json::from_reader(file).unwrap();
                     self.state = savedata.state;
                     self.current_characters = Vec::new();
-                    for (name, expression) in &savedata.current_characters {
-                        let character = load_character_tween(ctx, name, expression, &"".into()).unwrap();
+                    for (name, expression) in savedata.current_characters {
+                        let character = load_character_tween(ctx, name, expression, "").unwrap();
                         self.current_characters.push(Box::new(character));
                     }
-                    if let Some(name) = &savedata.current_background {
+                    if let Some(name) = savedata.current_background {
                         let background = load_background_tween(ctx, None, name).unwrap();
                         self.current_background = Some(Box::new(background));
                     } else {
@@ -254,7 +254,7 @@ impl event::EventHandler for MainState {
                 let idx = get_item_index(ctx, y, choices.len() as f32);
                 self.state.set_choice(idx as i32 + 1);
                 self.hovered_choice = 0;
-                self.current_node = self.novel.next(&mut self.state).cloned();
+                self.continue_text();
             }
         }
     }

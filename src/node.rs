@@ -9,9 +9,9 @@ use crate::{
 
 pub fn load_character_tween(
     ctx: &mut Context,
-    character: &String,
-    expression: &String,
-    placement: &String,
+    name: String,
+    expression: String,
+    placement: &str,
 ) -> ggez::GameResult<TargetTweener<Character, impl Fn(&mut Character, f32)>> {
     Ok(TargetTweener {
         time: 0.0,
@@ -21,9 +21,9 @@ pub fn load_character_tween(
         },
         current: Character {
             alpha: 0.0,
-            name: character.clone(),
-            expression: expression.clone(),
-            image: graphics::Image::new(ctx, format!("/char/{}/{}.png", character, expression))?,
+            image: graphics::Image::new(ctx, format!("/char/{}/{}.png", name, expression))?,
+            name,
+            expression,
             position: match &placement[..] {
                 "Left" => Some(Placement::Left),
                 "Right" => Some(Placement::Right),
@@ -33,14 +33,15 @@ pub fn load_character_tween(
     })
 }
 
-pub fn load_background_tween(ctx: &mut Context, prev_clone: Option<Background>, name: &String) -> ggez::GameResult<TransitionTweener<Background, impl Fn(&mut Option<Background>, &mut Background, f32)>> {
+pub fn load_background_tween(ctx: &mut Context, prev: Option<Background>, name: String) -> ggez::GameResult<TransitionTweener<Background, impl Fn(&mut Option<Background>, &mut Background, f32)>> {
+    let prev = prev.map(|mut n| { n.fade = 0.0; n });
     Ok(TransitionTweener {
         time: 0.0,
         target: 0.5,
         set_instantly_if_no_prev: true,
         current: (
-            prev_clone,
-            Background::new(name.clone(), graphics::Image::new(ctx, format!("/bg/{}.png", name))?),
+            prev,
+            Background::new(graphics::Image::new(ctx, format!("/bg/{}.png", name))?, name,),
         ),
         update: |prev: &mut Option<Background>, to: &mut Background, progress| {
             if let Some(prev) = prev {
@@ -63,7 +64,7 @@ pub fn draw_node(state: &mut MainState, ctx: &mut Context) -> ggez::GameResult {
             placement,
         } = node
         {
-            let tween = load_character_tween(ctx, character, expression, placement)?;
+            let tween = load_character_tween(ctx, character.clone(), expression.clone(), placement)?; // Must clone because can't take ownership of the node data
             state.current_characters.insert(
                 match tween.current.position {
                     Some(Placement::Left) => 0,
@@ -74,15 +75,11 @@ pub fn draw_node(state: &mut MainState, ctx: &mut Context) -> ggez::GameResult {
             );
             state.continue_text();
         } else if let novelscript::SceneNodeData::LoadBackground { name } = node {
-            let prev_clone = state
+            let prev = state
                 .current_background
-                .as_ref()
-                .map(|n| n.get_current().1.clone())
-                .map(|mut n| {
-                    n.fade = 0.0;
-                    n
-                });
-            state.current_background = Some(Box::new(load_background_tween(ctx, prev_clone, name)?));
+                .as_mut()
+                .map(|n| &n.get_current().1);
+            state.current_background = Some(Box::new(load_background_tween(ctx, prev.cloned(), name.clone())?)); // Must clone cause can't move out current_background
             state.continue_text();
             draw_node(state, ctx)?;
         }
