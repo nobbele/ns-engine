@@ -19,18 +19,6 @@ pub fn draw_text(
             Position::BottomLeft.add_in(ctx, (0.0, 200.0)),
             Position::BottomRight.add_in(ctx, (0.0, 0.0)),
         );
-        /*let layer = graphics::Mesh::new_rectangle(
-            ctx,
-            graphics::DrawMode::fill(),
-            bounds,
-            Color {
-                r: 1.0,
-                g: 1.0,
-                b: 1.0,
-                a: 0.25,
-            },
-        )?;
-        graphics::draw(ctx, &layer, (na::Point2::new(0.0, 0.0),))?;*/
         let image = &resources.text_box;
         graphics::draw(
             ctx,
