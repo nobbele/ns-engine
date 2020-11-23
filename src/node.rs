@@ -48,7 +48,7 @@ pub fn load_background_tween(ctx: &mut Context, prev: Option<Background>, name: 
 }
 
 pub fn load_node(state: &mut MainState, ctx: &mut Context) -> ggez::GameResult {
-    let node = state.current_node.as_ref().unwrap();
+    let node = state.current_node.take().unwrap();
     if let novelscript::SceneNodeUser::Load(node) = node {
         if let novelscript::SceneNodeLoad::Character {
             character,
@@ -56,7 +56,7 @@ pub fn load_node(state: &mut MainState, ctx: &mut Context) -> ggez::GameResult {
             placement,
         } = node
         {
-            let tween = load_character_tween(ctx, character.clone(), expression.clone(), placement)?; // Must clone because can't take ownership of the node data
+            let tween = load_character_tween(ctx, character, expression, &placement)?;
             state.current_characters.insert(
                 match tween.current.position {
                     Some(Placement::Left) => 0,
@@ -67,9 +67,9 @@ pub fn load_node(state: &mut MainState, ctx: &mut Context) -> ggez::GameResult {
             );
             state.continue_text();
         } else if let novelscript::SceneNodeLoad::Background { name } = node {
-            let prev = std::mem::take(&mut state.current_background)
+            let prev = state.current_background.take()
                 .map(|n| n.take_final_box().1);
-            state.current_background = Some(Box::new(load_background_tween(ctx, prev, name.clone())?)); // Must clone cause can't take ownership of node
+            state.current_background = Some(Box::new(load_background_tween(ctx, prev, name)?));
             state.continue_text();
         }
     }
