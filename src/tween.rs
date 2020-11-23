@@ -1,5 +1,7 @@
 pub trait Tween<T> {
     fn get_current(&self) -> &T;
+    fn take_final(self) -> T;
+    fn take_final_box(self: Box<Self>) -> T;
     fn update(&mut self, dt: f32);
 }
 
@@ -16,6 +18,14 @@ impl<T, F: Fn(&mut T, f32, f32)> Tween<T> for Tweener<T, F> {
 
     fn get_current(&self) -> &T {
         &self.current
+    }
+
+    fn take_final(self) -> T {
+        self.current
+    }
+
+    fn take_final_box(self: Box<Self>) -> T {
+        self.current
     }
 }
 
@@ -38,6 +48,14 @@ impl<T, F: Fn(&mut T, f32)> Tween<T> for TargetTweener<T, F> {
 
     fn get_current(&self) -> &T {
         &self.current
+    }
+
+    fn take_final(self) -> T {
+        self.current
+    }
+
+    fn take_final_box(self: Box<Self>) -> T {
+        self.current
     }
 }
 
@@ -64,6 +82,14 @@ impl<T, F: Fn(&mut Option<T>, &mut T, f32)> Tween<(Option<T>, T)> for Transition
 
     fn get_current(&self) -> &(Option<T>, T) {
         &self.current
+    }
+
+    fn take_final(self) -> (Option<T>, T) {
+        self.current
+    }
+
+    fn take_final_box(self: Box<Self>) -> (Option<T>, T) {
+        self.current
     }
 }
 
