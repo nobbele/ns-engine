@@ -54,32 +54,36 @@ pub fn load_background_tween(ctx: &mut Context, prev: Option<Background>, name: 
 
 pub fn draw_node(state: &mut MainState, ctx: &mut Context) -> ggez::GameResult {
     if let Some(node) = &state.current_node {
-        if let novelscript::SceneNodeData::Text { speaker, content } = node {
-            draw_text(ctx, &state.resources, speaker, content)?;
-        } else if let novelscript::SceneNodeData::Choice(choices) = node {
-            draw_choices(ctx, choices, state.hovered_choice)?;
-        } else if let novelscript::SceneNodeData::LoadCharacter {
-            character,
-            expression,
-            placement,
-        } = node
-        {
-            let tween = load_character_tween(ctx, character.clone(), expression.clone(), placement)?; // Must clone because can't take ownership of the node data
-            state.current_characters.insert(
-                match tween.current.position {
-                    Some(Placement::Left) => 0,
-                    Some(Placement::Right) => state.current_characters.len(),
-                    None => 0,
-                },
-                Box::new(tween),
-            );
-            state.continue_text();
-        } else if let novelscript::SceneNodeData::LoadBackground { name } = node {
-            let prev = std::mem::take(&mut state.current_background)
-                .map(|n| n.take_final_box().1);
-            state.current_background = Some(Box::new(load_background_tween(ctx, prev, name.clone())?)); // Must clone cause can't take ownership of node
-            state.continue_text();
-            draw_node(state, ctx)?;
+        if let novelscript::SceneNodeUser::Data(node) = node {
+            if let novelscript::SceneNodeData::Text { speaker, content } = node {
+                draw_text(ctx, &state.resources, speaker, content)?;
+            } else if let novelscript::SceneNodeData::Choice(choices) = node {
+                draw_choices(ctx, choices, state.hovered_choice)?;
+            } 
+        } else if let novelscript::SceneNodeUser::Load(node) = node {
+            if let novelscript::SceneNodeLoad::Character {
+                character,
+                expression,
+                placement,
+            } = node
+            {
+                let tween = load_character_tween(ctx, character.clone(), expression.clone(), placement)?; // Must clone because can't take ownership of the node data
+                state.current_characters.insert(
+                    match tween.current.position {
+                        Some(Placement::Left) => 0,
+                        Some(Placement::Right) => state.current_characters.len(),
+                        None => 0,
+                    },
+                    Box::new(tween),
+                );
+                state.continue_text();
+            } else if let novelscript::SceneNodeLoad::Background { name } = node {
+                let prev = std::mem::take(&mut state.current_background)
+                    .map(|n| n.take_final_box().1);
+                state.current_background = Some(Box::new(load_background_tween(ctx, prev, name.clone())?)); // Must clone cause can't take ownership of node
+                state.continue_text();
+                draw_node(state, ctx)?;
+            }
         }
     }
     Ok(())

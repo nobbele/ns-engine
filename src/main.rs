@@ -50,7 +50,7 @@ impl Background {
 pub struct MainState {
     novel: novelscript::Novel,
     state: novelscript::NovelState,
-    current_node: Option<novelscript::SceneNodeData>,
+    current_node: Option<novelscript::SceneNodeUser>,
     hovered_choice: u32,
     resources: Resources,
     current_background: Option<TransitionTweenBox<Background>>,
@@ -184,7 +184,8 @@ impl event::EventHandler for MainState {
             KeyCode::Space | KeyCode::Escape => {
                 if !matches!(
                     self.current_node,
-                    Some(novelscript::SceneNodeData::Choice(..))
+                    Some(novelscript::SceneNodeUser::Data(novelscript::SceneNodeData::Choice(..))) |
+                    Some(novelscript::SceneNodeUser::Load(..)) 
                 ) {
                     self.continue_text();
                 }
@@ -231,7 +232,7 @@ impl event::EventHandler for MainState {
     }
 
     fn mouse_motion_event(&mut self, ctx: &mut Context, _x: f32, y: f32, _dx: f32, _dy: f32) {
-        if let Some(novelscript::SceneNodeData::Choice(choices)) = &self.current_node {
+        if let Some(novelscript::SceneNodeUser::Data(novelscript::SceneNodeData::Choice(choices))) = &self.current_node {
             if y > get_item_y(ctx, 0.0, choices.len() as f32)
                 && y < get_item_y(ctx, choices.len() as f32, choices.len() as f32)
             {
@@ -247,7 +248,7 @@ impl event::EventHandler for MainState {
         _x: f32,
         y: f32,
     ) {
-        if let Some(novelscript::SceneNodeData::Choice(choices)) = &self.current_node {
+        if let Some(novelscript::SceneNodeUser::Data(novelscript::SceneNodeData::Choice(choices))) = &self.current_node {
             if y > get_item_y(ctx, 0.0, choices.len() as f32)
                 && y < get_item_y(ctx, choices.len() as f32, choices.len() as f32)
             {
