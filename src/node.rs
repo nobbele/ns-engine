@@ -1,6 +1,11 @@
 use ggez::{graphics, Context};
 
-use crate::{Background, Character, MainState, Placement, Resources, draw::{draw_choices, draw_text}, tween::TargetTweener, tween::TransitionTweener};
+use crate::{
+    draw::{draw_choices, draw_text},
+    tween::TargetTweener,
+    tween::TransitionTweener,
+    Background, Character, MainState, Placement, Resources,
+};
 
 pub fn load_character_tween(
     ctx: &mut Context,
@@ -28,15 +33,27 @@ pub fn load_character_tween(
     })
 }
 
-pub fn load_background_tween(ctx: &mut Context, prev: Option<Background>, name: String) -> ggez::GameResult<TransitionTweener<Background, impl Fn(&mut Option<Background>, &mut Background, f32)>> {
-    let prev = prev.map(|mut n| { n.fade = 0.0; n });
+pub fn load_background_tween(
+    ctx: &mut Context,
+    prev: Option<Background>,
+    name: String,
+) -> ggez::GameResult<
+    TransitionTweener<Background, impl Fn(&mut Option<Background>, &mut Background, f32)>,
+> {
+    let prev = prev.map(|mut n| {
+        n.fade = 0.0;
+        n
+    });
     Ok(TransitionTweener {
         time: 0.0,
         target: 0.5,
         set_instantly_if_no_prev: true,
         current: (
             prev,
-            Background::new(graphics::Image::new(ctx, format!("/bg/{}.png", name))?, name,),
+            Background::new(
+                graphics::Image::new(ctx, format!("/bg/{}.png", name))?,
+                name,
+            ),
         ),
         update: |prev: &mut Option<Background>, to: &mut Background, progress| {
             if let Some(prev) = prev {
@@ -67,7 +84,9 @@ pub fn load_node(state: &mut MainState, ctx: &mut Context) -> ggez::GameResult {
             );
             state.continue_text();
         } else if let novelscript::SceneNodeLoad::Background { name } = node {
-            let prev = state.current_background.take()
+            let prev = state
+                .current_background
+                .take()
                 .map(|n| n.take_final_box().1);
             state.current_background = Some(Box::new(load_background_tween(ctx, prev, name)?));
             state.continue_text();
@@ -76,14 +95,19 @@ pub fn load_node(state: &mut MainState, ctx: &mut Context) -> ggez::GameResult {
     Ok(())
 }
 
-pub fn draw_node(current_node: &Option<novelscript::SceneNodeUser>, resources: &Resources, hovered_choice: u32, ctx: &mut Context) -> ggez::GameResult {
+pub fn draw_node(
+    current_node: &Option<novelscript::SceneNodeUser>,
+    resources: &Resources,
+    hovered_choice: u32,
+    ctx: &mut Context,
+) -> ggez::GameResult {
     let node = current_node.as_ref().unwrap();
     if let novelscript::SceneNodeUser::Data(node) = node {
         if let novelscript::SceneNodeData::Text { speaker, content } = node {
             draw_text(ctx, &resources, speaker, content)?;
         } else if let novelscript::SceneNodeData::Choice(choices) = node {
             draw_choices(ctx, choices, hovered_choice)?;
-        } 
+        }
     }
     Ok(())
 }

@@ -43,7 +43,11 @@ pub struct Background {
 
 impl Background {
     pub fn new(image: graphics::Image, name: String) -> Self {
-        Self { image, name, fade: 0.0 }
+        Self {
+            image,
+            name,
+            fade: 0.0,
+        }
     }
 }
 
@@ -106,7 +110,12 @@ impl event::EventHandler for MainState {
 
         if let Some(background) = &self.current_background {
             let background = background.get_current();
-            if let Some(Background { name: _, fade, image }) = &background.0 {
+            if let Some(Background {
+                name: _,
+                fade,
+                image,
+            }) = &background.0
+            {
                 graphics::draw(
                     ctx,
                     image,
@@ -124,7 +133,11 @@ impl event::EventHandler for MainState {
                     },
                 )?;
             }
-            let Background { name: _, fade, image } = &background.1;
+            let Background {
+                name: _,
+                fade,
+                image,
+            } = &background.1;
             graphics::draw(
                 ctx,
                 image,
@@ -174,9 +187,14 @@ impl event::EventHandler for MainState {
         }
 
         match self.current_node {
-            Some(novelscript::SceneNodeUser::Data(..)) => node::draw_node(&self.current_node, &self.resources, self.hovered_choice, ctx),
+            Some(novelscript::SceneNodeUser::Data(..)) => node::draw_node(
+                &self.current_node,
+                &self.resources,
+                self.hovered_choice,
+                ctx,
+            ),
             Some(novelscript::SceneNodeUser::Load(..)) => node::load_node(self, ctx),
-            None => Ok(())
+            None => Ok(()),
         }?;
 
         graphics::present(ctx)?;
@@ -188,8 +206,9 @@ impl event::EventHandler for MainState {
             KeyCode::Space | KeyCode::Escape => {
                 if !matches!(
                     self.current_node,
-                    Some(novelscript::SceneNodeUser::Data(novelscript::SceneNodeData::Choice(..))) |
-                    Some(novelscript::SceneNodeUser::Load(..)) 
+                    Some(novelscript::SceneNodeUser::Data(
+                        novelscript::SceneNodeData::Choice(..)
+                    )) | Some(novelscript::SceneNodeUser::Load(..))
                 ) {
                     self.continue_text();
                 }
@@ -203,9 +222,15 @@ impl event::EventHandler for MainState {
                         current_characters: self
                             .current_characters
                             .iter()
-                            .map(|n| { let cur = n.get_current(); (cur.name.clone(), cur.expression.clone()) }) // Must clone to be able to be serialized
+                            .map(|n| {
+                                let cur = n.get_current();
+                                (cur.name.clone(), cur.expression.clone())
+                            }) // Must clone to be able to be serialized
                             .collect(),
-                        current_background: self.current_background.as_ref().map(|n| n.get_current().1.name.clone()) // Must clone to be able to be serialized
+                        current_background: self
+                            .current_background
+                            .as_ref()
+                            .map(|n| n.get_current().1.name.clone()), // Must clone to be able to be serialized
                     },
                 )
                 .unwrap();
@@ -236,7 +261,9 @@ impl event::EventHandler for MainState {
     }
 
     fn mouse_motion_event(&mut self, ctx: &mut Context, _x: f32, y: f32, _dx: f32, _dy: f32) {
-        if let Some(novelscript::SceneNodeUser::Data(novelscript::SceneNodeData::Choice(choices))) = &self.current_node {
+        if let Some(novelscript::SceneNodeUser::Data(novelscript::SceneNodeData::Choice(choices))) =
+            &self.current_node
+        {
             if y > get_item_y(ctx, 0.0, choices.len() as f32)
                 && y < get_item_y(ctx, choices.len() as f32, choices.len() as f32)
             {
@@ -252,7 +279,9 @@ impl event::EventHandler for MainState {
         _x: f32,
         y: f32,
     ) {
-        if let Some(novelscript::SceneNodeUser::Data(novelscript::SceneNodeData::Choice(choices))) = &self.current_node {
+        if let Some(novelscript::SceneNodeUser::Data(novelscript::SceneNodeData::Choice(choices))) =
+            &self.current_node
+        {
             if y > get_item_y(ctx, 0.0, choices.len() as f32)
                 && y < get_item_y(ctx, choices.len() as f32, choices.len() as f32)
             {
