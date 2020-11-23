@@ -77,7 +77,7 @@ pub fn draw_node(state: &mut MainState, ctx: &mut Context) -> ggez::GameResult {
         } else if let novelscript::SceneNodeData::LoadBackground { name } = node {
             let prev = std::mem::take(&mut state.current_background)
                 .map(|n| n.take_final_box().1);
-            state.current_background = Some(Box::new(load_background_tween(ctx, prev, name.clone())?)); // Must clone cause can't move out current_background
+            state.current_background = Some(Box::new(load_background_tween(ctx, prev, name.clone())?)); // Must clone cause can't take ownership of node
             state.continue_text();
             draw_node(state, ctx)?;
         }
