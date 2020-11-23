@@ -86,7 +86,7 @@ pub struct Resources {
 
 impl MainState {
     fn continue_text(&mut self) {
-        self.current_node = self.novel.next(&mut self.state);
+        self.current_node = self.novel.next(&mut self.state).cloned();
     }
 }
 
@@ -254,7 +254,7 @@ impl event::EventHandler for MainState {
                 let idx = get_item_index(ctx, y, choices.len() as f32);
                 self.state.set_choice(idx as i32 + 1);
                 self.hovered_choice = 0;
-                self.current_node = self.novel.next(&mut self.state);
+                self.current_node = self.novel.next(&mut self.state).cloned();
             }
         }
     }
