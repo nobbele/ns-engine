@@ -173,7 +173,11 @@ impl event::EventHandler for MainState {
             )?;
         }
 
-        node::draw_node(self, ctx)?;
+        match self.current_node {
+            Some(novelscript::SceneNodeUser::Data(..)) => node::draw_node(&self.current_node, &self.resources, self.hovered_choice, ctx),
+            Some(novelscript::SceneNodeUser::Load(..)) => node::load_node(self, ctx),
+            None => Ok(())
+        }?;
 
         graphics::present(ctx)?;
         Ok(())

@@ -1,11 +1,6 @@
 use ggez::{graphics, Context};
 
-use crate::{
-    draw::{draw_choices, draw_text},
-    tween::TargetTweener,
-    tween::TransitionTweener,
-    Character, Background, MainState, Placement,
-};
+use crate::{Background, Character, MainState, Placement, Resources, draw::{draw_choices, draw_text}, tween::TargetTweener, tween::TransitionTweener};
 
 pub fn load_character_tween(
     ctx: &mut Context,
@@ -52,39 +47,43 @@ pub fn load_background_tween(ctx: &mut Context, prev: Option<Background>, name: 
     })
 }
 
-pub fn draw_node(state: &mut MainState, ctx: &mut Context) -> ggez::GameResult {
-    if let Some(node) = &state.current_node {
-        if let novelscript::SceneNodeUser::Data(node) = node {
-            if let novelscript::SceneNodeData::Text { speaker, content } = node {
-                draw_text(ctx, &state.resources, speaker, content)?;
-            } else if let novelscript::SceneNodeData::Choice(choices) = node {
-                draw_choices(ctx, choices, state.hovered_choice)?;
-            } 
-        } else if let novelscript::SceneNodeUser::Load(node) = node {
-            if let novelscript::SceneNodeLoad::Character {
-                character,
-                expression,
-                placement,
-            } = node
-            {
-                let tween = load_character_tween(ctx, character.clone(), expression.clone(), placement)?; // Must clone because can't take ownership of the node data
-                state.current_characters.insert(
-                    match tween.current.position {
-                        Some(Placement::Left) => 0,
-                        Some(Placement::Right) => state.current_characters.len(),
-                        None => 0,
-                    },
-                    Box::new(tween),
-                );
-                state.continue_text();
-            } else if let novelscript::SceneNodeLoad::Background { name } = node {
-                let prev = std::mem::take(&mut state.current_background)
-                    .map(|n| n.take_final_box().1);
-                state.current_background = Some(Box::new(load_background_tween(ctx, prev, name.clone())?)); // Must clone cause can't take ownership of node
-                state.continue_text();
-                draw_node(state, ctx)?;
-            }
+pub fn load_node(state: &mut MainState, ctx: &mut Context) -> ggez::GameResult {
+    let node = state.current_node.as_ref().unwrap();
+    if let novelscript::SceneNodeUser::Load(node) = node {
+        if let novelscript::SceneNodeLoad::Character {
+            character,
+            expression,
+            placement,
+        } = node
+        {
+            let tween = load_character_tween(ctx, character.clone(), expression.clone(), placement)?; // Must clone because can't take ownership of the node data
+            state.current_characters.insert(
+                match tween.current.position {
+                    Some(Placement::Left) => 0,
+                    Some(Placement::Right) => state.current_characters.len(),
+                    None => 0,
+                },
+                Box::new(tween),
+            );
+            state.continue_text();
+        } else if let novelscript::SceneNodeLoad::Background { name } = node {
+            let prev = std::mem::take(&mut state.current_background)
+                .map(|n| n.take_final_box().1);
+            state.current_background = Some(Box::new(load_background_tween(ctx, prev, name.clone())?)); // Must clone cause can't take ownership of node
+            state.continue_text();
         }
+    }
+    Ok(())
+}
+
+pub fn draw_node(current_node: &Option<novelscript::SceneNodeUser>, resources: &Resources, hovered_choice: u32, ctx: &mut Context) -> ggez::GameResult {
+    let node = current_node.as_ref().unwrap();
+    if let novelscript::SceneNodeUser::Data(node) = node {
+        if let novelscript::SceneNodeData::Text { speaker, content } = node {
+            draw_text(ctx, &resources, speaker, content)?;
+        } else if let novelscript::SceneNodeData::Choice(choices) = node {
+            draw_choices(ctx, choices, hovered_choice)?;
+        } 
     }
     Ok(())
 }
