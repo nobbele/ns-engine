@@ -1,11 +1,7 @@
 use ggez::{graphics, Context};
+use novelscript::SceneNodeUser;
 
-use crate::{
-    draw::{draw_choices, draw_text},
-    tween::TargetTweener,
-    tween::TransitionTweener,
-    Background, Character, MainState, Placement, Resources,
-};
+use crate::{Background, containers::background::BackgroundContainer, Character, Placement, Resources, Screen, draw::{draw_choices, draw_text}, tween::TargetTweener, tween::TransitionTweener};
 
 pub fn load_character_tween(
     ctx: &mut Context,
@@ -64,8 +60,7 @@ pub fn load_background_tween(
     })
 }
 
-pub fn load_node(state: &mut MainState, ctx: &mut Context) -> ggez::GameResult {
-    let node = state.current_node.take().unwrap();
+pub fn load_node(ctx: &mut Context, screen: &mut Screen, node: SceneNodeUser) -> ggez::GameResult {
     if let novelscript::SceneNodeUser::Load(node) = node {
         if let novelscript::SceneNodeLoad::Character {
             character,
@@ -74,32 +69,32 @@ pub fn load_node(state: &mut MainState, ctx: &mut Context) -> ggez::GameResult {
         } = node
         {
             let tween = load_character_tween(ctx, character, expression, &placement)?;
-            state.current_characters.insert(
+            screen.current_characters.current.insert(
                 match tween.current.position {
                     Some(Placement::Left) => 0,
-                    Some(Placement::Right) => state.current_characters.len(),
+                    Some(Placement::Right) => screen.current_characters.current.len(),
                     None => 0,
                 },
                 Box::new(tween),
             );
-            state.continue_text();
         } else if let novelscript::SceneNodeLoad::Background { name } = node {
-            let prev = state
+            let prev = screen
                 .current_background
                 .take()
-                .map(|n| n.take_final_box().1);
-            state.current_background = Some(Box::new(load_background_tween(ctx, prev, name)?));
-            state.continue_text();
+                .map(|n| n.current.take_final_box().1);
+                screen.current_background = Some(BackgroundContainer {
+                    current: Box::new(load_background_tween(ctx, prev, name)?)
+                });
         }
     }
     Ok(())
 }
 
 pub fn draw_node(
+    ctx: &mut Context,
     current_node: &Option<novelscript::SceneNodeUser>,
     resources: &Resources,
     hovered_choice: u32,
-    ctx: &mut Context,
 ) -> ggez::GameResult {
     let node = current_node.as_ref().unwrap();
     if let novelscript::SceneNodeUser::Data(node) = node {
