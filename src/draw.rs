@@ -1,53 +1,97 @@
-use ggez::{Context, graphics::{self, Color, Drawable}, mint as na};
-use crate::{Resources, containers::{panel::Panel, screen::Screen}, helpers::{get_item_y, points_to_rect, Position}};
+use crate::{
+    containers::{
+        panel::Panel,
+        screen::{Action, Screen},
+        textbox::TextBox,
+    },
+    helpers::{get_item_y, points_to_rect, Position},
+    Resources,
+};
+use ggez::{
+    graphics::{self, Color, Drawable, Text},
+    mint as na, Context,
+};
 
-pub fn draw_text(
+pub fn load_text(
     ctx: &mut Context,
-    resources: &Resources,
+    screen: &mut Screen,
+    resources: &'static Resources,
     speaker: &Option<String>,
     content: &str,
 ) -> ggez::GameResult {
-    let layer_bounds = {
-        let bounds = points_to_rect(
-            Position::BottomLeft.add_in(ctx, (0.0, 200.0)),
-            Position::BottomRight.add_in(ctx, (0.0, 0.0)),
-        );
-        let image = &resources.text_box;
-        graphics::draw(
-            ctx,
-            image,
-            graphics::DrawParam::new()
-                .dest([bounds.x, bounds.y])
-                .scale([
-                    bounds.w / image.width() as f32,
-                    bounds.h / image.height() as f32,
-                ]),
-        )?;
-        bounds
+    let layer_bounds = points_to_rect(
+        Position::BottomLeft.add_in(ctx, (0.0, 200.0)),
+        Position::BottomRight.add_in(ctx, (0.0, 0.0)),
+    );
+    let layer_image = &resources.text_box;
+    let layer_params = graphics::DrawParam::new()
+        .dest([layer_bounds.x, layer_bounds.y])
+        .scale([
+            layer_bounds.w / layer_image.width() as f32,
+            layer_bounds.h / layer_image.height() as f32,
+        ]);
+
+    let speaker_text = if let Some(speaker) = speaker {
+        let mut speaker_text = graphics::Text::new(speaker.as_str());
+        speaker_text.set_bounds([f32::INFINITY, f32::INFINITY], graphics::Align::Left);
+        let speaker_text_params = (Position::TopLeft.add_in_from(&layer_bounds, (15.0, 20.0)),);
+        Some((speaker_text, speaker_text_params.into()))
+    } else {
+        None
     };
-    if let Some(speaker) = speaker {
-        let mut text = graphics::Text::new(speaker.as_str());
-        text.set_bounds([f32::INFINITY, f32::INFINITY], graphics::Align::Left);
-        graphics::draw(
-            ctx,
-            &text,
-            (Position::TopLeft.add_in_from(&layer_bounds, (15.0, 20.0)),),
-        )?;
-    }
+
     let mut text = graphics::Text::new(content);
     text.set_bounds(
         [layer_bounds.w - 10.0, layer_bounds.h - 10.0],
         graphics::Align::Left,
     );
-    graphics::draw(
-        ctx,
-        &text,
-        (Position::TopLeft.add_in_from(&layer_bounds, (15.0, 55.0)),),
-    )?;
+    let text_params = (Position::TopLeft.add_in_from(&layer_bounds, (15.0, 55.0)),).into();
+
+    screen.action = Action::Text(Box::new(TextBox {
+        layer: (layer_image, layer_params),
+        speaker: speaker_text,
+        content: (text, text_params),
+    }));
+
     Ok(())
 }
 
-pub fn draw_choices(
+pub fn load_choices_layer(
+    ctx: &mut Context,
+    n: usize,
+    max: usize,
+    hovered_choice: u32,
+) -> Result<graphics::Mesh, ggez::GameError> {
+    let size = (210.0, 40.0);
+    let pos: na::Point2<f32> = [
+        Position::Center.add_in(ctx, (-size.0 / 2.0, 0.0)).x,
+        get_item_y(ctx, n as f32, max as f32),
+    ]
+    .into();
+    let bounds = points_to_rect(pos, [pos.x + size.0, pos.y + size.1].into());
+    graphics::Mesh::new_rectangle(
+        ctx,
+        graphics::DrawMode::fill(),
+        bounds,
+        if n == hovered_choice as usize {
+            Color {
+                r: 1.0,
+                g: 1.0,
+                b: 1.0,
+                a: 0.25,
+            }
+        } else {
+            Color {
+                r: 0.25,
+                g: 0.25,
+                b: 0.25,
+                a: 0.25,
+            }
+        },
+    )
+}
+
+pub fn load_choices(
     ctx: &mut Context,
     screen: &mut Screen,
     choices: &[String],
@@ -56,36 +100,7 @@ pub fn draw_choices(
     let mut v = Vec::new();
     for (n, choice) in choices.iter().enumerate() {
         let textbox = {
-            let layer = {
-                let size = (210.0, 40.0);
-                let pos: na::Point2<f32> = [
-                    Position::Center.add_in(ctx, (-size.0 / 2.0, 0.0)).x,
-                    get_item_y(ctx, n as f32, choices.len() as f32),
-                ]
-                .into();
-                let bounds = points_to_rect(pos, [pos.x + size.0, pos.y + size.1].into());
-                let layer = graphics::Mesh::new_rectangle(
-                    ctx,
-                    graphics::DrawMode::fill(),
-                    bounds,
-                    if n == hovered_choice as usize {
-                        Color {
-                            r: 1.0,
-                            g: 1.0,
-                            b: 1.0,
-                            a: 0.25,
-                        }
-                    } else {
-                        Color {
-                            r: 0.25,
-                            g: 0.25,
-                            b: 0.25,
-                            a: 0.25,
-                        }
-                    },
-                )?;
-                layer
-            };
+            let layer = load_choices_layer(ctx, n, choices.len(), hovered_choice)?;
             let layer_bounds = layer.dimensions(ctx).unwrap();
             let mut text = graphics::Text::new(choice.as_str());
             text.set_bounds(
@@ -104,6 +119,18 @@ pub fn draw_choices(
         };
         v.push(textbox);
     }
-    screen.choices = Some(v);
+    screen.action = Action::Choice(v);
+    Ok(())
+}
+
+pub fn update_draw_choices(
+    ctx: &mut Context,
+    choices: &mut Vec<Panel<Text>>,
+    hovered_choice: u32,
+) -> ggez::GameResult {
+    let length = choices.len();
+    for (n, choice) in choices.iter_mut().enumerate() {
+        choice.layer = load_choices_layer(ctx, n as usize, length, hovered_choice)?;
+    }
     Ok(())
 }

@@ -1,6 +1,9 @@
 use std::io::BufReader;
 
-use containers::{background::BackgroundContainer, character::CharacterContainer, screen::Screen};
+use containers::{
+    background::BackgroundContainer, character::CharacterContainer, screen::Action, screen::Screen,
+};
+use draw::update_draw_choices;
 use ggez::event;
 use ggez::filesystem;
 use ggez::{
@@ -15,11 +18,11 @@ use ggez::{
 use helpers::{get_item_index, get_item_y};
 use node::{load_background_tween, load_character_tween};
 
+mod containers;
 mod draw;
 mod helpers;
 mod node;
 mod tween;
-mod containers;
 
 pub enum Placement {
     Left,
@@ -54,18 +57,20 @@ impl Background {
 pub struct MainState {
     novel: novelscript::Novel,
     state: novelscript::NovelState,
-    current_node: Option<novelscript::SceneNodeUser>,
     hovered_choice: u32,
-    resources: Resources,
+    resources: &'static Resources,
     screen: Screen,
 }
 
 impl MainState {
-    fn new(novel: novelscript::Novel, resources: Resources) -> MainState {
+    fn new(
+        ctx: &mut Context,
+        novel: novelscript::Novel,
+        resources: &'static Resources,
+    ) -> MainState {
         let mut state = MainState {
             state: novel.new_state("start"),
             novel,
-            current_node: None,
             hovered_choice: 0,
             resources,
             screen: Screen {
@@ -73,10 +78,10 @@ impl MainState {
                 current_characters: CharacterContainer {
                     current: Vec::new(),
                 },
-                choices: None,
+                action: Action::None,
             },
         };
-        state.continue_text();
+        state.continue_text(ctx).unwrap();
         state
     }
 }
@@ -93,8 +98,24 @@ pub struct Resources {
 }
 
 impl MainState {
-    fn continue_text(&mut self) {
-        self.current_node = self.novel.next(&mut self.state).cloned(); // Must clone because struct cannot store reference to it's own field
+    fn continue_text(&mut self, ctx: &mut Context) -> ggez::GameResult {
+        match self.novel.next(&mut self.state) {
+            Some(novelscript::SceneNodeUser::Data(node)) => {
+                node::load_data_node(
+                    ctx,
+                    &mut self.screen,
+                    node,
+                    &self.resources,
+                    self.hovered_choice,
+                )?;
+            }
+            Some(novelscript::SceneNodeUser::Load(node)) => {
+                node::load_load_node(ctx, &mut self.screen, node.clone())?;
+                self.continue_text(ctx).unwrap();
+            }
+            None => {}
+        };
+        Ok(())
     }
 }
 
@@ -104,7 +125,9 @@ impl event::EventHandler for MainState {
             character.update(ggez::timer::delta(ctx).as_secs_f32());
         }
         if let Some(current_background) = &mut self.screen.current_background {
-            current_background.current.update(ggez::timer::delta(ctx).as_secs_f32());
+            current_background
+                .current
+                .update(ggez::timer::delta(ctx).as_secs_f32());
         }
         Ok(())
     }
@@ -114,23 +137,6 @@ impl event::EventHandler for MainState {
 
         self.screen.draw(ctx)?;
 
-        match self.current_node {
-            Some(novelscript::SceneNodeUser::Data(..)) => {
-                node::draw_node(
-                    ctx,
-                    &mut self.screen,
-                    &self.current_node,
-                    &self.resources,
-                    self.hovered_choice,
-                )?;
-            },
-            Some(novelscript::SceneNodeUser::Load(..)) => {
-                node::load_node(ctx, &mut self.screen, self.current_node.take().unwrap())?;
-                self.continue_text();
-            }
-            None => {},
-        };
-
         graphics::present(ctx)?;
         Ok(())
     }
@@ -138,13 +144,8 @@ impl event::EventHandler for MainState {
     fn key_down_event(&mut self, ctx: &mut Context, key: KeyCode, _mods: KeyMods, _: bool) {
         match key {
             KeyCode::Space | KeyCode::Escape => {
-                if !matches!(
-                    self.current_node,
-                    Some(novelscript::SceneNodeUser::Data(
-                        novelscript::SceneNodeData::Choice(..)
-                    )) | Some(novelscript::SceneNodeUser::Load(..))
-                ) {
-                    self.continue_text();
+                if let Action::Text(..) = &mut self.screen.action {
+                    self.continue_text(ctx).unwrap();
                 }
             }
             KeyCode::S => {
@@ -154,7 +155,9 @@ impl event::EventHandler for MainState {
                     &SaveData {
                         state: self.state.clone(), // Must clone to be able to be serialized
                         current_characters: self
-                            .screen.current_characters.current
+                            .screen
+                            .current_characters
+                            .current
                             .iter()
                             .map(|n| {
                                 let cur = n.get_current();
@@ -162,7 +165,8 @@ impl event::EventHandler for MainState {
                             }) // Must clone to be able to be serialized
                             .collect(),
                         current_background: self
-                            .screen.current_background
+                            .screen
+                            .current_background
                             .as_ref()
                             .map(|n| n.current.get_current().1.name.clone()), // Must clone to be able to be serialized
                     },
@@ -178,18 +182,21 @@ impl event::EventHandler for MainState {
                     self.screen.current_characters.current = Vec::new();
                     for (name, expression) in savedata.current_characters {
                         let character = load_character_tween(ctx, name, expression, "").unwrap();
-                        self.screen.current_characters.current.push(Box::new(character));
+                        self.screen
+                            .current_characters
+                            .current
+                            .push(Box::new(character));
                     }
                     if let Some(name) = savedata.current_background {
                         let background = load_background_tween(ctx, None, name).unwrap();
                         self.screen.current_background = Some(BackgroundContainer {
-                            current: Box::new(background)
+                            current: Box::new(background),
                         });
                     } else {
                         self.screen.current_background = None;
                     }
 
-                    self.continue_text();
+                    self.continue_text(ctx).unwrap();
                 }
             }
             _ => (),
@@ -197,13 +204,13 @@ impl event::EventHandler for MainState {
     }
 
     fn mouse_motion_event(&mut self, ctx: &mut Context, _x: f32, y: f32, _dx: f32, _dy: f32) {
-        if let Some(novelscript::SceneNodeUser::Data(novelscript::SceneNodeData::Choice(choices))) =
-            &self.current_node
-        {
+        if let Action::Choice(choices) = &mut self.screen.action {
             if y > get_item_y(ctx, 0.0, choices.len() as f32)
                 && y < get_item_y(ctx, choices.len() as f32, choices.len() as f32)
             {
-                self.hovered_choice = get_item_index(ctx, y, choices.len() as f32);
+                let idx = get_item_index(ctx, y, choices.len() as f32);
+                self.hovered_choice = idx;
+                update_draw_choices(ctx, choices, self.hovered_choice).unwrap();
             }
         }
     }
@@ -215,16 +222,14 @@ impl event::EventHandler for MainState {
         _x: f32,
         y: f32,
     ) {
-        if let Some(novelscript::SceneNodeUser::Data(novelscript::SceneNodeData::Choice(choices))) =
-            &self.current_node
-        {
+        if let Action::Choice(choices) = &self.screen.action {
             if y > get_item_y(ctx, 0.0, choices.len() as f32)
                 && y < get_item_y(ctx, choices.len() as f32, choices.len() as f32)
             {
                 let idx = get_item_index(ctx, y, choices.len() as f32);
                 self.state.set_choice(idx as i32 + 1);
                 self.hovered_choice = 0;
-                self.continue_text();
+                self.continue_text(ctx).unwrap();
             }
         }
     }
@@ -254,10 +259,11 @@ pub fn main() -> ggez::GameResult {
         )
         .unwrap();
 
-    let resources = Resources {
+    // This will live forever anyway
+    let resources = Box::leak(Box::new(Resources {
         text_box: graphics::Image::new(&mut ctx, "/TextBox.png")?,
-    };
+    }));
 
-    let state = MainState::new(novel, resources);
+    let state = MainState::new(&mut ctx, novel, resources);
     event::run(ctx, event_loop, state)
 }

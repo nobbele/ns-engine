@@ -1,6 +1,9 @@
-use ggez::{Context, graphics::{self, drawable_size}};
+use ggez::{
+    graphics::{self, drawable_size},
+    Context,
+};
 
-use crate::{Background, tween::TransitionTweenBox};
+use crate::{tween::TransitionTweenBox, Background};
 
 pub struct BackgroundContainer {
     pub current: TransitionTweenBox<Background>,

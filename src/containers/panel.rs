@@ -1,4 +1,7 @@
-use ggez::{Context, graphics::{self, DrawParam, Drawable}};
+use ggez::{
+    graphics::{self, DrawParam, Drawable},
+    Context,
+};
 
 pub struct Panel<T: graphics::Drawable> {
     pub layer: graphics::Mesh,

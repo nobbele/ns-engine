@@ -1,7 +1,10 @@
-use ggez::{Context, graphics::{self, drawable_size}};
 use ggez::mint as na;
+use ggez::{
+    graphics::{self, drawable_size},
+    Context,
+};
 
-use crate::{Character, helpers::Position, tween::TweenBox};
+use crate::{helpers::Position, tween::TweenBox, Character};
 
 pub struct CharacterContainer {
     pub current: Vec<TweenBox<Character>>,
@@ -11,8 +14,7 @@ impl CharacterContainer {
     pub fn draw(&self, ctx: &mut Context) -> ggez::GameResult {
         for (n, character) in self.current.iter().enumerate() {
             let character = character.get_current();
-            let x_position = (drawable_size(ctx).0 as f32
-                / (self.current.len() as f32 + 1.0))
+            let x_position = (drawable_size(ctx).0 as f32 / (self.current.len() as f32 + 1.0))
                 * (n as f32 + 1.0);
             let height = drawable_size(ctx).1 * (4.0 / 5.0);
             let target_size: na::Point2<f32> = [
