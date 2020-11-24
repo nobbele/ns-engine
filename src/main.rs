@@ -37,7 +37,7 @@ pub struct Character {
     alpha: f32,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, )]
 pub struct Background {
     name: String,
     fade: f32,
@@ -161,8 +161,8 @@ impl event::EventHandler for MainState {
                             .iter()
                             .map(|n| {
                                 let cur = n.get_current();
-                                (cur.name.clone(), cur.expression.clone())
-                            }) // Must clone to be able to be serialized
+                                (cur.name.clone(), cur.expression.clone()) // Must clone to be able to be serialized
+                            }) 
                             .collect(),
                         current_background: self
                             .screen
