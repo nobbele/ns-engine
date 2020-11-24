@@ -1,6 +1,6 @@
 use std::io::BufReader;
 
-use containers::{background::BackgroundContainer, character::CharacterContainer};
+use containers::{background::BackgroundContainer, character::CharacterContainer, screen::Screen};
 use ggez::event;
 use ggez::filesystem;
 use ggez::{
@@ -60,11 +60,6 @@ pub struct MainState {
     screen: Screen,
 }
 
-pub struct Screen {
-    current_background: Option<BackgroundContainer>,
-    current_characters: CharacterContainer,
-}
-
 impl MainState {
     fn new(novel: novelscript::Novel, resources: Resources) -> MainState {
         let mut state = MainState {
@@ -116,11 +111,7 @@ impl event::EventHandler for MainState {
     fn draw(&mut self, ctx: &mut Context) -> ggez::GameResult {
         graphics::clear(ctx, [0.1, 0.2, 0.3, 1.0].into());
 
-        if let Some(background) = &self.screen.current_background {
-            background.draw(ctx)?;
-        }
-
-        self.screen.current_characters.draw(ctx)?;
+        self.screen.draw(ctx)?;
 
         match self.current_node {
             Some(novelscript::SceneNodeUser::Data(..)) => {

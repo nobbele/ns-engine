@@ -1,7 +1,7 @@
 use ggez::{graphics, Context};
 use novelscript::SceneNodeUser;
 
-use crate::{Background, containers::background::BackgroundContainer, Character, Placement, Resources, Screen, draw::{draw_choices, draw_text}, tween::TargetTweener, tween::TransitionTweener};
+use crate::{Background, Character, Placement, Resources, containers::{background::BackgroundContainer, screen::Screen}, draw::{draw_choices, draw_text}, tween::TargetTweener, tween::TransitionTweener};
 
 pub fn load_character_tween(
     ctx: &mut Context,
