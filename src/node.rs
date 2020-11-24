@@ -92,6 +92,7 @@ pub fn load_node(ctx: &mut Context, screen: &mut Screen, node: SceneNodeUser) ->
 
 pub fn draw_node(
     ctx: &mut Context,
+    screen: &mut Screen,
     current_node: &Option<novelscript::SceneNodeUser>,
     resources: &Resources,
     hovered_choice: u32,
@@ -101,7 +102,7 @@ pub fn draw_node(
         if let novelscript::SceneNodeData::Text { speaker, content } = node {
             draw_text(ctx, &resources, speaker, content)?;
         } else if let novelscript::SceneNodeData::Choice(choices) = node {
-            draw_choices(ctx, choices, hovered_choice)?;
+            draw_choices(ctx, screen, choices, hovered_choice)?;
         }
     }
     Ok(())

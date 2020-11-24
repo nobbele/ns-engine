@@ -73,6 +73,7 @@ impl MainState {
                 current_characters: CharacterContainer {
                     current: Vec::new(),
                 },
+                choices: None,
             },
         };
         state.continue_text();
@@ -117,6 +118,7 @@ impl event::EventHandler for MainState {
             Some(novelscript::SceneNodeUser::Data(..)) => {
                 node::draw_node(
                     ctx,
+                    &mut self.screen,
                     &self.current_node,
                     &self.resources,
                     self.hovered_choice,
