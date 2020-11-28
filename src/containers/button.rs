@@ -11,7 +11,11 @@ pub struct Button<T: Copy> {
     pub data_on_click: T,
 }
 
-fn create_layer(ctx: &mut Context, rect: Rect, is_hovered: bool) -> ggez::GameResult<graphics::Mesh> {
+fn create_layer(
+    ctx: &mut Context,
+    rect: Rect,
+    is_hovered: bool,
+) -> ggez::GameResult<graphics::Mesh> {
     let color = if is_hovered {
         Color {
             r: 0.6,
@@ -19,7 +23,7 @@ fn create_layer(ctx: &mut Context, rect: Rect, is_hovered: bool) -> ggez::GameRe
             b: 0.6,
             a: 1.0,
         }
-     } else {
+    } else {
         Color {
             r: 0.2,
             g: 0.2,
@@ -27,12 +31,7 @@ fn create_layer(ctx: &mut Context, rect: Rect, is_hovered: bool) -> ggez::GameRe
             a: 1.0,
         }
     };
-    graphics::Mesh::new_rectangle(
-        ctx,
-        graphics::DrawMode::fill(),
-        rect,
-        color,
-    )
+    graphics::Mesh::new_rectangle(ctx, graphics::DrawMode::fill(), rect, color)
 }
 
 impl<T: Copy> Button<T> {
@@ -60,15 +59,15 @@ impl<T: Copy> Button<T> {
 
     pub fn mouse_motion_event(&mut self, ctx: &mut Context, x: f32, y: f32) {
         let rect = self.layer.dimensions(ctx).unwrap();
-        self.layer = create_layer(ctx, rect, x > rect.x && x < rect.x + rect.w && y > rect.y && y < rect.y + rect.h).unwrap();
+        self.layer = create_layer(
+            ctx,
+            rect,
+            x > rect.x && x < rect.x + rect.w && y > rect.y && y < rect.y + rect.h,
+        )
+        .unwrap();
     }
 
-    pub fn mouse_button_down_event(
-        &mut self,
-        ctx: &mut Context,
-        x: f32,
-        y: f32,
-    ) -> Option<T> {
+    pub fn mouse_button_down_event(&mut self, ctx: &mut Context, x: f32, y: f32) -> Option<T> {
         let rect = self.layer.dimensions(ctx).unwrap();
         if x > rect.x && x < rect.x + rect.w && y > rect.y && y < rect.y + rect.h {
             Some(self.data_on_click)

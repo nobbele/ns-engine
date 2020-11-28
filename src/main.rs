@@ -1,6 +1,10 @@
 use std::io::BufReader;
 
-use containers::{Draw, Update, background::BackgroundContainer, button::Button, character::CharacterContainer, screen::Action, screen::Screen, stackcontainer::Direction, ui::MenuButtonId, stackcontainer::StackContainer, ui::UI};
+use containers::{
+    background::BackgroundContainer, button::Button, character::CharacterContainer, screen::Action,
+    screen::Screen, stackcontainer::Direction, stackcontainer::StackContainer, ui::MenuButtonId,
+    ui::UI, Draw, Update,
+};
 use draw::update_draw_choices;
 use ggez::event;
 use ggez::filesystem;
@@ -88,21 +92,24 @@ impl MainState {
                 },
             },
         };
-        state.screen.ui.menu.init(ctx, vec![("Save", MenuButtonId::Save), ("Load", MenuButtonId::Load)], |ctx, d, pos| {
-            Button::new(
-                ctx,
-                graphics::Rect {
-                    x: pos.0,
-                    y: pos.1,
-                    w: 50.0,
-                    h: 30.0,
-                },
-                d.0.into(),
-                d.1,
-                
-            )
-            .unwrap()
-        });
+        state.screen.ui.menu.init(
+            ctx,
+            vec![("Save", MenuButtonId::Save), ("Load", MenuButtonId::Load)],
+            |ctx, d, pos| {
+                Button::new(
+                    ctx,
+                    graphics::Rect {
+                        x: pos.0,
+                        y: pos.1,
+                        w: 50.0,
+                        h: 30.0,
+                    },
+                    d.0.into(),
+                    d.1,
+                )
+                .unwrap()
+            },
+        );
         state.continue_text(ctx).unwrap();
         state
     }
@@ -240,13 +247,7 @@ impl event::EventHandler for MainState {
         }
     }
 
-    fn mouse_button_down_event(
-        &mut self,
-        ctx: &mut Context,
-        _button: MouseButton,
-        x: f32,
-        y: f32,
-    ) {
+    fn mouse_button_down_event(&mut self, ctx: &mut Context, _button: MouseButton, x: f32, y: f32) {
         if let Action::Choice(choices) = &self.screen.action {
             if y > get_item_y(ctx, 0.0, choices.len() as f32)
                 && y < get_item_y(ctx, choices.len() as f32, choices.len() as f32)

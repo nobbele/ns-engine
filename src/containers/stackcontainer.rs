@@ -1,4 +1,4 @@
-use ggez::{Context, mint};
+use ggez::{mint, Context};
 
 use super::{Draw, Update};
 
@@ -22,18 +22,24 @@ impl<T> StackContainer<T> {
                 let x = self.position.x;
                 let y = self.position.y + n * (self.cell_size.1 + self.spacing);
                 (x, y)
-            },
+            }
             Direction::Horizontal => {
                 let x = self.position.x + n * (self.cell_size.0 + self.spacing);
                 let y = self.position.y;
                 (x, y)
-            },
+            }
         }
     }
 
-    pub fn init<D>(&mut self, ctx: &mut Context, data: Vec<D>, load: impl Fn(&mut Context, D, (f32, f32)) -> T) {
+    pub fn init<D>(
+        &mut self,
+        ctx: &mut Context,
+        data: Vec<D>,
+        load: impl Fn(&mut Context, D, (f32, f32)) -> T,
+    ) {
         for (n, d) in data.into_iter().enumerate() {
-            self.children.push(load(ctx, d, self.get_position(n as f32)))
+            self.children
+                .push(load(ctx, d, self.get_position(n as f32)))
         }
     }
 }

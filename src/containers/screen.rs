@@ -1,6 +1,9 @@
 use ggez::{graphics::Text, Context};
 
-use super::{Draw, Update, background::BackgroundContainer, character::CharacterContainer, panel::Panel, textbox::TextBox, ui::UI};
+use super::{
+    background::BackgroundContainer, character::CharacterContainer, panel::Panel, textbox::TextBox,
+    ui::UI, Draw, Update,
+};
 
 pub enum Action {
     Choice(Vec<Panel<Text>>),

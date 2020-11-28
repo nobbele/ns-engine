@@ -1,4 +1,4 @@
-use super::{Draw, button::Button, stackcontainer::StackContainer};
+use super::{button::Button, stackcontainer::StackContainer, Draw};
 
 #[derive(Copy, Clone)]
 pub enum MenuButtonId {
