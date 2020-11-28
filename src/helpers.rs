@@ -1,6 +1,6 @@
 use ggez::{
     graphics::{self, drawable_size},
-    mint as na, Context,
+    mint, Context,
 };
 
 pub fn get_item_y(ctx: &Context, n: f32, max: f32) -> f32 {
@@ -22,7 +22,7 @@ pub enum Position {
 }
 
 impl Position {
-    pub fn add_in(&self, ctx: &Context, offset: (f32, f32)) -> na::Point2<f32> {
+    pub fn add_in(&self, ctx: &Context, offset: (f32, f32)) -> mint::Point2<f32> {
         self.add_in_from(
             &graphics::Rect {
                 x: 0.0,
@@ -34,7 +34,7 @@ impl Position {
         )
     }
 
-    pub fn add_in_from(&self, rect: &graphics::Rect, offset: (f32, f32)) -> na::Point2<f32> {
+    pub fn add_in_from(&self, rect: &graphics::Rect, offset: (f32, f32)) -> mint::Point2<f32> {
         match self {
             Position::TopLeft => [rect.x + offset.0, rect.y + offset.1],
             Position::TopRight => [(rect.x + rect.w) - offset.0, rect.y + offset.1],
@@ -49,7 +49,7 @@ impl Position {
     }
 }
 
-pub fn points_to_rect(a: na::Point2<f32>, b: na::Point2<f32>) -> graphics::Rect {
+pub fn points_to_rect(a: mint::Point2<f32>, b: mint::Point2<f32>) -> graphics::Rect {
     graphics::Rect {
         x: a.x,
         y: a.y,

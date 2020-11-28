@@ -1,4 +1,4 @@
-use ggez::mint as na;
+use ggez::mint;
 use ggez::{
     graphics::{self, drawable_size},
     Context,
@@ -19,7 +19,7 @@ impl Draw for CharacterContainer {
             let x_position = (drawable_size(ctx).0 as f32 / (self.current.len() as f32 + 1.0))
                 * (n as f32 + 1.0);
             let height = drawable_size(ctx).1 * (4.0 / 5.0);
-            let target_size: na::Point2<f32> = [
+            let target_size: mint::Point2<f32> = [
                 height * (character.image.width() as f32 / character.image.height() as f32),
                 height,
             ]

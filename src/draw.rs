@@ -10,7 +10,7 @@ use crate::{
 };
 use ggez::{
     graphics::{self, Color, Drawable, Text},
-    mint as na, Context,
+    mint, Context,
 };
 
 pub fn load_text(
@@ -94,7 +94,7 @@ pub fn load_choices_layer(
     hovered_choice: u32,
 ) -> Result<graphics::Mesh, ggez::GameError> {
     let size = (210.0, 40.0);
-    let pos: na::Point2<f32> = [
+    let pos: mint::Point2<f32> = [
         Position::Center.add_in(ctx, (-size.0 / 2.0, 0.0)).x,
         get_item_y(ctx, n as f32, max as f32),
     ]
