@@ -1,4 +1,4 @@
-use ggez::{mint, Context};
+use ggez::Context;
 
 pub mod background;
 pub mod button;
