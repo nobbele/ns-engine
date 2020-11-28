@@ -121,14 +121,7 @@ impl MainState {
 
 impl event::EventHandler for MainState {
     fn update(&mut self, ctx: &mut Context) -> ggez::GameResult {
-        for character in &mut self.screen.current_characters.current {
-            character.update(ggez::timer::delta(ctx).as_secs_f32());
-        }
-        if let Some(current_background) = &mut self.screen.current_background {
-            current_background
-                .current
-                .update(ggez::timer::delta(ctx).as_secs_f32());
-        }
+        self.screen.update(ggez::timer::delta(ctx).as_secs_f32());
         Ok(())
     }
 

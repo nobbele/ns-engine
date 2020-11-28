@@ -1,12 +1,8 @@
-use crate::{
-    containers::{
+use crate::{Resources, tween::Tweener, containers::{
         panel::Panel,
         screen::{Action, Screen},
         textbox::TextBox,
-    },
-    helpers::{get_item_y, points_to_rect, Position},
-    Resources,
-};
+    }, helpers::{get_item_y, points_to_rect, Position}};
 use ggez::{
     graphics::{self, Color, Drawable, Text},
     mint as na, Context,
@@ -40,17 +36,47 @@ pub fn load_text(
         None
     };
 
-    let mut text = graphics::Text::new(content);
+    let mut text = graphics::Text::default();
+    for c in content.chars() {
+        text.add(graphics::TextFragment::new(c).color(graphics::Color {
+            r: 1.0,
+            g: 1.0,
+            b: 1.0,
+            a: 0.0,
+        }));
+    }
     text.set_bounds(
         [layer_bounds.w - 10.0, layer_bounds.h - 10.0],
         graphics::Align::Left,
     );
+
+    let text_tween = Tweener {
+        current: text,
+        time: 0.0,
+        update: |text, time, _| {
+            let cps = 75.0f32;
+
+            let lim = (time * cps) as usize;
+            let lim = if lim > text.fragments().len() {
+                text.fragments().len()
+            } else {
+                lim
+            };
+
+            for i in 0..lim {
+                if let Some(color) = &mut text.fragments_mut()[i].color {
+                    color.a = 1.0;
+                }
+            }
+        }
+    };
+
     let text_params = (Position::TopLeft.add_in_from(&layer_bounds, (15.0, 55.0)),).into();
 
     screen.action = Action::Text(Box::new(TextBox {
         layer: (layer_image, layer_params),
         speaker: speaker_text,
-        content: (text, text_params),
+        content: (Box::new(text_tween), text_params),
     }));
 
     Ok(())

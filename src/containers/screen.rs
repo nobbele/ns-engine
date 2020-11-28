@@ -28,12 +28,25 @@ impl Screen {
             for choice in choices {
                 choice.draw(ctx)?;
             }
-        }
-
-        if let Action::Text(text) = &self.action {
+        } else if let Action::Text(text) = &self.action {
             text.draw(ctx)?;
         }
 
         Ok(())
+    }
+
+    pub fn update(&mut self, dt: f32) {
+        for character in &mut self.current_characters.current {
+            character.update(dt);
+        }
+        if let Some(current_background) = &mut self.current_background {
+            current_background
+                .current
+                .update(dt);
+        }
+
+        if let Action::Text(text) = &mut self.action {
+            text.update(dt);
+        }
     }
 }
