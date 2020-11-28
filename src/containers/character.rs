@@ -6,12 +6,14 @@ use ggez::{
 
 use crate::{helpers::Position, tween::TweenBox, Character};
 
+use super::Draw;
+
 pub struct CharacterContainer {
     pub current: Vec<TweenBox<Character>>,
 }
 
-impl CharacterContainer {
-    pub fn draw(&self, ctx: &mut Context) -> ggez::GameResult {
+impl Draw for CharacterContainer {
+    fn draw(&self, ctx: &mut Context) -> ggez::GameResult {
         for (n, character) in self.current.iter().enumerate() {
             let character = character.get_current();
             let x_position = (drawable_size(ctx).0 as f32 / (self.current.len() as f32 + 1.0))

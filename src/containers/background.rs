@@ -5,12 +5,14 @@ use ggez::{
 
 use crate::{tween::TransitionTweenBox, Background};
 
+use super::Draw;
+
 pub struct BackgroundContainer {
     pub current: TransitionTweenBox<Background>,
 }
 
-impl BackgroundContainer {
-    pub fn draw(&self, ctx: &mut Context) -> ggez::GameResult {
+impl Draw for BackgroundContainer {
+    fn draw(&self, ctx: &mut Context) -> ggez::GameResult {
         let background = self.current.get_current();
         if let Some(Background {
             name: _,

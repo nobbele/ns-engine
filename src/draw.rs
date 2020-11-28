@@ -1,8 +1,13 @@
-use crate::{Resources, tween::Tweener, containers::{
+use crate::{
+    containers::{
         panel::Panel,
         screen::{Action, Screen},
         textbox::TextBox,
-    }, helpers::{get_item_y, points_to_rect, Position}};
+    },
+    helpers::{get_item_y, points_to_rect, Position},
+    tween::Tweener,
+    Resources,
+};
 use ggez::{
     graphics::{self, Color, Drawable, Text},
     mint as na, Context,
@@ -16,8 +21,8 @@ pub fn load_text(
     content: &str,
 ) -> ggez::GameResult {
     let layer_bounds = points_to_rect(
-        Position::BottomLeft.add_in(ctx, (0.0, 200.0)),
-        Position::BottomRight.add_in(ctx, (0.0, 0.0)),
+        Position::BottomLeft.add_in(ctx, (0.0, 240.0)),
+        Position::BottomRight.add_in(ctx, (0.0, 40.0)),
     );
     let layer_image = &resources.text_box;
     let layer_params = graphics::DrawParam::new()
@@ -68,7 +73,7 @@ pub fn load_text(
                     color.a = 1.0;
                 }
             }
-        }
+        },
     };
 
     let text_params = (Position::TopLeft.add_in_from(&layer_bounds, (15.0, 55.0)),).into();

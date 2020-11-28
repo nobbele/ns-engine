@@ -1,8 +1,6 @@
 use std::io::BufReader;
 
-use containers::{
-    background::BackgroundContainer, character::CharacterContainer, screen::Action, screen::Screen,
-};
+use containers::{Draw, Update, background::BackgroundContainer, button::Button, character::CharacterContainer, screen::Action, screen::Screen, stackcontainer::Direction, ui::MenuButtonId, stackcontainer::StackContainer, ui::UI};
 use draw::update_draw_choices;
 use ggez::event;
 use ggez::filesystem;
@@ -15,7 +13,7 @@ use ggez::{
     conf::{WindowMode, WindowSetup},
     graphics,
 };
-use helpers::{get_item_index, get_item_y};
+use helpers::{get_item_index, get_item_y, Position};
 use node::{load_background_tween, load_character_tween};
 
 mod containers;
@@ -37,7 +35,7 @@ pub struct Character {
     alpha: f32,
 }
 
-#[derive(Debug, )]
+#[derive(Debug)]
 pub struct Background {
     name: String,
     fade: f32,
@@ -79,8 +77,32 @@ impl MainState {
                     current: Vec::new(),
                 },
                 action: Action::None,
+                ui: UI {
+                    menu: StackContainer {
+                        children: Vec::new(),
+                        position: Position::BottomLeft.add_in(ctx, (10.0, 40.0)),
+                        cell_size: (50.0, 50.0),
+                        spacing: 5.0,
+                        direction: Direction::Horizontal,
+                    },
+                },
             },
         };
+        state.screen.ui.menu.init(ctx, vec![("Save", MenuButtonId::Save), ("Load", MenuButtonId::Load)], |ctx, d, pos| {
+            Button::new(
+                ctx,
+                graphics::Rect {
+                    x: pos.0,
+                    y: pos.1,
+                    w: 50.0,
+                    h: 30.0,
+                },
+                d.0.into(),
+                d.1,
+                
+            )
+            .unwrap()
+        });
         state.continue_text(ctx).unwrap();
         state
     }
@@ -117,6 +139,63 @@ impl MainState {
         };
         Ok(())
     }
+
+    pub fn on_save_click(&mut self, ctx: &mut Context) {
+        println!("Saving game");
+        serde_json::to_writer(
+            ggez::filesystem::create(ctx, "/save.json").unwrap(),
+            &SaveData {
+                state: self.state.clone(), // Must clone to be able to be serialized
+                current_characters: self
+                    .screen
+                    .current_characters
+                    .current
+                    .iter()
+                    .map(|n| {
+                        let cur = n.get_current();
+                        (cur.name.clone(), cur.expression.clone()) // Must clone to be able to be serialized
+                    })
+                    .collect(),
+                current_background: self
+                    .screen
+                    .current_background
+                    .as_ref()
+                    .map(|n| n.current.get_current().1.name.clone()), // Must clone to be able to be serialized
+            },
+        )
+        .unwrap();
+        println!("Saved game!");
+    }
+
+    pub fn on_load_click(&mut self, ctx: &mut Context) {
+        println!("Loading game!");
+        if ggez::filesystem::exists(ctx, "/save.json") {
+            let file = ggez::filesystem::open(ctx, "/save.json").unwrap();
+            let savedata: SaveData = serde_json::from_reader(file).unwrap();
+            self.state = savedata.state;
+            self.screen.current_characters.current = Vec::new();
+            for (name, expression) in savedata.current_characters {
+                let character = load_character_tween(ctx, name, expression, "").unwrap();
+                self.screen
+                    .current_characters
+                    .current
+                    .push(Box::new(character));
+            }
+            if let Some(name) = savedata.current_background {
+                let background = load_background_tween(ctx, None, name).unwrap();
+                self.screen.current_background = Some(BackgroundContainer {
+                    current: Box::new(background),
+                });
+            } else {
+                self.screen.current_background = None;
+            }
+
+            self.continue_text(ctx).unwrap();
+            println!("Loaded game!");
+        } else {
+            println!("Unable to find save file");
+        }
+    }
 }
 
 impl event::EventHandler for MainState {
@@ -141,62 +220,11 @@ impl event::EventHandler for MainState {
                     self.continue_text(ctx).unwrap();
                 }
             }
-            KeyCode::S => {
-                println!("Saving game");
-                serde_json::to_writer(
-                    ggez::filesystem::create(ctx, "/save.json").unwrap(),
-                    &SaveData {
-                        state: self.state.clone(), // Must clone to be able to be serialized
-                        current_characters: self
-                            .screen
-                            .current_characters
-                            .current
-                            .iter()
-                            .map(|n| {
-                                let cur = n.get_current();
-                                (cur.name.clone(), cur.expression.clone()) // Must clone to be able to be serialized
-                            }) 
-                            .collect(),
-                        current_background: self
-                            .screen
-                            .current_background
-                            .as_ref()
-                            .map(|n| n.current.get_current().1.name.clone()), // Must clone to be able to be serialized
-                    },
-                )
-                .unwrap();
-                println!("Saved game!");
-            }
-            KeyCode::L => {
-                if ggez::filesystem::exists(ctx, "/save.json") {
-                    let file = ggez::filesystem::open(ctx, "/save.json").unwrap();
-                    let savedata: SaveData = serde_json::from_reader(file).unwrap();
-                    self.state = savedata.state;
-                    self.screen.current_characters.current = Vec::new();
-                    for (name, expression) in savedata.current_characters {
-                        let character = load_character_tween(ctx, name, expression, "").unwrap();
-                        self.screen
-                            .current_characters
-                            .current
-                            .push(Box::new(character));
-                    }
-                    if let Some(name) = savedata.current_background {
-                        let background = load_background_tween(ctx, None, name).unwrap();
-                        self.screen.current_background = Some(BackgroundContainer {
-                            current: Box::new(background),
-                        });
-                    } else {
-                        self.screen.current_background = None;
-                    }
-
-                    self.continue_text(ctx).unwrap();
-                }
-            }
             _ => (),
         }
     }
 
-    fn mouse_motion_event(&mut self, ctx: &mut Context, _x: f32, y: f32, _dx: f32, _dy: f32) {
+    fn mouse_motion_event(&mut self, ctx: &mut Context, x: f32, y: f32, _dx: f32, _dy: f32) {
         if let Action::Choice(choices) = &mut self.screen.action {
             if y > get_item_y(ctx, 0.0, choices.len() as f32)
                 && y < get_item_y(ctx, choices.len() as f32, choices.len() as f32)
@@ -206,13 +234,17 @@ impl event::EventHandler for MainState {
                 update_draw_choices(ctx, choices, self.hovered_choice).unwrap();
             }
         }
+
+        for button in &mut self.screen.ui.menu.children {
+            button.mouse_motion_event(ctx, x, y);
+        }
     }
 
     fn mouse_button_down_event(
         &mut self,
         ctx: &mut Context,
         _button: MouseButton,
-        _x: f32,
+        x: f32,
         y: f32,
     ) {
         if let Action::Choice(choices) = &self.screen.action {
@@ -223,6 +255,20 @@ impl event::EventHandler for MainState {
                 self.state.set_choice(idx as i32 + 1);
                 self.hovered_choice = 0;
                 self.continue_text(ctx).unwrap();
+            }
+        }
+
+        let mut event = None;
+        for button in &mut self.screen.ui.menu.children {
+            if let Some(e) = button.mouse_button_down_event(ctx, x, y) {
+                event = Some(e);
+            }
+        }
+
+        if let Some(e) = event {
+            match e {
+                MenuButtonId::Save => self.on_save_click(ctx),
+                MenuButtonId::Load => self.on_load_click(ctx),
             }
         }
     }
