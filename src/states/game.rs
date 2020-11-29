@@ -4,17 +4,15 @@ use crate::containers::{
     ui::UI, Draw, Update,
 };
 use crate::draw::update_draw_choices;
+use crate::helpers::{get_item_index, get_item_y, Position};
+use crate::node::{load_background_tween, load_character_tween};
 use ggez::event;
+use ggez::graphics;
 use ggez::{
     self,
     event::{KeyCode, KeyMods, MouseButton},
     Context,
 };
-use ggez::{
-    graphics,
-};
-use crate::helpers::{get_item_index, get_item_y, Position};
-use crate::node::{load_background_tween, load_character_tween};
 
 pub enum Placement {
     Left,

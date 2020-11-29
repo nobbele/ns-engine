@@ -1,18 +1,22 @@
-use std::io::BufReader;
 use ggez::event;
 use ggez::filesystem;
 use ggez::{
     conf::{WindowMode, WindowSetup},
     graphics,
 };
-use states::{State, game::{GameState, Resources}};
+use states::{
+    game::{GameState, Resources},
+    mainmenu::MainMenuState,
+    State,
+};
+use std::io::BufReader;
 
 mod containers;
 mod draw;
 mod helpers;
 mod node;
-mod tween;
 mod states;
+mod tween;
 
 pub fn main() -> ggez::GameResult {
     let cb = ggez::ContextBuilder::new("ns-engine", "nobbele")
@@ -40,4 +44,7 @@ pub fn main() -> ggez::GameResult {
 
     let state = GameState::new(&mut ctx, novel, resources);
     event::run(ctx, event_loop, State::Game(state))
+
+    /*let state = MainMenuState::new(&mut ctx, resources);
+    event::run(ctx, event_loop, State::MainMenu(state))*/
 }

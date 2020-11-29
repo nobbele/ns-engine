@@ -1,17 +1,21 @@
 use game::GameState;
+use ggez::event::Axis;
+use ggez::event::Button;
 use ggez::event::EventHandler;
-use ggez::Context;
-use ggez::input::mouse::MouseButton;
+use ggez::input::gamepad::GamepadId;
 use ggez::input::keyboard::KeyCode;
 use ggez::input::keyboard::KeyMods;
-use ggez::input::gamepad::GamepadId;
-use ggez::event::Button;
-use ggez::event::Axis;
+use ggez::input::mouse::MouseButton;
+use ggez::Context;
+
+use self::mainmenu::MainMenuState;
 
 pub mod game;
+pub mod mainmenu;
 
 pub enum State {
     Game(GameState),
+    MainMenu(MainMenuState),
 }
 
 macro_rules! impl_eventhandler_for_state {
@@ -46,7 +50,7 @@ macro_rules! impl_eventhandler_for_state {
                     ),*
                 }
             }
-        
+
             fn mouse_button_up_event(
                 &mut self,
                 ctx: &mut Context,
@@ -60,7 +64,7 @@ macro_rules! impl_eventhandler_for_state {
                     ),*
                 }
             }
-        
+
             fn mouse_motion_event(&mut self, ctx: &mut Context, x: f32, y: f32, dx: f32, dy: f32) {
                 match self {
                     $(
@@ -76,7 +80,7 @@ macro_rules! impl_eventhandler_for_state {
                     ),*
                 }
             }
-        
+
             fn mouse_wheel_event(&mut self, ctx: &mut Context, x: f32, y: f32) {
                 match self {
                     $(
@@ -84,7 +88,7 @@ macro_rules! impl_eventhandler_for_state {
                     ),*
                 }
             }
-        
+
             fn key_down_event(
                 &mut self,
                 ctx: &mut Context,
@@ -98,7 +102,7 @@ macro_rules! impl_eventhandler_for_state {
                     ),*
                 }
             }
-        
+
             fn key_up_event(&mut self, ctx: &mut Context, keycode: KeyCode, keymods: KeyMods) {
                 match self {
                     $(
@@ -106,7 +110,7 @@ macro_rules! impl_eventhandler_for_state {
                     ),*
                 }
             }
-        
+
             fn text_input_event(&mut self, ctx: &mut Context, character: char) {
                 match self {
                     $(
@@ -114,7 +118,7 @@ macro_rules! impl_eventhandler_for_state {
                     ),*
                 }
             }
-        
+
             fn gamepad_button_down_event(&mut self, ctx: &mut Context, btn: Button, id: GamepadId) {
                 match self {
                     $(
@@ -122,7 +126,7 @@ macro_rules! impl_eventhandler_for_state {
                     ),*
                 }
             }
-        
+
             fn gamepad_button_up_event(&mut self, ctx: &mut Context, btn: Button, id: GamepadId) {
                 match self {
                     $(
@@ -130,7 +134,7 @@ macro_rules! impl_eventhandler_for_state {
                     ),*
                 }
             }
-        
+
             fn gamepad_axis_event(&mut self, ctx: &mut Context, axis: Axis, value: f32, id: GamepadId) {
                 match self {
                     $(
@@ -138,7 +142,7 @@ macro_rules! impl_eventhandler_for_state {
                     ),*
                 }
             }
-        
+
             fn focus_event(&mut self, ctx: &mut Context, gained: bool) {
                 match self {
                     $(
@@ -146,7 +150,7 @@ macro_rules! impl_eventhandler_for_state {
                     ),*
                 }
             }
-        
+
             fn quit_event(&mut self, ctx: &mut Context) -> bool {
                 match self {
                     $(
@@ -154,7 +158,7 @@ macro_rules! impl_eventhandler_for_state {
                     ),*
                 }
             }
-        
+
             fn resize_event(&mut self, ctx: &mut Context, width: f32, height: f32) {
                 match self {
                     $(
@@ -166,4 +170,4 @@ macro_rules! impl_eventhandler_for_state {
     };
 }
 
-impl_eventhandler_for_state!(State::Game);
+impl_eventhandler_for_state!(State::Game, State::MainMenu);
