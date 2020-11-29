@@ -5,7 +5,7 @@ use ggez::{
     conf::{WindowMode, WindowSetup},
     graphics,
 };
-use states::game::{GameState, Resources};
+use states::{State, game::{GameState, Resources}};
 
 mod containers;
 mod draw;
@@ -39,5 +39,5 @@ pub fn main() -> ggez::GameResult {
     }));
 
     let state = GameState::new(&mut ctx, novel, resources);
-    event::run(ctx, event_loop, state)
+    event::run(ctx, event_loop, State::Game(state))
 }
