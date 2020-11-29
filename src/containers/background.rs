@@ -3,7 +3,7 @@ use ggez::{
     Context,
 };
 
-use crate::{tween::TransitionTweenBox, Background};
+use crate::{states::game::Background, tween::TransitionTweenBox};
 
 use super::Draw;
 

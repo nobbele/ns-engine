@@ -4,7 +4,7 @@ use ggez::{
     Context,
 };
 
-use crate::{helpers::Position, tween::TweenBox, Character};
+use crate::{states::game::Character, helpers::Position, tween::TweenBox};
 
 use super::Draw;
 
