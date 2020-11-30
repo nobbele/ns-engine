@@ -3,7 +3,6 @@ use ggez::Context;
 pub mod background;
 pub mod button;
 pub mod character;
-pub mod panel;
 pub mod screen;
 pub mod stackcontainer;
 pub mod textbox;

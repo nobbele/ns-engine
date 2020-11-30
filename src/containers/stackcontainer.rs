@@ -1,4 +1,4 @@
-use ggez::{mint, Context};
+use ggez::{Context, graphics::Rect, mint};
 
 use super::{Draw, Update};
 
@@ -35,11 +35,17 @@ impl<T> StackContainer<T> {
         &mut self,
         ctx: &mut Context,
         data: Vec<D>,
-        load: impl Fn(&mut Context, D, (f32, f32)) -> T,
+        load: impl Fn(&mut Context, usize, D, Rect) -> T,
     ) {
         for (n, d) in data.into_iter().enumerate() {
+            let pos = self.get_position(n as f32);
             self.children
-                .push(load(ctx, d, self.get_position(n as f32)))
+                .push(load(ctx, n, d, Rect {
+                    x: pos.0,
+                    y: pos.1,
+                    w: self.cell_size.0,
+                    h: self.cell_size.1,
+                }))
         }
     }
 }

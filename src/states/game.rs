@@ -3,8 +3,7 @@ use crate::containers::{
     screen::Screen, stackcontainer::Direction, stackcontainer::StackContainer, ui::MenuButtonId,
     ui::UI, Draw, Update,
 };
-use crate::draw::update_draw_choices;
-use crate::helpers::{get_item_index, get_item_y, Position};
+use crate::helpers::Position;
 use crate::node::{load_background_tween, load_character_tween};
 use ggez::event;
 use ggez::graphics;
@@ -47,7 +46,6 @@ impl Background {
 pub struct GameState {
     pub novel: novelscript::Novel,
     pub state: novelscript::NovelState,
-    pub hovered_choice: u32,
     pub resources: &'static Resources,
     pub screen: Screen,
 }
@@ -61,7 +59,6 @@ impl GameState {
         let mut state = GameState {
             state: novel.new_state("start"),
             novel,
-            hovered_choice: 0,
             resources,
             screen: Screen {
                 current_background: None,
@@ -73,7 +70,7 @@ impl GameState {
                     menu: StackContainer {
                         children: Vec::new(),
                         position: Position::BottomLeft.add_in(ctx, (10.0, 40.0)),
-                        cell_size: (50.0, 50.0),
+                        cell_size: (50.0, 30.0),
                         spacing: 5.0,
                         direction: Direction::Horizontal,
                     },
@@ -83,15 +80,10 @@ impl GameState {
         state.screen.ui.menu.init(
             ctx,
             vec![("Save", MenuButtonId::Save), ("Load", MenuButtonId::Load)],
-            |ctx, d, pos| {
+            |ctx, _idx, d, rect| {
                 Button::new(
                     ctx,
-                    graphics::Rect {
-                        x: pos.0,
-                        y: pos.1,
-                        w: 50.0,
-                        h: 30.0,
-                    },
+                    rect,
                     d.0.into(),
                     d.1,
                 )
@@ -123,7 +115,6 @@ impl GameState {
                     &mut self.screen,
                     node,
                     &self.resources,
-                    self.hovered_choice,
                 )?;
             }
             Some(novelscript::SceneNodeUser::Load(node)) => {
@@ -221,12 +212,8 @@ impl event::EventHandler for GameState {
 
     fn mouse_motion_event(&mut self, ctx: &mut Context, x: f32, y: f32, _dx: f32, _dy: f32) {
         if let Action::Choice(choices) = &mut self.screen.action {
-            if y > get_item_y(ctx, 0.0, choices.len() as f32)
-                && y < get_item_y(ctx, choices.len() as f32, choices.len() as f32)
-            {
-                let idx = get_item_index(ctx, y, choices.len() as f32);
-                self.hovered_choice = idx;
-                update_draw_choices(ctx, choices, self.hovered_choice).unwrap();
+            for button in &mut choices.children {
+                button.mouse_motion_event(ctx, x, y);
             }
         }
 
@@ -236,13 +223,13 @@ impl event::EventHandler for GameState {
     }
 
     fn mouse_button_up_event(&mut self, ctx: &mut Context, _button: MouseButton, x: f32, y: f32) {
-        if let Action::Choice(choices) = &self.screen.action {
-            if y > get_item_y(ctx, 0.0, choices.len() as f32)
-                && y < get_item_y(ctx, choices.len() as f32, choices.len() as f32)
+        if let Action::Choice(container) = &self.screen.action {
+            if let Some(n) = container
+                .children
+                .iter()
+                .find_map(|button| button.click_event(ctx, x, y))
             {
-                let idx = get_item_index(ctx, y, choices.len() as f32);
-                self.state.set_choice(idx as i32 + 1);
-                self.hovered_choice = 0;
+                self.state.set_choice(n as i32 + 1);
                 self.continue_text(ctx).unwrap();
             }
         }

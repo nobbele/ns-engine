@@ -1,12 +1,9 @@
-use ggez::{graphics::Text, Context};
+use ggez::Context;
 
-use super::{
-    background::BackgroundContainer, character::CharacterContainer, panel::Panel, textbox::TextBox,
-    ui::UI, Draw, Update,
-};
+use super::{Draw, Update, background::BackgroundContainer, button::Button, character::CharacterContainer, stackcontainer::StackContainer, textbox::TextBox, ui::UI};
 
 pub enum Action {
-    Choice(Vec<Panel<Text>>),
+    Choice(StackContainer<Button<u32>>),
     Text(Box<TextBox>),
     None,
 }
@@ -26,8 +23,8 @@ impl Draw for Screen {
 
         self.current_characters.draw(ctx)?;
 
-        if let Action::Choice(choices) = &self.action {
-            for choice in choices {
+        if let Action::Choice(container) = &self.action {
+            for choice in &container.children {
                 choice.draw(ctx)?;
             }
         } else if let Action::Text(text) = &self.action {

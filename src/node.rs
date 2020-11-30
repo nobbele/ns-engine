@@ -1,16 +1,7 @@
 use ggez::{graphics, Context};
 use novelscript::SceneNodeLoad;
 
-use crate::{
-    containers::{background::BackgroundContainer, screen::Screen},
-    draw::load_choices,
-    draw::load_text,
-    states::game::Character,
-    states::game::{Background, Placement},
-    tween::TargetTweener,
-    tween::TransitionTweener,
-    Resources,
-};
+use crate::{Resources, containers::{background::BackgroundContainer, screen::Screen}, containers::{screen::Action, button::Button, stackcontainer::StackContainer}, draw::load_text, helpers::Position, states::game::Character, states::game::{Background, Placement}, tween::TargetTweener, tween::TransitionTweener};
 
 pub fn load_character_tween(
     ctx: &mut Context,
@@ -106,12 +97,31 @@ pub fn load_data_node(
     screen: &mut Screen,
     node: &novelscript::SceneNodeData,
     resources: &'static Resources,
-    hovered_choice: u32,
 ) -> ggez::GameResult {
     if let novelscript::SceneNodeData::Text { speaker, content } = node {
         load_text(ctx, screen, resources, speaker, content)?;
     } else if let novelscript::SceneNodeData::Choice(choices) = node {
-        load_choices(ctx, screen, choices, hovered_choice)?;
+        let mut stack = StackContainer{
+            children: Vec::new(),
+            position: Position::Center.add_in(ctx, (250.0 / -2.0, 60.0 * choices.len() as f32 / -2.0)),
+            spacing: 5.0,
+            cell_size: (250.0, 50.0),
+            direction: crate::containers::stackcontainer::Direction::Vertical,
+        };
+        stack.init(
+            ctx,
+            choices.clone(),
+            |ctx, idx, d, rect| {
+                Button::new(
+                    ctx,
+                    rect,
+                    d,
+                    idx as u32,
+                )
+                .unwrap()
+            },
+        );
+        screen.action = Action::Choice(stack);
     }
     Ok(())
 }

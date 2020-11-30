@@ -3,16 +3,6 @@ use ggez::{
     mint, Context,
 };
 
-pub fn get_item_y(ctx: &Context, n: f32, max: f32) -> f32 {
-    let offset = (-50.0 * max / 2.0) + (50.0 * n);
-    Position::Center.add_in(ctx, (0.0, offset)).y
-}
-
-pub fn get_item_index(ctx: &Context, y: f32, max: f32) -> u32 {
-    let start_y = get_item_y(ctx, 0.0, max);
-    ((y - start_y) / 50.0) as u32
-}
-
 pub enum Position {
     TopLeft,
     TopRight,
