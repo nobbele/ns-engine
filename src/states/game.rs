@@ -235,7 +235,7 @@ impl event::EventHandler for GameState {
         }
     }
 
-    fn mouse_button_down_event(&mut self, ctx: &mut Context, _button: MouseButton, x: f32, y: f32) {
+    fn mouse_button_up_event(&mut self, ctx: &mut Context, _button: MouseButton, x: f32, y: f32) {
         if let Action::Choice(choices) = &self.screen.action {
             if y > get_item_y(ctx, 0.0, choices.len() as f32)
                 && y < get_item_y(ctx, choices.len() as f32, choices.len() as f32)
@@ -247,14 +247,14 @@ impl event::EventHandler for GameState {
             }
         }
 
-        let mut event = None;
-        for button in &mut self.screen.ui.menu.children {
-            if let Some(e) = button.mouse_button_down_event(ctx, x, y) {
-                event = Some(e);
-            }
-        }
-
-        if let Some(e) = event {
+        if let Some(e) = self
+            .screen
+            .ui
+            .menu
+            .children
+            .iter()
+            .find_map(|button| button.click_event(ctx, x, y))
+        {
             match e {
                 MenuButtonId::Save => self.on_save_click(ctx),
                 MenuButtonId::Load => self.on_load_click(ctx),

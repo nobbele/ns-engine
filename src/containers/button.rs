@@ -67,7 +67,7 @@ impl<T: Copy> Button<T> {
         .unwrap();
     }
 
-    pub fn mouse_button_down_event(&mut self, ctx: &mut Context, x: f32, y: f32) -> Option<T> {
+    pub fn click_event(&self, ctx: &mut Context, x: f32, y: f32) -> Option<T> {
         let rect = self.layer.dimensions(ctx).unwrap();
         if x > rect.x && x < rect.x + rect.w && y > rect.y && y < rect.y + rect.h {
             Some(self.data_on_click)
