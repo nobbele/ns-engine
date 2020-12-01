@@ -24,9 +24,15 @@ macro_rules! impl_eventhandler_for_state {
             fn update(&mut self, ctx: &mut ggez::Context) -> ggez::GameResult {
                 match self {
                     $(
-                        $p(state) => state.update(ctx)
+                        $p(state) => {
+                            state.update(ctx)?;
+                            if let Some(new_state) = state.change_state(ctx) {
+                                *self = new_state;
+                            }
+                        }
                     ),*
                 }
+                Ok(())
             }
 
             fn draw(&mut self, ctx: &mut ggez::Context) -> ggez::GameResult {
@@ -160,6 +166,9 @@ macro_rules! impl_eventhandler_for_state {
             }
 
             fn resize_event(&mut self, ctx: &mut Context, width: f32, height: f32) {
+                ggez::graphics::set_screen_coordinates(ctx, ggez::graphics::Rect::new(0.0, 0.0, width, height))
+                    .unwrap();
+
                 match self {
                     $(
                         $p(state) => state.resize_event(ctx, width, height)

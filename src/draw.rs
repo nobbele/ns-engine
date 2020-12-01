@@ -1,20 +1,17 @@
 use crate::{
     containers::{
-        screen::{Action, Screen},
+        gamescreen::{Action, GameScreen},
         textbox::TextBox,
     },
     helpers::{points_to_rect, Position},
     tween::Tweener,
     Resources,
 };
-use ggez::{
-    graphics,
-    Context,
-};
+use ggez::{graphics, Context};
 
 pub fn load_text(
     ctx: &mut Context,
-    screen: &mut Screen,
+    screen: &mut GameScreen,
     resources: &'static Resources,
     speaker: &Option<String>,
     content: &str,

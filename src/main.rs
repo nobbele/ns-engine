@@ -1,15 +1,13 @@
 use ggez::event;
-use ggez::filesystem;
 use ggez::{
     conf::{WindowMode, WindowSetup},
     graphics,
 };
 use states::{
-    game::{GameState, Resources},
+    game::Resources,
     mainmenu::MainMenuState,
     State,
 };
-use std::io::BufReader;
 
 mod containers;
 mod draw;
@@ -29,22 +27,11 @@ pub fn main() -> ggez::GameResult {
         .add_zipfile_bytes(include_bytes!("../resources.zip").to_vec());
     let (mut ctx, event_loop) = cb.build()?;
 
-    let mut novel = novelscript::Novel::new();
-    novel
-        .add_scene(
-            "start".into(),
-            BufReader::new(filesystem::open(&mut ctx, "/test.ns").unwrap()),
-        )
-        .unwrap();
-
     // This will live forever anyway
     let resources = Box::leak(Box::new(Resources {
         text_box: graphics::Image::new(&mut ctx, "/TextBox.png")?,
     }));
 
-    let state = GameState::new(&mut ctx, novel, resources);
-    event::run(ctx, event_loop, State::Game(state))
-
-    /*let state = MainMenuState::new(&mut ctx, resources);
-    event::run(ctx, event_loop, State::MainMenu(state))*/
+    let state = State::MainMenu(MainMenuState::new(&mut ctx, resources));
+    event::run(ctx, event_loop, state)
 }

@@ -1,6 +1,9 @@
 use ggez::Context;
 
-use super::{Draw, Update, background::BackgroundContainer, button::Button, character::CharacterContainer, stackcontainer::StackContainer, textbox::TextBox, ui::UI};
+use super::{
+    background::BackgroundContainer, button::Button, character::CharacterContainer,
+    stackcontainer::StackContainer, textbox::TextBox, ui::UI, Draw, Update,
+};
 
 pub enum Action {
     Choice(StackContainer<Button<u32>>),
@@ -8,14 +11,14 @@ pub enum Action {
     None,
 }
 
-pub struct Screen {
+pub struct GameScreen {
     pub current_background: Option<BackgroundContainer>,
     pub current_characters: CharacterContainer,
     pub action: Action,
     pub ui: UI,
 }
 
-impl Draw for Screen {
+impl Draw for GameScreen {
     fn draw(&self, ctx: &mut Context) -> ggez::GameResult {
         if let Some(background) = &self.current_background {
             background.draw(ctx)?;
@@ -37,7 +40,7 @@ impl Draw for Screen {
     }
 }
 
-impl Update for Screen {
+impl Update for GameScreen {
     fn update(&mut self, dt: f32) {
         for character in &mut self.current_characters.current {
             character.update(dt);

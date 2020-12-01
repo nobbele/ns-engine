@@ -1,7 +1,17 @@
 use ggez::{graphics, Context};
 use novelscript::SceneNodeLoad;
 
-use crate::{Resources, containers::{background::BackgroundContainer, screen::Screen}, containers::{screen::Action, button::Button, stackcontainer::StackContainer}, draw::load_text, helpers::Position, states::game::Character, states::game::{Background, Placement}, tween::TargetTweener, tween::TransitionTweener};
+use crate::{
+    containers::{background::BackgroundContainer, gamescreen::GameScreen},
+    containers::{button::Button, gamescreen::Action, stackcontainer::StackContainer},
+    draw::load_text,
+    helpers::Position,
+    states::game::Character,
+    states::game::{Background, Placement},
+    tween::TargetTweener,
+    tween::TransitionTweener,
+    Resources,
+};
 
 pub fn load_character_tween(
     ctx: &mut Context,
@@ -62,7 +72,7 @@ pub fn load_background_tween(
 
 pub fn load_load_node(
     ctx: &mut Context,
-    screen: &mut Screen,
+    screen: &mut GameScreen,
     node: SceneNodeLoad,
 ) -> ggez::GameResult {
     if let novelscript::SceneNodeLoad::Character {
@@ -94,33 +104,24 @@ pub fn load_load_node(
 
 pub fn load_data_node(
     ctx: &mut Context,
-    screen: &mut Screen,
+    screen: &mut GameScreen,
     node: &novelscript::SceneNodeData,
     resources: &'static Resources,
 ) -> ggez::GameResult {
     if let novelscript::SceneNodeData::Text { speaker, content } = node {
         load_text(ctx, screen, resources, speaker, content)?;
     } else if let novelscript::SceneNodeData::Choice(choices) = node {
-        let mut stack = StackContainer{
+        let mut stack = StackContainer {
             children: Vec::new(),
-            position: Position::Center.add_in(ctx, (250.0 / -2.0, 60.0 * choices.len() as f32 / -2.0)),
+            position: Position::Center
+                .add_in(ctx, (250.0 / -2.0, 60.0 * choices.len() as f32 / -2.0)),
             spacing: 5.0,
             cell_size: (250.0, 50.0),
             direction: crate::containers::stackcontainer::Direction::Vertical,
         };
-        stack.init(
-            ctx,
-            choices.clone(),
-            |ctx, idx, d, rect| {
-                Button::new(
-                    ctx,
-                    rect,
-                    d,
-                    idx as u32,
-                )
-                .unwrap()
-            },
-        );
+        stack.init(ctx, choices.clone(), |ctx, idx, d, rect| {
+            Button::new(ctx, rect, d, idx as u32).unwrap()
+        });
         screen.action = Action::Choice(stack);
     }
     Ok(())

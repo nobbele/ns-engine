@@ -1,7 +1,7 @@
 use crate::containers::{
-    background::BackgroundContainer, button::Button, character::CharacterContainer, screen::Action,
-    screen::Screen, stackcontainer::Direction, stackcontainer::StackContainer, ui::MenuButtonId,
-    ui::UI, Draw, Update,
+    background::BackgroundContainer, button::Button, character::CharacterContainer,
+    gamescreen::Action, gamescreen::GameScreen, stackcontainer::Direction,
+    stackcontainer::StackContainer, ui::MenuButtonId, ui::UI, Draw, Update,
 };
 use crate::helpers::Position;
 use crate::node::{load_background_tween, load_character_tween};
@@ -12,6 +12,8 @@ use ggez::{
     event::{KeyCode, KeyMods, MouseButton},
     Context,
 };
+
+use super::State;
 
 pub enum Placement {
     Left,
@@ -47,7 +49,7 @@ pub struct GameState {
     pub novel: novelscript::Novel,
     pub state: novelscript::NovelState,
     pub resources: &'static Resources,
-    pub screen: Screen,
+    pub screen: GameScreen,
 }
 
 impl GameState {
@@ -60,7 +62,7 @@ impl GameState {
             state: novel.new_state("start"),
             novel,
             resources,
-            screen: Screen {
+            screen: GameScreen {
                 current_background: None,
                 current_characters: CharacterContainer {
                     current: Vec::new(),
@@ -80,15 +82,7 @@ impl GameState {
         state.screen.ui.menu.init(
             ctx,
             vec![("Save", MenuButtonId::Save), ("Load", MenuButtonId::Load)],
-            |ctx, _idx, d, rect| {
-                Button::new(
-                    ctx,
-                    rect,
-                    d.0.into(),
-                    d.1,
-                )
-                .unwrap()
-            },
+            |ctx, _idx, d, rect| Button::new(ctx, rect, d.0.into(), d.1).unwrap(),
         );
         state.continue_text(ctx).unwrap();
         state
@@ -110,12 +104,7 @@ impl GameState {
     fn continue_text(&mut self, ctx: &mut Context) -> ggez::GameResult {
         match self.novel.next(&mut self.state) {
             Some(novelscript::SceneNodeUser::Data(node)) => {
-                crate::node::load_data_node(
-                    ctx,
-                    &mut self.screen,
-                    node,
-                    &self.resources,
-                )?;
+                crate::node::load_data_node(ctx, &mut self.screen, node, &self.resources)?;
             }
             Some(novelscript::SceneNodeUser::Load(node)) => {
                 crate::node::load_load_node(ctx, &mut self.screen, node.clone())?;
@@ -182,6 +171,10 @@ impl GameState {
             println!("Unable to find save file");
         }
     }
+
+    pub fn change_state(&mut self, _ctx: &mut Context) -> Option<State> {
+        None
+    }
 }
 
 impl event::EventHandler for GameState {
@@ -247,10 +240,5 @@ impl event::EventHandler for GameState {
                 MenuButtonId::Load => self.on_load_click(ctx),
             }
         }
-    }
-
-    fn resize_event(&mut self, ctx: &mut Context, width: f32, height: f32) {
-        graphics::set_screen_coordinates(ctx, graphics::Rect::new(0.0, 0.0, width, height))
-            .unwrap();
     }
 }
