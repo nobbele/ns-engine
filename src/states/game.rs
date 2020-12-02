@@ -224,7 +224,7 @@ impl event::EventHandler for GameState {
 
     fn key_down_event(&mut self, ctx: &mut Context, key: KeyCode, _mods: KeyMods, _: bool) {
         match key {
-            KeyCode::Space | KeyCode::Escape => {
+            KeyCode::Space => {
                 if let Action::Text(..) = &mut self.screen.action {
                     if self.continue_method == ContinueMethod::Normal {
                         self.continue_text(ctx).unwrap();
