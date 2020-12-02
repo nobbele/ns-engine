@@ -45,10 +45,18 @@ impl Background {
     }
 }
 
+#[derive(PartialEq)]
+pub enum ContinueMethod {
+    Auto(f32), // time counter
+    Skip,      // wait time counter
+    Normal,
+}
+
 pub struct GameState {
     pub novel: novelscript::Novel,
     pub state: novelscript::NovelState,
     pub resources: &'static Resources,
+    pub continue_method: ContinueMethod,
     pub screen: GameScreen,
 }
 
@@ -62,6 +70,7 @@ impl GameState {
             state: novel.new_state("start"),
             novel,
             resources,
+            continue_method: ContinueMethod::Normal,
             screen: GameScreen {
                 current_background: None,
                 current_characters: CharacterContainer {
@@ -81,7 +90,12 @@ impl GameState {
         };
         state.screen.ui.menu.init(
             ctx,
-            vec![("Save", MenuButtonId::Save), ("Load", MenuButtonId::Load)],
+            vec![
+                ("Save", MenuButtonId::Save),
+                ("Load", MenuButtonId::Load),
+                ("Auto", MenuButtonId::Auto),
+                ("Skip", MenuButtonId::Skip),
+            ],
             |ctx, _idx, d, rect| Button::new(ctx, rect, d.0.into(), d.1).unwrap(),
         );
         state.continue_text(ctx).unwrap();
@@ -179,7 +193,23 @@ impl GameState {
 
 impl event::EventHandler for GameState {
     fn update(&mut self, ctx: &mut Context) -> ggez::GameResult {
-        self.screen.update(ggez::timer::delta(ctx).as_secs_f32());
+        let dt = ggez::timer::delta(ctx).as_secs_f32();
+        if let Action::Text(textbox) = &self.screen.action {
+            match self.continue_method {
+                ContinueMethod::Skip => self.continue_text(ctx)?,
+                ContinueMethod::Auto(ref mut n) => {
+                    if textbox.content.0.is_done() {
+                        *n += dt;
+                        if *n >= 1.0 {
+                            *n = 0.0;
+                            self.continue_text(ctx)?;
+                        }
+                    }
+                }
+                _ => {}
+            }
+        }
+        self.screen.update(dt);
         Ok(())
     }
 
@@ -196,7 +226,9 @@ impl event::EventHandler for GameState {
         match key {
             KeyCode::Space | KeyCode::Escape => {
                 if let Action::Text(..) = &mut self.screen.action {
-                    self.continue_text(ctx).unwrap();
+                    if self.continue_method == ContinueMethod::Normal {
+                        self.continue_text(ctx).unwrap();
+                    }
                 }
             }
             _ => (),
@@ -238,6 +270,8 @@ impl event::EventHandler for GameState {
             match e {
                 MenuButtonId::Save => self.on_save_click(ctx),
                 MenuButtonId::Load => self.on_load_click(ctx),
+                MenuButtonId::Skip => self.continue_method = ContinueMethod::Skip,
+                MenuButtonId::Auto => self.continue_method = ContinueMethod::Auto(0.0),
             }
         }
     }

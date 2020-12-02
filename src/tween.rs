@@ -3,17 +3,19 @@ pub trait Tween<T> {
     fn take_final(self) -> T;
     fn take_final_box(self: Box<Self>) -> T;
     fn update(&mut self, dt: f32);
+    fn is_done(&self) -> bool;
 }
 
-pub struct Tweener<T, F: Fn(&mut T, f32, f32)> {
+pub struct Tweener<T, F: Fn(&mut T, f32, f32) -> bool> {
     pub time: f32,
     pub current: T,
     pub update: F,
+    pub is_done: bool,
 }
-impl<T, F: Fn(&mut T, f32, f32)> Tween<T> for Tweener<T, F> {
+impl<T, F: Fn(&mut T, f32, f32) -> bool> Tween<T> for Tweener<T, F> {
     fn update(&mut self, dt: f32) {
         self.time += dt;
-        (self.update)(&mut self.current, self.time, dt);
+        self.is_done = (self.update)(&mut self.current, self.time, dt);
     }
 
     fn get_current(&self) -> &T {
@@ -26,6 +28,10 @@ impl<T, F: Fn(&mut T, f32, f32)> Tween<T> for Tweener<T, F> {
 
     fn take_final_box(self: Box<Self>) -> T {
         self.current
+    }
+
+    fn is_done(&self) -> bool {
+        self.is_done
     }
 }
 
@@ -56,6 +62,10 @@ impl<T, F: Fn(&mut T, f32)> Tween<T> for TargetTweener<T, F> {
 
     fn take_final_box(self: Box<Self>) -> T {
         self.current
+    }
+
+    fn is_done(&self) -> bool {
+        self.time >= self.target
     }
 }
 
@@ -90,6 +100,10 @@ impl<T, F: Fn(&mut Option<T>, &mut T, f32)> Tween<(Option<T>, T)> for Transition
 
     fn take_final_box(self: Box<Self>) -> (Option<T>, T) {
         self.current
+    }
+
+    fn is_done(&self) -> bool {
+        self.time >= self.target
     }
 }
 

@@ -4,6 +4,8 @@ use super::{button::Button, stackcontainer::StackContainer, Draw};
 pub enum MenuButtonId {
     Save,
     Load,
+    Skip,
+    Auto,
 }
 
 pub struct UI {

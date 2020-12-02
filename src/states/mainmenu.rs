@@ -1,14 +1,28 @@
 use std::io::BufReader;
 
-use crate::{containers::{Draw, button::Button, mainmenuscreen::MainMenuScreen, mainmenuscreen::MenuButtonId, stackcontainer::Direction, stackcontainer::StackContainer}, helpers::Position};
-use ggez::{Context, event::{self, EventHandler, MouseButton}, filesystem, graphics::{self, drawable_size}};
+use crate::{
+    containers::{
+        button::Button, mainmenuscreen::MainMenuScreen, mainmenuscreen::MenuButtonId,
+        stackcontainer::Direction, stackcontainer::StackContainer, Draw,
+    },
+    helpers::Position,
+};
+use ggez::{
+    event::{self, EventHandler, MouseButton},
+    filesystem,
+    graphics::{self, drawable_size},
+    Context,
+};
 
-use super::{State, game::{GameState, Resources}};
+use super::{
+    game::{GameState, Resources},
+    State,
+};
 
 pub struct MainMenuState {
     pub resources: &'static Resources,
     pub screen: MainMenuScreen,
-    pub clicked_event: Option<MenuButtonId>
+    pub clicked_event: Option<MenuButtonId>,
 }
 
 impl MainMenuState {
@@ -78,7 +92,7 @@ impl EventHandler for MainMenuState {
     fn update(&mut self, ctx: &mut ggez::Context) -> ggez::GameResult {
         if let Some(e) = self.clicked_event {
             match e {
-                MenuButtonId::Start => {}, // Handled in change_state
+                MenuButtonId::Start => {} // Handled in change_state
                 MenuButtonId::Quit => {
                     event::quit(ctx);
                 }

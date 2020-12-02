@@ -54,21 +54,22 @@ pub fn load_text(
     let text_tween = Tweener {
         current: text,
         time: 0.0,
+        is_done: false,
         update: |text, time, _| {
             let cps = 75.0f32;
 
+            let frag_count = text.fragments().len();
+
             let lim = (time * cps) as usize;
-            let lim = if lim > text.fragments().len() {
-                text.fragments().len()
-            } else {
-                lim
-            };
+            let lim = if lim > frag_count { frag_count } else { lim };
 
             for i in 0..lim {
                 if let Some(color) = &mut text.fragments_mut()[i].color {
                     color.a = 1.0;
                 }
             }
+
+            lim == frag_count
         },
     };
 
