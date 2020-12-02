@@ -235,6 +235,17 @@ impl event::EventHandler for GameState {
         }
     }
 
+    fn text_input_event(&mut self, ctx: &mut Context, ch: char) {
+        if let Action::Choice(choices) = &mut self.screen.action {
+            if let Some(n) = ch.to_digit(10) {
+                if n >= 1 && n < choices.children.len() as u32 {
+                    self.state.set_choice(n as i32);
+                    self.continue_text(ctx).unwrap();
+                }
+            }
+        }
+    }
+
     fn mouse_motion_event(&mut self, ctx: &mut Context, x: f32, y: f32, _dx: f32, _dy: f32) {
         if let Action::Choice(choices) = &mut self.screen.action {
             for button in &mut choices.children {
