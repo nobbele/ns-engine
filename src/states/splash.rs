@@ -1,9 +1,9 @@
-use ggez::{Context, graphics::Drawable, GameResult, event::EventHandler, graphics, mint};
-use graphics::{DrawParam, drawable_size};
+use ggez::{event::EventHandler, graphics, graphics::Drawable, mint, Context, GameResult};
+use graphics::{drawable_size, DrawParam};
 
 use crate::tween::{TargetTweener, TweenBox};
 
-use super::{State, mainmenu::MainMenuState, game::Resources};
+use super::{game::Resources, mainmenu::MainMenuState, State};
 
 #[derive(PartialEq, Debug)]
 pub enum SplashAnimState {
@@ -30,12 +30,9 @@ impl SplashState {
                 current: DrawParam::new(),
                 update: |param, progress| {
                     let scale = 0.8 + 0.2 * (2.5 * std::f32::consts::PI * progress.sqrt()).sin();
-                    param.scale = mint::Vector2 {
-                        x: scale, 
-                        y: scale
-                    };
-                }
-            })
+                    param.scale = mint::Vector2 { x: scale, y: scale };
+                },
+            }),
         }
     }
 
@@ -66,17 +63,14 @@ impl EventHandler for SplashState {
             x: (drawable_size(ctx).0 / self.splash_img.width() as f32) * param.scale.x,
             y: (drawable_size(ctx).1 / self.splash_img.height() as f32) * param.scale.y,
         };
-        param.offset = mint::Point2 {
-            x: 0.5,
-            y: 0.5,
-        };
+        param.offset = mint::Point2 { x: 0.5, y: 0.5 };
         param.dest = mint::Point2 {
             x: drawable_size(ctx).0 / 2.0,
             y: drawable_size(ctx).1 / 2.0,
         };
         self.splash_img.draw(ctx, param)?;
 
-        graphics::present(ctx)?; 
+        graphics::present(ctx)?;
         Ok(())
     }
 }

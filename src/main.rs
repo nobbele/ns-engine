@@ -3,7 +3,7 @@ use ggez::{
     conf::{WindowMode, WindowSetup},
     graphics,
 };
-use states::{State, game::Resources, splash::SplashState};
+use states::{game::Resources, splash::SplashState, State};
 
 mod containers;
 mod draw;
