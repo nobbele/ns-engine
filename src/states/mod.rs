@@ -8,14 +8,16 @@ use ggez::input::keyboard::KeyMods;
 use ggez::input::mouse::MouseButton;
 use ggez::Context;
 
-use self::mainmenu::MainMenuState;
+use self::{mainmenu::MainMenuState, splash::SplashState};
 
 pub mod game;
 pub mod mainmenu;
+pub mod splash;
 
 pub enum State {
     Game(GameState),
     MainMenu(MainMenuState),
+    Splash(SplashState),
 }
 
 macro_rules! impl_eventhandler_for_state {
@@ -179,4 +181,4 @@ macro_rules! impl_eventhandler_for_state {
     };
 }
 
-impl_eventhandler_for_state!(State::Game, State::MainMenu);
+impl_eventhandler_for_state!(State::Game, State::MainMenu, State::Splash);

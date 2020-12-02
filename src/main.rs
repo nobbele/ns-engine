@@ -3,7 +3,7 @@ use ggez::{
     conf::{WindowMode, WindowSetup},
     graphics,
 };
-use states::{game::Resources, mainmenu::MainMenuState, State};
+use states::{State, game::Resources, splash::SplashState};
 
 mod containers;
 mod draw;
@@ -28,6 +28,6 @@ pub fn main() -> ggez::GameResult {
         text_box: graphics::Image::new(&mut ctx, "/TextBox.png")?,
     }));
 
-    let state = State::MainMenu(MainMenuState::new(&mut ctx, resources));
+    let state = State::Splash(SplashState::new(&mut ctx, resources));
     event::run(ctx, event_loop, state)
 }

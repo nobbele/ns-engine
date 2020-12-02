@@ -26,7 +26,7 @@ pub struct MainMenuState {
 }
 
 impl MainMenuState {
-    pub fn new(ctx: &mut Context, resources: &'static mut Resources) -> Self {
+    pub fn new(ctx: &mut Context, resources: &'static Resources) -> Self {
         let mut state = Self {
             resources,
             clicked_event: None,
