@@ -58,6 +58,8 @@ pub struct GameState {
     pub resources: &'static Resources,
     pub continue_method: ContinueMethod,
     pub screen: GameScreen,
+    pub sfx: Option<ggez::audio::Source>,
+    pub music: Option<ggez::audio::Source>,
 }
 
 impl GameState {
@@ -71,6 +73,8 @@ impl GameState {
             novel,
             resources,
             continue_method: ContinueMethod::Normal,
+            sfx: None,
+            music: None,
             screen: GameScreen {
                 current_background: None,
                 current_characters: CharacterContainer {
@@ -121,7 +125,13 @@ impl GameState {
                 crate::node::load_data_node(ctx, &mut self.screen, node, &self.resources)?;
             }
             Some(novelscript::SceneNodeUser::Load(node)) => {
-                crate::node::load_load_node(ctx, &mut self.screen, node.clone())?;
+                crate::node::load_load_node(
+                    ctx,
+                    &mut self.screen,
+                    node.clone(),
+                    &mut self.sfx,
+                    &mut self.music,
+                )?;
                 self.continue_text(ctx).unwrap();
             }
             None => {}

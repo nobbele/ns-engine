@@ -1,4 +1,4 @@
-use ggez::{graphics, Context};
+use ggez::{Context, audio::SoundSource, graphics};
 use novelscript::SceneNodeLoad;
 
 use crate::{
@@ -74,6 +74,8 @@ pub fn load_load_node(
     ctx: &mut Context,
     screen: &mut GameScreen,
     node: SceneNodeLoad,
+    sfx: &mut Option<ggez::audio::Source>,
+    music: &mut Option<ggez::audio::Source>,
 ) -> ggez::GameResult {
     if let novelscript::SceneNodeLoad::Character {
         character,
@@ -98,6 +100,16 @@ pub fn load_load_node(
         screen.current_background = Some(BackgroundContainer {
             current: Box::new(load_background_tween(ctx, prev, name)?),
         });
+    } else if let novelscript::SceneNodeLoad::PlaySound { name, channel } = node {
+        let src = match channel.as_ref().map(|s| s.as_str()) {
+            Some("sfx") => sfx,
+            Some("music") => music,
+            None => sfx,
+            _ => panic!(),
+        };
+        let mut new_src = ggez::audio::Source::new(ctx, format!("/audio/{}.mp3", name)).unwrap();
+        new_src.play(ctx).unwrap();
+        *src = Some(new_src);
     }
     Ok(())
 }

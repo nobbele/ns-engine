@@ -7,12 +7,7 @@ use crate::{
     },
     helpers::Position,
 };
-use ggez::{
-    event::{self, EventHandler, MouseButton},
-    filesystem,
-    graphics::{self, drawable_size},
-    Context,
-};
+use ggez::{Context, audio::SoundSource, event::{self, EventHandler, MouseButton}, filesystem, graphics::{self, drawable_size}};
 
 use super::{
     game::{GameState, Resources},
@@ -23,6 +18,7 @@ pub struct MainMenuState {
     pub resources: &'static Resources,
     pub screen: MainMenuScreen,
     pub clicked_event: Option<MenuButtonId>,
+    pub music: ggez::audio::Source,
 }
 
 impl MainMenuState {
@@ -63,12 +59,14 @@ impl MainMenuState {
                     direction: Direction::Vertical,
                 },
             },
+            music: ggez::audio::Source::new(ctx, "/audio/bgm.mp3").unwrap(),
         };
         state.screen.menu.init(
             ctx,
             vec![("Start", MenuButtonId::Start), ("Quit", MenuButtonId::Quit)],
             |ctx, _idx, d, rect| Button::new(ctx, rect, d.0.into(), d.1).unwrap(),
         );
+        state.music.play(ctx).unwrap();
         state
     }
 

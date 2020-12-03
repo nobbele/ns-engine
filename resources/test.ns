@@ -1,5 +1,7 @@
 scene StreetNight
 
+play bgm music
+
 load Yukio normal at Left
 
 : It’s freezing cold recently, there’s so much snow. It’s also so dark outside at this time of the year.
@@ -22,6 +24,8 @@ scene Bridge
 
 [Ignore / Walk up to her]
 if choice = 2
+
+    play walking
 
     : “I try to always help people who look to be in need of help or comfort”
 

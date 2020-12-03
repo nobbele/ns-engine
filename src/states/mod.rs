@@ -27,7 +27,7 @@ macro_rules! impl_eventhandler_for_state {
                 match self {
                     $(
                         $p(state) => {
-                            state.update(ctx)?;
+                            state.update(ctx).unwrap();
                             if let Some(new_state) = state.change_state(ctx) {
                                 *self = new_state;
                             }
@@ -40,9 +40,10 @@ macro_rules! impl_eventhandler_for_state {
             fn draw(&mut self, ctx: &mut ggez::Context) -> ggez::GameResult {
                 match self {
                     $(
-                        $p(state) => state.draw(ctx)
+                        $p(state) => state.draw(ctx).unwrap()
                     ),*
                 }
+                Ok(())
             }
 
             fn mouse_button_down_event(
