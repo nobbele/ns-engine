@@ -1,4 +1,4 @@
-# NS Engine
+# ![ns engine logo](https://github.com/nobbele/ns-engine/blob/master/icon.png) NS Engine
 An easy to use visual novel engine utilizing the [novelscript](https://github.com/nobbele/novelscript) language
 
 Free and open source engine written in the Rust programming language.
