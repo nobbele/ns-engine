@@ -1,4 +1,4 @@
-use std::io::BufReader;
+use std::{io::BufReader, rc::Rc, cell::RefCell};
 
 use crate::{
     containers::{
@@ -7,7 +7,13 @@ use crate::{
     },
     helpers::Position,
 };
-use ggez::{Context, audio::SoundSource, event::{self, EventHandler, MouseButton}, filesystem, graphics::{self, drawable_size}};
+use ggez::{
+    audio::SoundSource,
+    event::{self, EventHandler, MouseButton},
+    filesystem,
+    graphics::{self, drawable_size},
+    Context,
+};
 
 use super::{
     game::{GameState, Resources},
@@ -19,6 +25,7 @@ pub struct MainMenuState {
     pub screen: MainMenuScreen,
     pub clicked_event: Option<MenuButtonId>,
     pub music: ggez::audio::Source,
+    pub ui_sfx: Rc<RefCell<Option<ggez::audio::Source>>>,
 }
 
 impl MainMenuState {
@@ -60,11 +67,15 @@ impl MainMenuState {
                 },
             },
             music: ggez::audio::Source::new(ctx, "/audio/bgm.mp3").unwrap(),
+            ui_sfx: Rc::new(RefCell::new(None)),
         };
         state.screen.menu.init(
             ctx,
-            vec![("Start", MenuButtonId::Start), ("Quit", MenuButtonId::Quit)],
-            |ctx, _idx, d, rect| Button::new(ctx, rect, d.0.into(), d.1).unwrap(),
+            vec![
+                ("Start", MenuButtonId::Start, state.ui_sfx.clone()),
+                ("Quit", MenuButtonId::Quit, state.ui_sfx.clone()),
+            ],
+            |ctx, _idx, d, rect| Button::new(ctx, rect, d.0.into(), d.1, d.2).unwrap(),
         );
         state.music.play(ctx).unwrap();
         state

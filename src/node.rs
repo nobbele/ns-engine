@@ -1,4 +1,6 @@
-use ggez::{Context, audio::SoundSource, graphics};
+use std::{rc::Rc, cell::RefCell};
+
+use ggez::{audio::SoundSource, graphics, Context};
 use novelscript::SceneNodeLoad;
 
 use crate::{
@@ -119,6 +121,7 @@ pub fn load_data_node(
     screen: &mut GameScreen,
     node: &novelscript::SceneNodeData,
     resources: &'static Resources,
+    ui_sfx: Rc<RefCell<Option<ggez::audio::Source>>>,
 ) -> ggez::GameResult {
     if let novelscript::SceneNodeData::Text { speaker, content } = node {
         load_text(ctx, screen, resources, speaker, content)?;
@@ -131,8 +134,8 @@ pub fn load_data_node(
             cell_size: (250.0, 50.0),
             direction: crate::containers::stackcontainer::Direction::Vertical,
         };
-        stack.init(ctx, choices.clone(), |ctx, idx, d, rect| {
-            Button::new(ctx, rect, d, idx as u32).unwrap()
+        stack.init(ctx, choices.iter().map(|c| (c.clone(), ui_sfx.clone())).collect(), |ctx, idx, d, rect| {
+            Button::new(ctx, rect, d.0, idx as u32, d.1).unwrap()
         });
         screen.action = Action::Choice(stack);
     }

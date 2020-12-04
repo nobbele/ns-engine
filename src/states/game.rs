@@ -1,3 +1,5 @@
+use std::{rc::Rc, cell::RefCell};
+
 use crate::containers::{
     background::BackgroundContainer, button::Button, character::CharacterContainer,
     gamescreen::Action, gamescreen::GameScreen, stackcontainer::Direction,
@@ -60,6 +62,7 @@ pub struct GameState {
     pub screen: GameScreen,
     pub sfx: Option<ggez::audio::Source>,
     pub music: Option<ggez::audio::Source>,
+    pub ui_sfx: Rc<RefCell<Option<ggez::audio::Source>>>,
 }
 
 impl GameState {
@@ -75,6 +78,7 @@ impl GameState {
             continue_method: ContinueMethod::Normal,
             sfx: None,
             music: None,
+            ui_sfx: Rc::new(RefCell::new(None)),
             screen: GameScreen {
                 current_background: None,
                 current_characters: CharacterContainer {
@@ -95,12 +99,12 @@ impl GameState {
         state.screen.ui.menu.init(
             ctx,
             vec![
-                ("Save", MenuButtonId::Save),
-                ("Load", MenuButtonId::Load),
-                ("Auto", MenuButtonId::Auto),
-                ("Skip", MenuButtonId::Skip),
+                ("Save", MenuButtonId::Save, state.ui_sfx.clone()),
+                ("Load", MenuButtonId::Load, state.ui_sfx.clone()),
+                ("Auto", MenuButtonId::Auto, state.ui_sfx.clone()),
+                ("Skip", MenuButtonId::Skip, state.ui_sfx.clone()),
             ],
-            |ctx, _idx, d, rect| Button::new(ctx, rect, d.0.into(), d.1).unwrap(),
+            |ctx, _idx, d, rect| Button::new(ctx, rect, d.0.into(), d.1, d.2).unwrap(),
         );
         state.continue_text(ctx).unwrap();
         state
@@ -122,7 +126,13 @@ impl GameState {
     fn continue_text(&mut self, ctx: &mut Context) -> ggez::GameResult {
         match self.novel.next(&mut self.state) {
             Some(novelscript::SceneNodeUser::Data(node)) => {
-                crate::node::load_data_node(ctx, &mut self.screen, node, &self.resources)?;
+                crate::node::load_data_node(
+                    ctx,
+                    &mut self.screen,
+                    node,
+                    &self.resources,
+                    self.ui_sfx.clone(),
+                )?;
             }
             Some(novelscript::SceneNodeUser::Load(node)) => {
                 crate::node::load_load_node(

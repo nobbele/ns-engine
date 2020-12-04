@@ -14,3 +14,5 @@ You can contact me on Discord at nobbele#7065 if you have any question about the
 I am always open for answering them.
 
 Feel free to make issues and pull requests too, I greatly appreciate any contributions!
+
+Sound Effects by Sound Designer Tim Reichert

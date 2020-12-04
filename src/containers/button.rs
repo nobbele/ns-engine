@@ -1,7 +1,6 @@
-use ggez::{
-    graphics::{self, Color, DrawParam, Drawable, Rect},
-    mint, Context,
-};
+use std::{rc::Rc, cell::RefCell};
+
+use ggez::{Context, audio::SoundSource, graphics::{self, Color, DrawParam, Drawable, Rect}, mint};
 
 use super::Draw;
 
@@ -9,6 +8,8 @@ pub struct Button<T: Copy> {
     pub layer: graphics::Mesh,
     pub text: graphics::Text,
     pub data_on_click: T,
+    pub ui_sfx: Rc<RefCell<Option<ggez::audio::Source>>>,
+    pub last_state: bool,
 }
 
 fn create_layer(
@@ -40,6 +41,7 @@ impl<T: Copy> Button<T> {
         rect: Rect,
         text: String,
         data_on_click: T,
+        ui_sfx: Rc<RefCell<Option<ggez::audio::Source>>>,
     ) -> ggez::GameResult<Self> {
         let layer = create_layer(ctx, rect, false)?;
         let mut text = graphics::Text::new(text);
@@ -54,22 +56,37 @@ impl<T: Copy> Button<T> {
             layer,
             text,
             data_on_click,
+            ui_sfx,
+            last_state: false,
         })
     }
 
     pub fn mouse_motion_event(&mut self, ctx: &mut Context, x: f32, y: f32) {
         let rect = self.layer.dimensions(ctx).unwrap();
-        self.layer = create_layer(
-            ctx,
-            rect,
-            x > rect.x && x < rect.x + rect.w && y > rect.y && y < rect.y + rect.h,
-        )
-        .unwrap();
+        let is_hovered = x > rect.x && x < rect.x + rect.w && y > rect.y && y < rect.y + rect.h;
+        if self.last_state != is_hovered {
+            self.layer = create_layer(
+                ctx,
+                rect,
+                is_hovered,
+            )
+            .unwrap();
+            if is_hovered {
+                let mut audio = ggez::audio::Source::new(ctx, "/audio/ui_select.wav").unwrap();
+                audio.play(ctx).unwrap();
+                self.ui_sfx.replace(Some(audio));
+            }
+
+            self.last_state = is_hovered;
+        }
     }
 
     pub fn click_event(&self, ctx: &mut Context, x: f32, y: f32) -> Option<T> {
         let rect = self.layer.dimensions(ctx).unwrap();
         if x > rect.x && x < rect.x + rect.w && y > rect.y && y < rect.y + rect.h {
+            let mut audio = ggez::audio::Source::new(ctx, "/audio/ui_confirm.wav").unwrap();
+            audio.play(ctx).unwrap();
+            self.ui_sfx.replace(Some(audio));
             Some(self.data_on_click)
         } else {
             None
