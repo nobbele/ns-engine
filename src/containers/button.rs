@@ -1,23 +1,23 @@
-use std::{rc::Rc, cell::RefCell};
+use std::{cell::RefCell, rc::Rc};
 
-use ggez::{Context, audio::SoundSource, graphics::{self, Color, DrawParam, Drawable, Rect}, mint};
+use ggez::{
+    audio::SoundSource,
+    graphics::{self, Color, DrawParam, Drawable, Rect},
+    mint, Context,
+};
 
 use super::Draw;
 
 pub struct Button<T: Copy> {
-    pub layer: graphics::Mesh,
+    pub layer: (&'static graphics::Image, DrawParam),
     pub text: graphics::Text,
     pub data_on_click: T,
     pub ui_sfx: Rc<RefCell<Option<ggez::audio::Source>>>,
     pub last_state: bool,
 }
 
-fn create_layer(
-    ctx: &mut Context,
-    rect: Rect,
-    is_hovered: bool,
-) -> ggez::GameResult<graphics::Mesh> {
-    let color = if is_hovered {
+fn get_layer_color(is_hovered: bool) -> Color {
+    if is_hovered {
         Color {
             r: 0.6,
             g: 0.6,
@@ -31,19 +31,17 @@ fn create_layer(
             b: 0.2,
             a: 1.0,
         }
-    };
-    graphics::Mesh::new_rectangle(ctx, graphics::DrawMode::fill(), rect, color)
+    }
 }
 
 impl<T: Copy> Button<T> {
     pub fn new(
-        ctx: &mut Context,
+        layer: &'static graphics::Image,
         rect: Rect,
         text: String,
         data_on_click: T,
         ui_sfx: Rc<RefCell<Option<ggez::audio::Source>>>,
     ) -> ggez::GameResult<Self> {
-        let layer = create_layer(ctx, rect, false)?;
         let mut text = graphics::Text::new(text);
         text.set_bounds(
             mint::Point2 {
@@ -53,7 +51,12 @@ impl<T: Copy> Button<T> {
             graphics::Align::Center,
         );
         Ok(Self {
-            layer,
+            layer: (layer, DrawParam::new()
+            .dest(rect.point())
+            .scale(mint::Vector2 {
+                x: rect.w / layer.dimensions().w,
+                y: rect.h / layer.dimensions().h,
+            }).color(get_layer_color(false))),
             text,
             data_on_click,
             ui_sfx,
@@ -61,16 +64,20 @@ impl<T: Copy> Button<T> {
         })
     }
 
+    fn layer_dimensions(&self) -> Rect {
+        Rect {
+            x: self.layer.1.dest.x,
+            y: self.layer.1.dest.y,
+            w: self.layer.0.dimensions().w * self.layer.1.scale.x,
+            h: self.layer.0.dimensions().h * self.layer.1.scale.y,
+        }
+    }
+
     pub fn mouse_motion_event(&mut self, ctx: &mut Context, x: f32, y: f32) {
-        let rect = self.layer.dimensions(ctx).unwrap();
+        let rect = self.layer_dimensions();
         let is_hovered = x > rect.x && x < rect.x + rect.w && y > rect.y && y < rect.y + rect.h;
+        self.layer.1.color = get_layer_color(is_hovered);
         if self.last_state != is_hovered {
-            self.layer = create_layer(
-                ctx,
-                rect,
-                is_hovered,
-            )
-            .unwrap();
             if is_hovered {
                 let mut audio = ggez::audio::Source::new(ctx, "/audio/ui_select.wav").unwrap();
                 audio.play(ctx).unwrap();
@@ -82,7 +89,7 @@ impl<T: Copy> Button<T> {
     }
 
     pub fn click_event(&self, ctx: &mut Context, x: f32, y: f32) -> Option<T> {
-        let rect = self.layer.dimensions(ctx).unwrap();
+        let rect = self.layer_dimensions();
         if x > rect.x && x < rect.x + rect.w && y > rect.y && y < rect.y + rect.h {
             let mut audio = ggez::audio::Source::new(ctx, "/audio/ui_confirm.wav").unwrap();
             audio.play(ctx).unwrap();
@@ -96,9 +103,9 @@ impl<T: Copy> Button<T> {
 
 impl<T: Copy> Draw for Button<T> {
     fn draw(&self, ctx: &mut ggez::Context) -> ggez::GameResult {
-        let layer_bounds = self.layer.dimensions(ctx).unwrap();
+        self.layer.0.draw(ctx, self.layer.1)?;
 
-        self.layer.draw(ctx, DrawParam::new())?;
+        let layer_bounds = self.layer_dimensions();
 
         let mut text_pos = layer_bounds.point();
         text_pos.y -= self.text.height(ctx) as f32 / 2.0;

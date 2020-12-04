@@ -1,4 +1,4 @@
-use std::{rc::Rc, cell::RefCell};
+use std::{cell::RefCell, rc::Rc};
 
 use ggez::{audio::SoundSource, graphics, Context};
 use novelscript::SceneNodeLoad;
@@ -134,9 +134,18 @@ pub fn load_data_node(
             cell_size: (250.0, 50.0),
             direction: crate::containers::stackcontainer::Direction::Vertical,
         };
-        stack.init(ctx, choices.iter().map(|c| (c.clone(), ui_sfx.clone())).collect(), |ctx, idx, d, rect| {
-            Button::new(ctx, rect, d.0, idx as u32, d.1).unwrap()
-        });
+        for (n, d) in choices.iter().enumerate() {
+            stack.children.push(
+                Button::new(
+                    &resources.button,
+                    stack.get_rect_for(n as f32),
+                    d.clone(),
+                    n as u32,
+                    ui_sfx.clone(),
+                )
+                .unwrap(),
+            )
+        }
         screen.action = Action::Choice(stack);
     }
     Ok(())

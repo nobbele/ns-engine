@@ -1,4 +1,4 @@
-use std::{rc::Rc, cell::RefCell};
+use std::{cell::RefCell, rc::Rc};
 
 use crate::containers::{
     background::BackgroundContainer, button::Button, character::CharacterContainer,
@@ -96,16 +96,26 @@ impl GameState {
                 },
             },
         };
-        state.screen.ui.menu.init(
-            ctx,
-            vec![
-                ("Save", MenuButtonId::Save, state.ui_sfx.clone()),
-                ("Load", MenuButtonId::Load, state.ui_sfx.clone()),
-                ("Auto", MenuButtonId::Auto, state.ui_sfx.clone()),
-                ("Skip", MenuButtonId::Skip, state.ui_sfx.clone()),
-            ],
-            |ctx, _idx, d, rect| Button::new(ctx, rect, d.0.into(), d.1, d.2).unwrap(),
-        );
+        for (n, d) in [
+            ("Save", MenuButtonId::Save),
+            ("Load", MenuButtonId::Load),
+            ("Auto", MenuButtonId::Auto),
+            ("Skip", MenuButtonId::Skip),
+        ]
+        .iter()
+        .enumerate()
+        {
+            state.screen.ui.menu.children.push(
+                Button::new(
+                    &resources.button,
+                    state.screen.ui.menu.get_rect_for(n as f32),
+                    d.0.into(),
+                    d.1,
+                    state.ui_sfx.clone(),
+                )
+                .unwrap(),
+            )
+        }
         state.continue_text(ctx).unwrap();
         state
     }
@@ -120,6 +130,7 @@ pub struct SaveData {
 
 pub struct Resources {
     pub text_box: graphics::Image,
+    pub button: graphics::Image,
 }
 
 impl GameState {

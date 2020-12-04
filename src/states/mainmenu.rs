@@ -1,4 +1,4 @@
-use std::{io::BufReader, rc::Rc, cell::RefCell};
+use std::{cell::RefCell, io::BufReader, rc::Rc};
 
 use crate::{
     containers::{
@@ -69,14 +69,21 @@ impl MainMenuState {
             music: ggez::audio::Source::new(ctx, "/audio/bgm.mp3").unwrap(),
             ui_sfx: Rc::new(RefCell::new(None)),
         };
-        state.screen.menu.init(
-            ctx,
-            vec![
-                ("Start", MenuButtonId::Start, state.ui_sfx.clone()),
-                ("Quit", MenuButtonId::Quit, state.ui_sfx.clone()),
-            ],
-            |ctx, _idx, d, rect| Button::new(ctx, rect, d.0.into(), d.1, d.2).unwrap(),
-        );
+        for (n, d) in [("Start", MenuButtonId::Start), ("Quit", MenuButtonId::Quit)]
+            .iter()
+            .enumerate()
+        {
+            state.screen.menu.children.push(
+                Button::new(
+                    &resources.button,
+                    state.screen.menu.get_rect_for(n as f32),
+                    d.0.into(),
+                    d.1,
+                    state.ui_sfx.clone(),
+                )
+                .unwrap(),
+            )
+        }
         state.music.play(ctx).unwrap();
         state
     }

@@ -1,4 +1,4 @@
-use ggez::{graphics::Rect, mint, Context};
+use ggez::{graphics::Rect, mint};
 
 use super::{Draw, Update};
 
@@ -16,8 +16,8 @@ pub struct StackContainer<T> {
 }
 
 impl<T> StackContainer<T> {
-    fn get_position(&self, n: f32) -> (f32, f32) {
-        match self.direction {
+    pub fn get_rect_for(&self, n: f32) -> Rect {
+        let pos = match self.direction {
             Direction::Vertical => {
                 let x = self.position.x;
                 let y = self.position.y + n * (self.cell_size.1 + self.spacing);
@@ -28,28 +28,12 @@ impl<T> StackContainer<T> {
                 let y = self.position.y;
                 (x, y)
             }
-        }
-    }
-
-    pub fn init<D>(
-        &mut self,
-        ctx: &mut Context,
-        data: Vec<D>,
-        load: impl Fn(&mut Context, usize, D, Rect) -> T,
-    ) {
-        for (n, d) in data.into_iter().enumerate() {
-            let pos = self.get_position(n as f32);
-            self.children.push(load(
-                ctx,
-                n,
-                d,
-                Rect {
-                    x: pos.0,
-                    y: pos.1,
-                    w: self.cell_size.0,
-                    h: self.cell_size.1,
-                },
-            ))
+        };
+        Rect {
+            x: pos.0,
+            y: pos.1,
+            w: self.cell_size.0,
+            h: self.cell_size.1,
         }
     }
 }

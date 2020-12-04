@@ -38,7 +38,10 @@ impl SplashState {
 
     pub fn change_state(&mut self, ctx: &mut Context) -> Option<State> {
         if self.anim_state == SplashAnimState::Exit && self.splash.is_done() {
-            Some(State::MainMenu(MainMenuState::new(ctx, self.resources)))
+            Some(State::MainMenu(MainMenuState::new(
+                ctx,
+                &mut self.resources,
+            )))
         } else {
             None
         }
