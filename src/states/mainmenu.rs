@@ -7,18 +7,9 @@ use crate::{
     },
     helpers::Position,
 };
-use ggez::{
-    audio::SoundSource,
-    event::{self, EventHandler, MouseButton},
-    filesystem,
-    graphics::{self, drawable_size},
-    Context,
-};
+use ggez::{Context, graphics::DrawParam, audio::SoundSource, event::{self, MouseButton}, filesystem, graphics::{self, drawable_size}};
 
-use super::{
-    game::{GameState, Resources},
-    State,
-};
+use super::{State, StateEventHandler, game::{GameState, Resources}};
 
 pub struct MainMenuState {
     pub resources: &'static Resources,
@@ -104,7 +95,7 @@ impl MainMenuState {
     }
 }
 
-impl EventHandler for MainMenuState {
+impl StateEventHandler for MainMenuState {
     fn update(&mut self, ctx: &mut ggez::Context) -> ggez::GameResult {
         if let Some(e) = self.clicked_event {
             match e {
@@ -117,10 +108,11 @@ impl EventHandler for MainMenuState {
         Ok(())
     }
 
-    fn draw(&mut self, ctx: &mut ggez::Context) -> ggez::GameResult {
-        graphics::clear(ctx, [0.1, 0.2, 0.3, 1.0].into());
+    fn draw(&mut self, ctx: &mut ggez::Context, param: DrawParam) -> ggez::GameResult {
+        // Clear this one specific screen because ggez is dumb
+        graphics::clear(ctx, [1.0, 1.0, 1.0, 1.0].into()); 
 
-        self.screen.draw(ctx)?;
+        self.screen.draw(ctx, param)?;
 
         graphics::present(ctx)?;
         Ok(())

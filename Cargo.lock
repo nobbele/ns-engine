@@ -953,7 +953,7 @@ dependencies = [
 [[package]]
 name = "ggez"
 version = "0.6.0-norelease"
-source = "git+https://github.com/ggez/ggez?rev=1000695#1000695c1621f01ed88fff2d407e7d4bb4a3eaf6"
+source = "git+https://github.com/ggez/ggez?rev=c97f6f6#c97f6f6a2f92e7d01c1fc1c215b5311b73f1e17b"
 dependencies = [
  "approx",
  "bitflags",
@@ -1042,9 +1042,9 @@ dependencies = [
 
 [[package]]
 name = "glam"
-version = "0.10.2"
+version = "0.11.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "579160312273c954cc51bd440f059dde741029ac8daf8c84fece76cb77f62c15"
+checksum = "bef81f244b2a421ddb8ccb382857772379c0996fe5948992db5bee51cef3c28e"
 dependencies = [
  "mint",
  "version_check",
@@ -1220,10 +1220,12 @@ dependencies = [
  "byteorder",
  "color_quant",
  "gif",
+ "jpeg-decoder",
  "num-iter",
  "num-rational",
  "num-traits",
  "png",
+ "scoped_threadpool",
  "tiff",
 ]
 
@@ -1302,6 +1304,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cc797adac5f083b8ff0ca6f6294a999393d76e197c36488e2ef732c4715f6fa3"
 dependencies = [
  "byteorder",
+ "rayon",
 ]
 
 [[package]]
@@ -1738,6 +1741,7 @@ version = "0.1.0"
 dependencies = [
  "fs_extra",
  "ggez",
+ "image",
  "novelscript",
  "nsconfig",
  "rodio",
@@ -2345,6 +2349,12 @@ name = "scoped-tls"
 version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ea6a9290e3c9cf0f18145ef7ffa62d68ee0bf5fcd651017e586dc7fd5da448c2"
+
+[[package]]
+name = "scoped_threadpool"
+version = "0.1.9"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1d51f5df5af43ab3f1360b429fa5e0152ac5ce8c0bd6485cae490332e96846a8"
 
 [[package]]
 name = "scopeguard"

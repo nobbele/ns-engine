@@ -106,8 +106,10 @@ impl<T: Copy> Button<T> {
 }
 
 impl<T: Copy> Draw for Button<T> {
-    fn draw(&self, ctx: &mut ggez::Context) -> ggez::GameResult {
-        self.layer.0.draw(ctx, self.layer.1)?;
+    fn draw(&self, ctx: &mut ggez::Context, parent_param: DrawParam) -> ggez::GameResult {
+        let mut layer_param = self.layer.1;
+        layer_param.color.a = parent_param.color.a;
+        self.layer.0.draw(ctx, layer_param)?;
 
         let layer_bounds = self.layer_dimensions();
 
@@ -115,7 +117,10 @@ impl<T: Copy> Draw for Button<T> {
         text_pos.y -= self.text.height(ctx) as f32 / 2.0;
         text_pos.y += layer_bounds.h / 2.0;
 
-        self.text.draw(ctx, DrawParam::new().dest(text_pos))?;
+        let mut text_param = DrawParam::new().dest(text_pos);
+        text_param.color.a = parent_param.color.a;
+
+        self.text.draw(ctx, text_param)?;
 
         Ok(())
     }

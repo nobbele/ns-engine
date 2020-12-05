@@ -7,15 +7,15 @@ use crate::containers::{
 };
 use crate::helpers::Position;
 use crate::node::{load_background_tween, load_character_tween};
-use ggez::graphics;
+use ggez::graphics::{self, DrawParam};
 use ggez::{
     self,
     event::{KeyCode, KeyMods, MouseButton},
     Context,
 };
-use ggez::{event, graphics::Color};
+use ggez::graphics::Color;
 
-use super::State;
+use super::{State, StateEventHandler};
 
 pub enum Placement {
     Left,
@@ -233,7 +233,7 @@ impl GameState {
     }
 }
 
-impl event::EventHandler for GameState {
+impl StateEventHandler for GameState {
     fn update(&mut self, ctx: &mut Context) -> ggez::GameResult {
         let dt = ggez::timer::delta(ctx).as_secs_f32();
         if let Action::Text(textbox) = &self.screen.action {
@@ -255,10 +255,8 @@ impl event::EventHandler for GameState {
         Ok(())
     }
 
-    fn draw(&mut self, ctx: &mut Context) -> ggez::GameResult {
-        graphics::clear(ctx, [0.1, 0.2, 0.3, 1.0].into());
-
-        self.screen.draw(ctx)?;
+    fn draw(&mut self, ctx: &mut Context, param: DrawParam) -> ggez::GameResult {
+        self.screen.draw(ctx, param)?;
 
         graphics::present(ctx)?;
         Ok(())

@@ -1,4 +1,4 @@
-use ggez::{graphics::Rect, mint};
+use ggez::{graphics::{DrawParam, Rect}, mint};
 
 use super::{Draw, Update};
 
@@ -39,9 +39,9 @@ impl<T> StackContainer<T> {
 }
 
 impl<T: Draw> Draw for StackContainer<T> {
-    fn draw(&self, ctx: &mut ggez::Context) -> ggez::GameResult {
+    fn draw(&self, ctx: &mut ggez::Context, param: DrawParam) -> ggez::GameResult {
         for child in &self.children {
-            child.draw(ctx)?;
+            child.draw(ctx, param)?;
         }
         Ok(())
     }

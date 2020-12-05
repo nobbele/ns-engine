@@ -5,11 +5,7 @@ use ggez::{
     conf::{WindowMode, WindowSetup},
     graphics,
 };
-use states::{
-    game::{CharacterConfig, Config, Resources},
-    splash::SplashState,
-    State,
-};
+use states::{State, StateManager, game::{CharacterConfig, Config, Resources}, splash::SplashState};
 
 mod containers;
 mod draw;
@@ -59,5 +55,6 @@ pub fn main() -> ggez::GameResult {
     }));
 
     let state = State::Splash(SplashState::new(&mut ctx, resources));
-    event::run(ctx, event_loop, state)
+    let manager = StateManager::new(&mut ctx, state);
+    event::run(ctx, event_loop, manager)
 }

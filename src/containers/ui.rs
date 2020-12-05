@@ -1,3 +1,5 @@
+use ggez::graphics::DrawParam;
+
 use super::{button::Button, stackcontainer::StackContainer, Draw};
 
 #[derive(Copy, Clone)]
@@ -13,8 +15,8 @@ pub struct UI {
 }
 
 impl Draw for UI {
-    fn draw(&self, ctx: &mut ggez::Context) -> ggez::GameResult {
-        self.menu.draw(ctx)?;
+    fn draw(&self, ctx: &mut ggez::Context, param: DrawParam) -> ggez::GameResult {
+        self.menu.draw(ctx, param)?;
         Ok(())
     }
 }

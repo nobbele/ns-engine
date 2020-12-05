@@ -46,7 +46,7 @@ pub fn load_background_tween(
     prev: Option<Background>,
     name: String,
 ) -> ggez::GameResult<
-    TransitionTweener<Background, impl Fn(&mut Option<Background>, &mut Background, f32)>,
+    TransitionTweener<Background, Background, impl Fn(&mut Option<Background>, &mut Background, f32)>,
 > {
     let prev = prev.map(|mut n| {
         n.fade = 0.0;

@@ -14,12 +14,16 @@ pub struct TextBox {
 }
 
 impl Draw for TextBox {
-    fn draw(&self, ctx: &mut Context) -> ggez::GameResult {
+    fn draw(&self, ctx: &mut Context, parent_param: DrawParam) -> ggez::GameResult {
         self.layer.0.draw(ctx, self.layer.1)?;
         if let Some(speaker) = &self.speaker {
-            speaker.0.draw(ctx, speaker.1)?;
+            let mut param = speaker.1;
+            param.color.a = parent_param.color.a;
+            speaker.0.draw(ctx, param)?;
         }
-        self.content.0.get_current().draw(ctx, self.content.1)?;
+        let mut param = self.content.1;
+        param.color.a = parent_param.color.a;
+        self.content.0.get_current().draw(ctx, param)?;
         Ok(())
     }
 }

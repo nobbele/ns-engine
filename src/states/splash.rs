@@ -1,9 +1,9 @@
-use ggez::{event::EventHandler, graphics, graphics::Drawable, mint, Context, GameResult};
+use ggez::{graphics, graphics::Drawable, mint, Context, GameResult};
 use graphics::{drawable_size, DrawParam};
 
 use crate::tween::{TargetTweener, TweenBox};
 
-use super::{game::Resources, mainmenu::MainMenuState, State};
+use super::{State, game::Resources, mainmenu::MainMenuState, StateEventHandler};
 
 #[derive(PartialEq, Debug)]
 pub enum SplashAnimState {
@@ -48,7 +48,7 @@ impl SplashState {
     }
 }
 
-impl EventHandler for SplashState {
+impl StateEventHandler for SplashState {
     fn update(&mut self, ctx: &mut Context) -> GameResult {
         let dt = ggez::timer::delta(ctx).as_secs_f32();
         self.splash.update(dt);
@@ -58,9 +58,7 @@ impl EventHandler for SplashState {
         Ok(())
     }
 
-    fn draw(&mut self, ctx: &mut Context) -> GameResult {
-        graphics::clear(ctx, [1.0, 1.0, 1.0, 1.0].into());
-
+    fn draw(&mut self, ctx: &mut Context, parent_param: DrawParam) -> GameResult {
         let mut param = *self.splash.get_current();
         param.scale = mint::Vector2 {
             x: (drawable_size(ctx).0 / self.splash_img.width() as f32) * param.scale.x,
@@ -71,6 +69,7 @@ impl EventHandler for SplashState {
             x: drawable_size(ctx).0 / 2.0,
             y: drawable_size(ctx).1 / 2.0,
         };
+        param.color.a = parent_param.color.a;
         self.splash_img.draw(ctx, param)?;
 
         graphics::present(ctx)?;

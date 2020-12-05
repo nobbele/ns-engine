@@ -1,5 +1,5 @@
 use game::GameState;
-use ggez::event::Axis;
+use ggez::{GameResult, event::Axis, mint::Vector2, event::quit, graphics};
 use ggez::event::Button;
 use ggez::event::EventHandler;
 use ggez::input::gamepad::GamepadId;
@@ -7,6 +7,10 @@ use ggez::input::keyboard::KeyCode;
 use ggez::input::keyboard::KeyMods;
 use ggez::input::mouse::MouseButton;
 use ggez::Context;
+use ggez::graphics::Drawable;
+use ggez::graphics::DrawParam;
+
+use crate::tween::{TransitionTweener, TweenBox};
 
 use self::{mainmenu::MainMenuState, splash::SplashState};
 
@@ -14,22 +18,124 @@ pub mod game;
 pub mod mainmenu;
 pub mod splash;
 
+trait StateEventHandler {
+    fn update(&mut self, _ctx: &mut Context) -> GameResult;
+
+    fn draw(&mut self, _ctx: &mut Context, param: DrawParam) -> GameResult;
+
+    fn mouse_button_down_event(
+        &mut self,
+        _ctx: &mut Context,
+        _button: MouseButton,
+        _x: f32,
+        _y: f32,
+    ) {
+    }
+
+    fn mouse_button_up_event(
+        &mut self,
+        _ctx: &mut Context,
+        _button: MouseButton,
+        _x: f32,
+        _y: f32,
+    ) {
+    }
+
+    fn mouse_motion_event(&mut self, _ctx: &mut Context, _x: f32, _y: f32, _dx: f32, _dy: f32) {}
+
+    fn mouse_enter_or_leave(&mut self, _ctx: &mut Context, _entered: bool) {}
+
+    fn mouse_wheel_event(&mut self, _ctx: &mut Context, _x: f32, _y: f32) {}
+
+    fn key_down_event(
+        &mut self,
+        ctx: &mut Context,
+        keycode: KeyCode,
+        _keymods: KeyMods,
+        _repeat: bool,
+    ) {
+        if keycode == KeyCode::Escape {
+            quit(ctx);
+        }
+    }
+
+    fn key_up_event(&mut self, _ctx: &mut Context, _keycode: KeyCode, _keymods: KeyMods) {}
+
+    fn text_input_event(&mut self, _ctx: &mut Context, _character: char) {}
+
+    fn gamepad_button_down_event(&mut self, _ctx: &mut Context, _btn: Button, _id: GamepadId) {}
+
+    fn gamepad_button_up_event(&mut self, _ctx: &mut Context, _btn: Button, _id: GamepadId) {}
+
+    fn gamepad_axis_event(&mut self, _ctx: &mut Context, _axis: Axis, _value: f32, _id: GamepadId) {
+    }
+
+    fn focus_event(&mut self, _ctx: &mut Context, _gained: bool) {}
+
+    fn quit_event(&mut self, _ctx: &mut Context) -> bool {
+        false
+    }
+
+    fn resize_event(&mut self, _ctx: &mut Context, _width: f32, _height: f32) {}
+}
+
 pub enum State {
     Game(GameState),
     MainMenu(MainMenuState),
     Splash(SplashState),
 }
 
-macro_rules! impl_eventhandler_for_state {
+pub struct StateManager {
+    pub state: TweenBox<(Option<(graphics::Image, DrawParam)>, (State, DrawParam))>,
+}
+
+fn switch_scene_tween(ctx: &mut Context, has_current: bool, state: State) -> TweenBox<(Option<(graphics::Image, DrawParam)>, (State, DrawParam))> {
+    let img = if has_current {
+        let img = ggez::graphics::screenshot(ctx).unwrap();
+        Some(img)
+    } else {
+        None
+    };
+    Box::new(TransitionTweener {
+        time: 0.0,
+        target: 1.0,
+        set_instantly_if_no_prev: true,
+        current: (match img {
+            Some(img) => Some((img, DrawParam::new().scale(Vector2 {
+                x: 1.0,
+                y: -1.0,
+            }))), // -1 scale because ggez is dumb
+            None => None,
+        }, (state, DrawParam::new())),
+        update: |from, to, progress| {
+            if let Some((_, from_param)) = from {
+                from_param.color.a = 1.0 - progress;
+            }
+
+            to.1.color.a = progress;
+        }
+    })
+}
+
+impl StateManager {
+    pub fn new(ctx: &mut Context, state: State) -> Self {
+        Self {
+            state: switch_scene_tween(ctx, false, state),
+        }
+    }
+}
+
+macro_rules! impl_eventhandler_for_statemanager {
     ($($p:path),+) => {
-        impl EventHandler for State {
+        impl EventHandler for StateManager {
             fn update(&mut self, ctx: &mut ggez::Context) -> ggez::GameResult {
-                match self {
+                self.state.update(ggez::timer::delta(ctx).as_secs_f32());
+                match &mut self.state.get_current_mut().1.0 {
                     $(
                         $p(state) => {
                             state.update(ctx).unwrap();
                             if let Some(new_state) = state.change_state(ctx) {
-                                *self = new_state;
+                                self.state = switch_scene_tween(ctx, true, new_state);
                             }
                         }
                     ),*
@@ -38,10 +144,14 @@ macro_rules! impl_eventhandler_for_state {
             }
 
             fn draw(&mut self, ctx: &mut ggez::Context) -> ggez::GameResult {
-                match self {
+                let current = self.state.get_current_mut();
+                match &mut current.1.0 {
                     $(
-                        $p(state) => state.draw(ctx).unwrap()
+                        $p(state) => state.draw(ctx, current.1.1).unwrap()
                     ),*
+                }
+                if let Some((img, drawparam)) = &current.0 {
+                    img.draw(ctx, *drawparam).unwrap();
                 }
                 Ok(())
             }
@@ -53,7 +163,7 @@ macro_rules! impl_eventhandler_for_state {
                 x: f32,
                 y: f32,
             ) {
-                match self {
+                match &mut self.state.get_current_mut().1.0 {
                     $(
                         $p(state) => state.mouse_button_down_event(ctx, button, x, y)
                     ),*
@@ -67,7 +177,7 @@ macro_rules! impl_eventhandler_for_state {
                 x: f32,
                 y: f32,
             ) {
-                match self {
+                match &mut self.state.get_current_mut().1.0 {
                     $(
                         $p(state) => state.mouse_button_up_event(ctx, button, x, y)
                     ),*
@@ -75,7 +185,7 @@ macro_rules! impl_eventhandler_for_state {
             }
 
             fn mouse_motion_event(&mut self, ctx: &mut Context, x: f32, y: f32, dx: f32, dy: f32) {
-                match self {
+                match &mut self.state.get_current_mut().1.0 {
                     $(
                         $p(state) => state.mouse_motion_event(ctx, x, y, dx, dy)
                     ),*
@@ -83,7 +193,7 @@ macro_rules! impl_eventhandler_for_state {
             }
 
             fn mouse_enter_or_leave(&mut self, ctx: &mut Context, entered: bool) {
-                match self {
+                match &mut self.state.get_current_mut().1.0 {
                     $(
                         $p(state) => state.mouse_enter_or_leave(ctx, entered)
                     ),*
@@ -91,7 +201,7 @@ macro_rules! impl_eventhandler_for_state {
             }
 
             fn mouse_wheel_event(&mut self, ctx: &mut Context, x: f32, y: f32) {
-                match self {
+                match &mut self.state.get_current_mut().1.0 {
                     $(
                         $p(state) => state.mouse_wheel_event(ctx, x, y)
                     ),*
@@ -105,7 +215,7 @@ macro_rules! impl_eventhandler_for_state {
                 keymods: KeyMods,
                 repeat: bool,
             ) {
-                match self {
+                match &mut self.state.get_current_mut().1.0 {
                     $(
                         $p(state) => state.key_down_event(ctx, keycode, keymods, repeat)
                     ),*
@@ -113,7 +223,7 @@ macro_rules! impl_eventhandler_for_state {
             }
 
             fn key_up_event(&mut self, ctx: &mut Context, keycode: KeyCode, keymods: KeyMods) {
-                match self {
+                match &mut self.state.get_current_mut().1.0 {
                     $(
                         $p(state) => state.key_up_event(ctx, keycode, keymods)
                     ),*
@@ -121,7 +231,7 @@ macro_rules! impl_eventhandler_for_state {
             }
 
             fn text_input_event(&mut self, ctx: &mut Context, character: char) {
-                match self {
+                match &mut self.state.get_current_mut().1.0 {
                     $(
                         $p(state) => state.text_input_event(ctx, character)
                     ),*
@@ -129,7 +239,7 @@ macro_rules! impl_eventhandler_for_state {
             }
 
             fn gamepad_button_down_event(&mut self, ctx: &mut Context, btn: Button, id: GamepadId) {
-                match self {
+                match &mut self.state.get_current_mut().1.0 {
                     $(
                         $p(state) => state.gamepad_button_down_event(ctx, btn, id)
                     ),*
@@ -137,7 +247,7 @@ macro_rules! impl_eventhandler_for_state {
             }
 
             fn gamepad_button_up_event(&mut self, ctx: &mut Context, btn: Button, id: GamepadId) {
-                match self {
+                match &mut self.state.get_current_mut().1.0 {
                     $(
                         $p(state) => state.gamepad_button_up_event(ctx, btn, id)
                     ),*
@@ -145,7 +255,7 @@ macro_rules! impl_eventhandler_for_state {
             }
 
             fn gamepad_axis_event(&mut self, ctx: &mut Context, axis: Axis, value: f32, id: GamepadId) {
-                match self {
+                match &mut self.state.get_current_mut().1.0 {
                     $(
                         $p(state) => state.gamepad_axis_event(ctx, axis, value, id)
                     ),*
@@ -153,7 +263,7 @@ macro_rules! impl_eventhandler_for_state {
             }
 
             fn focus_event(&mut self, ctx: &mut Context, gained: bool) {
-                match self {
+                match &mut self.state.get_current_mut().1.0 {
                     $(
                         $p(state) => state.focus_event(ctx, gained)
                     ),*
@@ -161,7 +271,7 @@ macro_rules! impl_eventhandler_for_state {
             }
 
             fn quit_event(&mut self, ctx: &mut Context) -> bool {
-                match self {
+                match &mut self.state.get_current_mut().1.0 {
                     $(
                         $p(state) => state.quit_event(ctx)
                     ),*
@@ -172,7 +282,7 @@ macro_rules! impl_eventhandler_for_state {
                 ggez::graphics::set_screen_coordinates(ctx, ggez::graphics::Rect::new(0.0, 0.0, width, height))
                     .unwrap();
 
-                match self {
+                match &mut self.state.get_current_mut().1.0 {
                     $(
                         $p(state) => state.resize_event(ctx, width, height)
                     ),*
@@ -182,4 +292,4 @@ macro_rules! impl_eventhandler_for_state {
     };
 }
 
-impl_eventhandler_for_state!(State::Game, State::MainMenu, State::Splash);
+impl_eventhandler_for_statemanager!(State::Game, State::MainMenu, State::Splash);
