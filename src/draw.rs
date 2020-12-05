@@ -7,7 +7,10 @@ use crate::{
     tween::Tweener,
     Resources,
 };
-use ggez::{graphics, Context};
+use ggez::{
+    graphics::{self, DrawParam},
+    Context,
+};
 
 pub fn load_text(
     ctx: &mut Context,
@@ -31,8 +34,10 @@ pub fn load_text(
     let speaker_text = if let Some(speaker) = speaker {
         let mut speaker_text = graphics::Text::new(speaker.as_str());
         speaker_text.set_bounds([f32::INFINITY, f32::INFINITY], graphics::Align::Left);
-        let speaker_text_params = (Position::TopLeft.add_in_from(&layer_bounds, (15.0, 20.0)),);
-        Some((speaker_text, speaker_text_params.into()))
+        let speaker_text_params = DrawParam::new()
+            .dest(Position::TopLeft.add_in_from(&layer_bounds, (15.0, 20.0)))
+            .color(resources.config.characters[speaker].color);
+        Some((speaker_text, speaker_text_params))
     } else {
         None
     };

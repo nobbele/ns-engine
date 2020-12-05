@@ -51,12 +51,16 @@ impl<T: Copy> Button<T> {
             graphics::Align::Center,
         );
         Ok(Self {
-            layer: (layer, DrawParam::new()
-            .dest(rect.point())
-            .scale(mint::Vector2 {
-                x: rect.w / layer.dimensions().w,
-                y: rect.h / layer.dimensions().h,
-            }).color(get_layer_color(false))),
+            layer: (
+                layer,
+                DrawParam::new()
+                    .dest(rect.point())
+                    .scale(mint::Vector2 {
+                        x: rect.w / layer.dimensions().w,
+                        y: rect.h / layer.dimensions().h,
+                    })
+                    .color(get_layer_color(false)),
+            ),
             text,
             data_on_click,
             ui_sfx,

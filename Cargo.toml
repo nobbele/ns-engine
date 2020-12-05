@@ -11,6 +11,7 @@ build = "build-zip.rs"
 #ggez = "0.5.1"
 ggez = { git = "https://github.com/ggez/ggez", rev = "1000695" }
 novelscript = { git = "https://github.com/nobbele/novelscript", features = ["serde"] }
+nsconfig = { git = "https://github.com/nobbele/ns-config" }
 serde_json = "1.0"
 serde = "1.0.117"
 rodio = "0.13.0"

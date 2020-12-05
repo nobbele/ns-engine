@@ -1,4 +1,4 @@
-use std::{cell::RefCell, rc::Rc};
+use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
 use crate::containers::{
     background::BackgroundContainer, button::Button, character::CharacterContainer,
@@ -7,13 +7,13 @@ use crate::containers::{
 };
 use crate::helpers::Position;
 use crate::node::{load_background_tween, load_character_tween};
-use ggez::event;
 use ggez::graphics;
 use ggez::{
     self,
     event::{KeyCode, KeyMods, MouseButton},
     Context,
 };
+use ggez::{event, graphics::Color};
 
 use super::State;
 
@@ -128,9 +128,20 @@ pub struct SaveData {
     pub current_characters: Vec<(String, String)>,
 }
 
+#[derive(Debug)]
+pub struct CharacterConfig {
+    pub color: Color,
+}
+
+#[derive(Debug)]
+pub struct Config {
+    pub characters: HashMap<String, CharacterConfig>,
+}
+
 pub struct Resources {
     pub text_box: graphics::Image,
     pub button: graphics::Image,
+    pub config: Config,
 }
 
 impl GameState {
