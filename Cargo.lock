@@ -552,9 +552,9 @@ dependencies = [
 
 [[package]]
 name = "coreaudio-sys"
-version = "0.2.7"
+version = "0.2.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f54dccdfa1035d478cc91ac758e4e31affb922c3e4068f02a34e062145a1db00"
+checksum = "2b7e3347be6a09b46aba228d6608386739fb70beff4f61e07422da87b0bb31fa"
 dependencies = [
  "bindgen",
 ]
@@ -1719,8 +1719,10 @@ dependencies = [
 [[package]]
 name = "novelscript"
 version = "0.1.0"
-source = "git+https://github.com/nobbele/novelscript#933c34af6df9dccde3742d14f6f8b0db9311229a"
+source = "git+https://github.com/nobbele/novelscript#87f76f383077b61e66c93584f0eac74e9058b8b2"
 dependencies = [
+ "pest",
+ "pest_derive",
  "serde",
  "thiserror",
 ]
@@ -2597,9 +2599,9 @@ checksum = "6446ced80d6c486436db5c078dde11a9f73d42b57fb273121e160b84f63d894c"
 
 [[package]]
 name = "syn"
-version = "1.0.53"
+version = "1.0.54"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8833e20724c24de12bbaba5ad230ea61c3eafb05b881c7c9d3cfe8638b187e68"
+checksum = "9a2af957a63d6bd42255c359c93d9bfdb97076bd3b820897ce55ffbfbf107f44"
 dependencies = [
  "proc-macro2",
  "quote",

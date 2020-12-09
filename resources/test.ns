@@ -25,6 +25,8 @@ _: “It looks like she’s feeling down. Is she crying?”
 [Ignore / Walk up to her]
 if choice = 2
 
+    play walking sfx
+
     _: “I try to always help people who look to be in need of help or comfort”
 
     _: Hey there, how are you?
