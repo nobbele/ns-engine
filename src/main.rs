@@ -3,11 +3,7 @@ use ggez::{
     conf::{WindowMode, WindowSetup},
     graphics,
 };
-use states::{
-    game::Resources,
-    mainmenu::MainMenuState,
-    State,
-};
+use states::{game::Resources, mainmenu::MainMenuState, State};
 
 mod containers;
 mod draw;
