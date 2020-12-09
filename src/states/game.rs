@@ -1,3 +1,5 @@
+use std::{cell::RefCell, collections::HashMap, rc::Rc};
+
 use crate::containers::{
     background::BackgroundContainer, button::Button, character::CharacterContainer,
     gamescreen::Action, gamescreen::GameScreen, stackcontainer::Direction,
@@ -5,15 +7,15 @@ use crate::containers::{
 };
 use crate::helpers::Position;
 use crate::node::{load_background_tween, load_character_tween};
-use ggez::event;
-use ggez::graphics;
+use ggez::graphics::{self, DrawParam};
 use ggez::{
     self,
     event::{KeyCode, KeyMods, MouseButton},
     Context,
 };
+use ggez::graphics::Color;
 
-use super::State;
+use super::{State, StateEventHandler};
 
 pub enum Placement {
     Left,
@@ -45,11 +47,22 @@ impl Background {
     }
 }
 
+#[derive(PartialEq)]
+pub enum ContinueMethod {
+    Auto(f32), // time counter
+    Skip,      // wait time counter
+    Normal,
+}
+
 pub struct GameState {
     pub novel: novelscript::Novel,
     pub state: novelscript::NovelState,
     pub resources: &'static Resources,
+    pub continue_method: ContinueMethod,
     pub screen: GameScreen,
+    pub sfx: Option<ggez::audio::Source>,
+    pub music: Option<ggez::audio::Source>,
+    pub ui_sfx: Rc<RefCell<Option<ggez::audio::Source>>>,
 }
 
 impl GameState {
@@ -62,6 +75,10 @@ impl GameState {
             state: novel.new_state("start"),
             novel,
             resources,
+            continue_method: ContinueMethod::Normal,
+            sfx: None,
+            music: None,
+            ui_sfx: Rc::new(RefCell::new(None)),
             screen: GameScreen {
                 current_background: None,
                 current_characters: CharacterContainer {
@@ -79,11 +96,26 @@ impl GameState {
                 },
             },
         };
-        state.screen.ui.menu.init(
-            ctx,
-            vec![("Save", MenuButtonId::Save), ("Load", MenuButtonId::Load)],
-            |ctx, _idx, d, rect| Button::new(ctx, rect, d.0.into(), d.1).unwrap(),
-        );
+        for (n, d) in [
+            ("Save", MenuButtonId::Save),
+            ("Load", MenuButtonId::Load),
+            ("Auto", MenuButtonId::Auto),
+            ("Skip", MenuButtonId::Skip),
+        ]
+        .iter()
+        .enumerate()
+        {
+            state.screen.ui.menu.children.push(
+                Button::new(
+                    &resources.button,
+                    state.screen.ui.menu.get_rect_for(n as f32),
+                    d.0.into(),
+                    d.1,
+                    state.ui_sfx.clone(),
+                )
+                .unwrap(),
+            )
+        }
         state.continue_text(ctx).unwrap();
         state
     }
@@ -96,18 +128,42 @@ pub struct SaveData {
     pub current_characters: Vec<(String, String)>,
 }
 
+#[derive(Debug)]
+pub struct CharacterConfig {
+    pub color: Color,
+}
+
+#[derive(Debug)]
+pub struct Config {
+    pub characters: HashMap<String, CharacterConfig>,
+}
+
 pub struct Resources {
     pub text_box: graphics::Image,
+    pub button: graphics::Image,
+    pub config: Config,
 }
 
 impl GameState {
     fn continue_text(&mut self, ctx: &mut Context) -> ggez::GameResult {
         match self.novel.next(&mut self.state) {
             Some(novelscript::SceneNodeUser::Data(node)) => {
-                crate::node::load_data_node(ctx, &mut self.screen, node, &self.resources)?;
+                crate::node::load_data_node(
+                    ctx,
+                    &mut self.screen,
+                    node,
+                    &self.resources,
+                    self.ui_sfx.clone(),
+                )?;
             }
             Some(novelscript::SceneNodeUser::Load(node)) => {
-                crate::node::load_load_node(ctx, &mut self.screen, node.clone())?;
+                crate::node::load_load_node(
+                    ctx,
+                    &mut self.screen,
+                    node.clone(),
+                    &mut self.sfx,
+                    &mut self.music,
+                )?;
                 self.continue_text(ctx).unwrap();
             }
             None => {}
@@ -177,16 +233,30 @@ impl GameState {
     }
 }
 
-impl event::EventHandler for GameState {
+impl StateEventHandler for GameState {
     fn update(&mut self, ctx: &mut Context) -> ggez::GameResult {
-        self.screen.update(ggez::timer::delta(ctx).as_secs_f32());
+        let dt = ggez::timer::delta(ctx).as_secs_f32();
+        if let Action::Text(textbox) = &self.screen.action {
+            match self.continue_method {
+                ContinueMethod::Skip => self.continue_text(ctx)?,
+                ContinueMethod::Auto(ref mut n) => {
+                    if textbox.content.0.is_done() {
+                        *n += dt;
+                        if *n >= 1.0 {
+                            *n = 0.0;
+                            self.continue_text(ctx)?;
+                        }
+                    }
+                }
+                _ => {}
+            }
+        }
+        self.screen.update(dt);
         Ok(())
     }
 
-    fn draw(&mut self, ctx: &mut Context) -> ggez::GameResult {
-        graphics::clear(ctx, [0.1, 0.2, 0.3, 1.0].into());
-
-        self.screen.draw(ctx)?;
+    fn draw(&mut self, ctx: &mut Context, param: DrawParam) -> ggez::GameResult {
+        self.screen.draw(ctx, param)?;
 
         graphics::present(ctx)?;
         Ok(())
@@ -194,12 +264,25 @@ impl event::EventHandler for GameState {
 
     fn key_down_event(&mut self, ctx: &mut Context, key: KeyCode, _mods: KeyMods, _: bool) {
         match key {
-            KeyCode::Space | KeyCode::Escape => {
+            KeyCode::Space => {
                 if let Action::Text(..) = &mut self.screen.action {
-                    self.continue_text(ctx).unwrap();
+                    if self.continue_method == ContinueMethod::Normal {
+                        self.continue_text(ctx).unwrap();
+                    }
                 }
             }
             _ => (),
+        }
+    }
+
+    fn text_input_event(&mut self, ctx: &mut Context, ch: char) {
+        if let Action::Choice(choices) = &mut self.screen.action {
+            if let Some(n) = ch.to_digit(10) {
+                if n >= 1 && n < choices.children.len() as u32 {
+                    self.state.set_choice(n as i32);
+                    self.continue_text(ctx).unwrap();
+                }
+            }
         }
     }
 
@@ -238,6 +321,8 @@ impl event::EventHandler for GameState {
             match e {
                 MenuButtonId::Save => self.on_save_click(ctx),
                 MenuButtonId::Load => self.on_load_click(ctx),
+                MenuButtonId::Skip => self.continue_method = ContinueMethod::Skip,
+                MenuButtonId::Auto => self.continue_method = ContinueMethod::Auto(0.0),
             }
         }
     }

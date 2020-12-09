@@ -1,4 +1,4 @@
-use ggez::mint;
+use ggez::{graphics::DrawParam, mint};
 use ggez::{
     graphics::{self, drawable_size},
     Context,
@@ -13,7 +13,7 @@ pub struct CharacterContainer {
 }
 
 impl Draw for CharacterContainer {
-    fn draw(&self, ctx: &mut Context) -> ggez::GameResult {
+    fn draw(&self, ctx: &mut Context, param: DrawParam) -> ggez::GameResult {
         for (n, character) in self.current.iter().enumerate() {
             let character = character.get_current();
             let x_position = (drawable_size(ctx).0 as f32 / (self.current.len() as f32 + 1.0))
@@ -35,7 +35,7 @@ impl Draw for CharacterContainer {
                     ]
                     .into(),
                     color: graphics::Color {
-                        a: character.alpha,
+                        a: character.alpha * param.color.a,
                         ..graphics::WHITE
                     },
                     ..Default::default()

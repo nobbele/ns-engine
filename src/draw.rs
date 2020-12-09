@@ -7,7 +7,10 @@ use crate::{
     tween::Tweener,
     Resources,
 };
-use ggez::{graphics, Context};
+use ggez::{
+    graphics::{self, DrawParam},
+    Context,
+};
 
 pub fn load_text(
     ctx: &mut Context,
@@ -31,8 +34,10 @@ pub fn load_text(
     let speaker_text = if let Some(speaker) = speaker {
         let mut speaker_text = graphics::Text::new(speaker.as_str());
         speaker_text.set_bounds([f32::INFINITY, f32::INFINITY], graphics::Align::Left);
-        let speaker_text_params = (Position::TopLeft.add_in_from(&layer_bounds, (15.0, 20.0)),);
-        Some((speaker_text, speaker_text_params.into()))
+        let speaker_text_params = DrawParam::new()
+            .dest(Position::TopLeft.add_in_from(&layer_bounds, (15.0, 20.0)))
+            .color(resources.config.characters[speaker].color);
+        Some((speaker_text, speaker_text_params))
     } else {
         None
     };
@@ -54,21 +59,22 @@ pub fn load_text(
     let text_tween = Tweener {
         current: text,
         time: 0.0,
+        is_done: false,
         update: |text, time, _| {
             let cps = 75.0f32;
 
+            let frag_count = text.fragments().len();
+
             let lim = (time * cps) as usize;
-            let lim = if lim > text.fragments().len() {
-                text.fragments().len()
-            } else {
-                lim
-            };
+            let lim = if lim > frag_count { frag_count } else { lim };
 
             for i in 0..lim {
                 if let Some(color) = &mut text.fragments_mut()[i].color {
                     color.a = 1.0;
                 }
             }
+
+            lim == frag_count
         },
     };
 

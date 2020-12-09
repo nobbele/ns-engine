@@ -1,4 +1,4 @@
-use std::io::Read;
+use std::{cell::RefCell, io::BufReader, rc::Rc};
 
 use crate::{
     containers::{
@@ -7,26 +7,20 @@ use crate::{
     },
     helpers::Position,
 };
-use ggez::{
-    event::{self, EventHandler, MouseButton},
-    filesystem,
-    graphics::{self, drawable_size},
-    Context,
-};
+use ggez::{Context, graphics::DrawParam, audio::SoundSource, event::{self, MouseButton}, filesystem, graphics::{self, drawable_size}};
 
-use super::{
-    game::{GameState, Resources},
-    State,
-};
+use super::{State, StateEventHandler, game::{GameState, Resources}};
 
 pub struct MainMenuState {
     pub resources: &'static Resources,
     pub screen: MainMenuScreen,
     pub clicked_event: Option<MenuButtonId>,
+    pub music: ggez::audio::Source,
+    pub ui_sfx: Rc<RefCell<Option<ggez::audio::Source>>>,
 }
 
 impl MainMenuState {
-    pub fn new(ctx: &mut Context, resources: &'static mut Resources) -> Self {
+    pub fn new(ctx: &mut Context, resources: &'static Resources) -> Self {
         let mut state = Self {
             resources,
             clicked_event: None,
@@ -63,12 +57,25 @@ impl MainMenuState {
                     direction: Direction::Vertical,
                 },
             },
+            music: ggez::audio::Source::new(ctx, "/audio/bgm.mp3").unwrap(),
+            ui_sfx: Rc::new(RefCell::new(None)),
         };
-        state.screen.menu.init(
-            ctx,
-            vec![("Start", MenuButtonId::Start), ("Quit", MenuButtonId::Quit)],
-            |ctx, _idx, d, rect| Button::new(ctx, rect, d.0.into(), d.1).unwrap(),
-        );
+        for (n, d) in [("Start", MenuButtonId::Start), ("Quit", MenuButtonId::Quit)]
+            .iter()
+            .enumerate()
+        {
+            state.screen.menu.children.push(
+                Button::new(
+                    &resources.button,
+                    state.screen.menu.get_rect_for(n as f32),
+                    d.0.into(),
+                    d.1,
+                    state.ui_sfx.clone(),
+                )
+                .unwrap(),
+            )
+        }
+        state.music.play(ctx).unwrap();
         state
     }
 
@@ -88,7 +95,7 @@ impl MainMenuState {
     }
 }
 
-impl EventHandler for MainMenuState {
+impl StateEventHandler for MainMenuState {
     fn update(&mut self, ctx: &mut ggez::Context) -> ggez::GameResult {
         if let Some(e) = self.clicked_event {
             match e {
@@ -101,10 +108,11 @@ impl EventHandler for MainMenuState {
         Ok(())
     }
 
-    fn draw(&mut self, ctx: &mut ggez::Context) -> ggez::GameResult {
-        graphics::clear(ctx, [0.1, 0.2, 0.3, 1.0].into());
+    fn draw(&mut self, ctx: &mut ggez::Context, param: DrawParam) -> ggez::GameResult {
+        // Clear this one specific screen because ggez is dumb
+        graphics::clear(ctx, [1.0, 1.0, 1.0, 1.0].into()); 
 
-        self.screen.draw(ctx)?;
+        self.screen.draw(ctx, param)?;
 
         graphics::present(ctx)?;
         Ok(())

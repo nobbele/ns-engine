@@ -1,5 +1,7 @@
 scene StreetNight
 
+play bgm music
+
 load Yukio normal at Left
 
 _: It’s freezing cold recently, there’s so much snow. It’s also so dark outside at this time of the year.

@@ -552,9 +552,9 @@ dependencies = [
 
 [[package]]
 name = "coreaudio-sys"
-version = "0.2.8"
+version = "0.2.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2b7e3347be6a09b46aba228d6608386739fb70beff4f61e07422da87b0bb31fa"
+checksum = "f54dccdfa1035d478cc91ac758e4e31affb922c3e4068f02a34e062145a1db00"
 dependencies = [
  "bindgen",
 ]
@@ -944,7 +944,7 @@ dependencies = [
 [[package]]
 name = "ggez"
 version = "0.6.0-norelease"
-source = "git+https://github.com/ggez/ggez?rev=1000695#1000695c1621f01ed88fff2d407e7d4bb4a3eaf6"
+source = "git+https://github.com/ggez/ggez?rev=c97f6f6#c97f6f6a2f92e7d01c1fc1c215b5311b73f1e17b"
 dependencies = [
  "approx",
  "bitflags",
@@ -1033,9 +1033,9 @@ dependencies = [
 
 [[package]]
 name = "glam"
-version = "0.10.2"
+version = "0.11.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "579160312273c954cc51bd440f059dde741029ac8daf8c84fece76cb77f62c15"
+checksum = "bef81f244b2a421ddb8ccb382857772379c0996fe5948992db5bee51cef3c28e"
 dependencies = [
  "mint",
  "version_check",
@@ -1211,10 +1211,12 @@ dependencies = [
  "byteorder",
  "color_quant",
  "gif",
+ "jpeg-decoder",
  "num-iter",
  "num-rational",
  "num-traits",
  "png",
+ "scoped_threadpool",
  "tiff",
 ]
 
@@ -1293,6 +1295,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cc797adac5f083b8ff0ca6f6294a999393d76e197c36488e2ef732c4715f6fa3"
 dependencies = [
  "byteorder",
+ "rayon",
 ]
 
 [[package]]
@@ -1716,10 +1719,8 @@ dependencies = [
 [[package]]
 name = "novelscript"
 version = "0.1.0"
-source = "git+https://github.com/nobbele/novelscript#e5bac4edefd9d30d8b3ce37e3a4fb5880bf85518"
+source = "git+https://github.com/nobbele/novelscript#933c34af6df9dccde3742d14f6f8b0db9311229a"
 dependencies = [
- "pest",
- "pest_derive",
  "serde",
  "thiserror",
 ]
@@ -1730,11 +1731,23 @@ version = "0.1.0"
 dependencies = [
  "fs_extra",
  "ggez",
+ "image",
  "novelscript",
+ "nsconfig",
+ "rodio",
  "serde",
  "serde_json",
  "walkdir",
  "zip",
+]
+
+[[package]]
+name = "nsconfig"
+version = "0.1.0"
+source = "git+https://github.com/nobbele/ns-config#9d06816b61f88d6e7462a70303e1e9b0b6f358df"
+dependencies = [
+ "pest",
+ "pest_derive",
 ]
 
 [[package]]
@@ -2327,6 +2340,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ea6a9290e3c9cf0f18145ef7ffa62d68ee0bf5fcd651017e586dc7fd5da448c2"
 
 [[package]]
+name = "scoped_threadpool"
+version = "0.1.9"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1d51f5df5af43ab3f1360b429fa5e0152ac5ce8c0bd6485cae490332e96846a8"
+
+[[package]]
 name = "scopeguard"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2578,9 +2597,9 @@ checksum = "6446ced80d6c486436db5c078dde11a9f73d42b57fb273121e160b84f63d894c"
 
 [[package]]
 name = "syn"
-version = "1.0.54"
+version = "1.0.53"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9a2af957a63d6bd42255c359c93d9bfdb97076bd3b820897ce55ffbfbf107f44"
+checksum = "8833e20724c24de12bbaba5ad230ea61c3eafb05b881c7c9d3cfe8638b187e68"
 dependencies = [
  "proc-macro2",
  "quote",

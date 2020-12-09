@@ -1,4 +1,6 @@
-use ggez::{graphics, Context};
+use std::{cell::RefCell, rc::Rc};
+
+use ggez::{audio::SoundSource, graphics, Context};
 use novelscript::SceneNodeLoad;
 
 use crate::{
@@ -44,7 +46,7 @@ pub fn load_background_tween(
     prev: Option<Background>,
     name: String,
 ) -> ggez::GameResult<
-    TransitionTweener<Background, impl Fn(&mut Option<Background>, &mut Background, f32)>,
+    TransitionTweener<Background, Background, impl Fn(&mut Option<Background>, &mut Background, f32)>,
 > {
     let prev = prev.map(|mut n| {
         n.fade = 0.0;
@@ -74,6 +76,8 @@ pub fn load_load_node(
     ctx: &mut Context,
     screen: &mut GameScreen,
     node: SceneNodeLoad,
+    sfx: &mut Option<ggez::audio::Source>,
+    music: &mut Option<ggez::audio::Source>,
 ) -> ggez::GameResult {
     if let novelscript::SceneNodeLoad::Character {
         character,
@@ -98,6 +102,16 @@ pub fn load_load_node(
         screen.current_background = Some(BackgroundContainer {
             current: Box::new(load_background_tween(ctx, prev, name)?),
         });
+    } else if let novelscript::SceneNodeLoad::PlaySound { name, channel } = node {
+        let src = match channel.as_ref().map(|s| s.as_str()) {
+            Some("sfx") => sfx,
+            Some("music") => music,
+            None => sfx,
+            _ => panic!(),
+        };
+        let mut new_src = ggez::audio::Source::new(ctx, format!("/audio/{}.mp3", name)).unwrap();
+        new_src.play(ctx).unwrap();
+        *src = Some(new_src);
     }
     Ok(())
 }
@@ -107,6 +121,7 @@ pub fn load_data_node(
     screen: &mut GameScreen,
     node: &novelscript::SceneNodeData,
     resources: &'static Resources,
+    ui_sfx: Rc<RefCell<Option<ggez::audio::Source>>>,
 ) -> ggez::GameResult {
     if let novelscript::SceneNodeData::Text { speaker, content } = node {
         load_text(ctx, screen, resources, speaker, content)?;
@@ -119,9 +134,18 @@ pub fn load_data_node(
             cell_size: (250.0, 50.0),
             direction: crate::containers::stackcontainer::Direction::Vertical,
         };
-        stack.init(ctx, choices.clone(), |ctx, idx, d, rect| {
-            Button::new(ctx, rect, d, idx as u32).unwrap()
-        });
+        for (n, d) in choices.iter().enumerate() {
+            stack.children.push(
+                Button::new(
+                    &resources.button,
+                    stack.get_rect_for(n as f32),
+                    d.clone(),
+                    n as u32,
+                    ui_sfx.clone(),
+                )
+                .unwrap(),
+            )
+        }
         screen.action = Action::Choice(stack);
     }
     Ok(())

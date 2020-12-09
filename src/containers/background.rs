@@ -1,7 +1,4 @@
-use ggez::{
-    graphics::{self, drawable_size},
-    Context,
-};
+use ggez::{Context, graphics::{self, DrawParam, drawable_size}};
 
 use crate::{states::game::Background, tween::TransitionTweenBox};
 
@@ -12,7 +9,7 @@ pub struct BackgroundContainer {
 }
 
 impl Draw for BackgroundContainer {
-    fn draw(&self, ctx: &mut Context) -> ggez::GameResult {
+    fn draw(&self, ctx: &mut Context, param: DrawParam) -> ggez::GameResult {
         let background = self.current.get_current();
         if let Some(Background {
             name: _,
@@ -30,7 +27,7 @@ impl Draw for BackgroundContainer {
                     ]
                     .into(),
                     color: graphics::Color {
-                        a: *fade,
+                        a: *fade * param.color.a,
                         ..graphics::WHITE
                     },
                     ..Default::default()
@@ -52,7 +49,7 @@ impl Draw for BackgroundContainer {
                 ]
                 .into(),
                 color: graphics::Color {
-                    a: *fade,
+                    a: *fade * param.color.a,
                     ..graphics::WHITE
                 },
                 ..Default::default()

@@ -1,4 +1,4 @@
-use ggez::Context;
+use ggez::{Context, graphics::DrawParam};
 
 use super::{
     background::BackgroundContainer, button::Button, character::CharacterContainer,
@@ -19,22 +19,22 @@ pub struct GameScreen {
 }
 
 impl Draw for GameScreen {
-    fn draw(&self, ctx: &mut Context) -> ggez::GameResult {
+    fn draw(&self, ctx: &mut Context, param: DrawParam) -> ggez::GameResult {
         if let Some(background) = &self.current_background {
-            background.draw(ctx)?;
+            background.draw(ctx, param)?;
         }
 
-        self.current_characters.draw(ctx)?;
+        self.current_characters.draw(ctx, param)?;
 
         if let Action::Choice(container) = &self.action {
             for choice in &container.children {
-                choice.draw(ctx)?;
+                choice.draw(ctx, param)?;
             }
         } else if let Action::Text(text) = &self.action {
-            text.draw(ctx)?;
+            text.draw(ctx, param)?;
         }
 
-        self.ui.draw(ctx)?;
+        self.ui.draw(ctx, param)?;
 
         Ok(())
     }
