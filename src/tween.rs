@@ -86,7 +86,9 @@ pub struct TransitionTweener<T1, T2, F: Fn(&mut Option<T1>, &mut T2, f32)> {
     pub update: F,
 }
 
-impl<T1, T2, F: Fn(&mut Option<T1>, &mut T2, f32)> Tween<(Option<T1>, T2)> for TransitionTweener<T1, T2, F> {
+impl<T1, T2, F: Fn(&mut Option<T1>, &mut T2, f32)> Tween<(Option<T1>, T2)>
+    for TransitionTweener<T1, T2, F>
+{
     fn update(&mut self, dt: f32) {
         self.time += dt;
         let progress = if self.time < self.target

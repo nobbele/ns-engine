@@ -7,13 +7,13 @@ use crate::containers::{
 };
 use crate::helpers::Position;
 use crate::node::{load_background_tween, load_character_tween};
+use ggez::graphics::Color;
 use ggez::graphics::{self, DrawParam};
 use ggez::{
     self,
     event::{KeyCode, KeyMods, MouseButton},
     Context,
 };
-use ggez::graphics::Color;
 
 use super::{State, StateEventHandler};
 

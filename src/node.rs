@@ -46,7 +46,11 @@ pub fn load_background_tween(
     prev: Option<Background>,
     name: String,
 ) -> ggez::GameResult<
-    TransitionTweener<Background, Background, impl Fn(&mut Option<Background>, &mut Background, f32)>,
+    TransitionTweener<
+        Background,
+        Background,
+        impl Fn(&mut Option<Background>, &mut Background, f32),
+    >,
 > {
     let prev = prev.map(|mut n| {
         n.fade = 0.0;
@@ -112,6 +116,13 @@ pub fn load_load_node(
         let mut new_src = ggez::audio::Source::new(ctx, format!("/audio/{}.mp3", name)).unwrap();
         new_src.play(ctx).unwrap();
         *src = Some(new_src);
+    } else if let novelscript::SceneNodeLoad::RemoveCharacter { name } = node {
+        if let Some(idx) = screen.current_characters.current.iter().position(|c| c.get_current().name == name) {
+            screen
+                .current_characters
+                .current
+                .remove(idx);
+        }
     }
     Ok(())
 }

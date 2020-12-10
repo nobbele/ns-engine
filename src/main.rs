@@ -5,7 +5,11 @@ use ggez::{
     conf::{WindowMode, WindowSetup},
     graphics,
 };
-use states::{State, StateManager, game::{CharacterConfig, Config, Resources}, splash::SplashState};
+use states::{
+    game::{CharacterConfig, Config, Resources},
+    splash::SplashState,
+    State, StateManager,
+};
 
 mod containers;
 mod draw;

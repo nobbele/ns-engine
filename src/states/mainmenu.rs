@@ -7,9 +7,19 @@ use crate::{
     },
     helpers::Position,
 };
-use ggez::{Context, graphics::DrawParam, audio::SoundSource, event::{self, MouseButton}, filesystem, graphics::{self, drawable_size}};
+use ggez::{
+    audio::SoundSource,
+    event::{self, MouseButton},
+    filesystem,
+    graphics::DrawParam,
+    graphics::{self, drawable_size},
+    Context,
+};
 
-use super::{State, StateEventHandler, game::{GameState, Resources}};
+use super::{
+    game::{GameState, Resources},
+    State, StateEventHandler,
+};
 
 pub struct MainMenuState {
     pub resources: &'static Resources,
@@ -110,7 +120,7 @@ impl StateEventHandler for MainMenuState {
 
     fn draw(&mut self, ctx: &mut ggez::Context, param: DrawParam) -> ggez::GameResult {
         // Clear this one specific screen because ggez is dumb
-        graphics::clear(ctx, [1.0, 1.0, 1.0, 1.0].into()); 
+        graphics::clear(ctx, [1.0, 1.0, 1.0, 1.0].into());
 
         self.screen.draw(ctx, param)?;
 

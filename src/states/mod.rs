@@ -1,14 +1,14 @@
 use game::GameState;
-use ggez::{GameResult, event::Axis, mint::Vector2, event::quit, graphics};
 use ggez::event::Button;
 use ggez::event::EventHandler;
+use ggez::graphics::DrawParam;
+use ggez::graphics::Drawable;
 use ggez::input::gamepad::GamepadId;
 use ggez::input::keyboard::KeyCode;
 use ggez::input::keyboard::KeyMods;
 use ggez::input::mouse::MouseButton;
 use ggez::Context;
-use ggez::graphics::Drawable;
-use ggez::graphics::DrawParam;
+use ggez::{event::quit, event::Axis, graphics, mint::Vector2, GameResult};
 
 use crate::tween::{TransitionTweener, TweenBox};
 
@@ -89,7 +89,11 @@ pub struct StateManager {
     pub state: TweenBox<(Option<(graphics::Image, DrawParam)>, (State, DrawParam))>,
 }
 
-fn switch_scene_tween(ctx: &mut Context, has_current: bool, state: State) -> TweenBox<(Option<(graphics::Image, DrawParam)>, (State, DrawParam))> {
+fn switch_scene_tween(
+    ctx: &mut Context,
+    has_current: bool,
+    state: State,
+) -> TweenBox<(Option<(graphics::Image, DrawParam)>, (State, DrawParam))> {
     let img = if has_current {
         let img = ggez::graphics::screenshot(ctx).unwrap();
         Some(img)
@@ -100,20 +104,20 @@ fn switch_scene_tween(ctx: &mut Context, has_current: bool, state: State) -> Twe
         time: 0.0,
         target: 1.0,
         set_instantly_if_no_prev: true,
-        current: (match img {
-            Some(img) => Some((img, DrawParam::new().scale(Vector2 {
-                x: 1.0,
-                y: -1.0,
-            }))), // -1 scale because ggez is dumb
-            None => None,
-        }, (state, DrawParam::new())),
+        current: (
+            match img {
+                Some(img) => Some((img, DrawParam::new().scale(Vector2 { x: 1.0, y: -1.0 }))), // -1 scale because ggez is dumb
+                None => None,
+            },
+            (state, DrawParam::new()),
+        ),
         update: |from, to, progress| {
             if let Some((_, from_param)) = from {
                 from_param.color.a = 1.0 - progress;
             }
 
             to.1.color.a = progress;
-        }
+        },
     })
 }
 

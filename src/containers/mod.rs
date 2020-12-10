@@ -1,4 +1,4 @@
-use ggez::{Context, graphics::DrawParam};
+use ggez::{graphics::DrawParam, Context};
 
 pub mod background;
 pub mod button;
