@@ -4,7 +4,7 @@ use ggez::{
 };
 use graphics::DrawParam;
 
-use super::{button::Button, stackcontainer::StackContainer, Draw, Update};
+use super::{button::Button, stackcontainer::StackContainer, Update};
 
 #[derive(Copy, Clone)]
 pub enum MenuButtonId {
@@ -18,7 +18,7 @@ pub struct MainMenuScreen {
     pub menu: StackContainer<Button<MenuButtonId>>,
 }
 
-impl Draw for MainMenuScreen {
+impl Drawable for MainMenuScreen {
     fn draw(&self, ctx: &mut Context, param: DrawParam) -> ggez::GameResult {
         self.background.draw(
             ctx,

@@ -1,6 +1,6 @@
-use ggez::graphics::DrawParam;
+use ggez::graphics::{DrawParam, Drawable};
 
-use super::{button::Button, stackcontainer::StackContainer, Draw};
+use super::{button::Button, stackcontainer::StackContainer};
 
 #[derive(Copy, Clone)]
 pub enum MenuButtonId {
@@ -14,7 +14,7 @@ pub struct UI {
     pub menu: StackContainer<Button<MenuButtonId>>,
 }
 
-impl Draw for UI {
+impl Drawable for UI {
     fn draw(&self, ctx: &mut ggez::Context, param: DrawParam) -> ggez::GameResult {
         self.menu.draw(ctx, param)?;
         Ok(())

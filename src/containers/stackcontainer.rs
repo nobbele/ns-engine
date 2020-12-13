@@ -1,9 +1,6 @@
-use ggez::{
-    graphics::{DrawParam, Rect},
-    mint,
-};
+use ggez::{graphics::{DrawParam, Drawable, Rect}, mint};
 
-use super::{Draw, Update};
+use super::Update;
 
 pub enum Direction {
     Horizontal,
@@ -41,7 +38,7 @@ impl<T> StackContainer<T> {
     }
 }
 
-impl<T: Draw> Draw for StackContainer<T> {
+impl<T: Drawable> Drawable for StackContainer<T> {
     fn draw(&self, ctx: &mut ggez::Context, param: DrawParam) -> ggez::GameResult {
         for child in &self.children {
             child.draw(ctx, param)?;

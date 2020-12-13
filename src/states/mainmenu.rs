@@ -3,18 +3,11 @@ use std::{cell::RefCell, io::Read, rc::Rc};
 use crate::{
     containers::{
         button::Button, mainmenuscreen::MainMenuScreen, mainmenuscreen::MenuButtonId,
-        stackcontainer::Direction, stackcontainer::StackContainer, Draw,
+        stackcontainer::Direction, stackcontainer::StackContainer,
     },
     helpers::Position,
 };
-use ggez::{
-    audio::SoundSource,
-    event::{self, MouseButton},
-    filesystem,
-    graphics::DrawParam,
-    graphics::{self, drawable_size},
-    Context,
-};
+use ggez::{Context, audio::SoundSource, event::{self, MouseButton}, filesystem, graphics::DrawParam, graphics::{self, Drawable, drawable_size}};
 
 use super::{
     game::{GameState, Resources},

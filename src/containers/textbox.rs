@@ -5,7 +5,7 @@ use ggez::{
 
 use crate::tween::TweenBox;
 
-use super::{Draw, Update};
+use super::Update;
 
 pub struct TextBox {
     pub layer: (&'static graphics::Image, DrawParam),
@@ -13,7 +13,7 @@ pub struct TextBox {
     pub content: (TweenBox<graphics::Text>, DrawParam),
 }
 
-impl Draw for TextBox {
+impl Drawable for TextBox {
     fn draw(&self, ctx: &mut Context, parent_param: DrawParam) -> ggez::GameResult {
         self.layer.0.draw(ctx, self.layer.1)?;
         if let Some(speaker) = &self.speaker {

@@ -1,8 +1,8 @@
-use ggez::{graphics::DrawParam, Context};
+use ggez::{Context, graphics::{DrawParam, Drawable}};
 
 use super::{
     background::BackgroundContainer, button::Button, character::CharacterContainer,
-    stackcontainer::StackContainer, textbox::TextBox, ui::UI, Draw, Update,
+    stackcontainer::StackContainer, textbox::TextBox, ui::UI, Update,
 };
 
 pub enum Action {
@@ -18,7 +18,7 @@ pub struct GameScreen {
     pub ui: UI,
 }
 
-impl Draw for GameScreen {
+impl Drawable for GameScreen {
     fn draw(&self, ctx: &mut Context, param: DrawParam) -> ggez::GameResult {
         if let Some(background) = &self.current_background {
             background.draw(ctx, param)?;

@@ -6,8 +6,6 @@ use ggez::{
     mint, Context,
 };
 
-use super::Draw;
-
 pub struct Button<T: Copy> {
     pub layer: (&'static graphics::Image, DrawParam),
     pub text: graphics::Text,
@@ -105,7 +103,7 @@ impl<T: Copy> Button<T> {
     }
 }
 
-impl<T: Copy> Draw for Button<T> {
+impl<T: Copy> Drawable for Button<T> {
     fn draw(&self, ctx: &mut ggez::Context, parent_param: DrawParam) -> ggez::GameResult {
         let mut layer_param = self.layer.1;
         layer_param.color.a = parent_param.color.a;

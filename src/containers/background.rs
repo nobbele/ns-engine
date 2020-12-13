@@ -1,17 +1,12 @@
-use ggez::{
-    graphics::{self, drawable_size, DrawParam},
-    Context,
-};
+use ggez::{Context, graphics::{self, DrawParam, Drawable, drawable_size}};
 
 use crate::{states::game::Background, tween::TransitionTweenBox};
-
-use super::Draw;
 
 pub struct BackgroundContainer {
     pub current: TransitionTweenBox<Background>,
 }
 
-impl Draw for BackgroundContainer {
+impl Drawable for BackgroundContainer {
     fn draw(&self, ctx: &mut Context, param: DrawParam) -> ggez::GameResult {
         let background = self.current.get_current();
         if let Some(Background {

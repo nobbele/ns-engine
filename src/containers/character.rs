@@ -1,4 +1,4 @@
-use ggez::{graphics::DrawParam, mint};
+use ggez::{graphics::{DrawParam, Drawable}, mint};
 use ggez::{
     graphics::{self, drawable_size},
     Context,
@@ -6,13 +6,11 @@ use ggez::{
 
 use crate::{helpers::Position, states::game::Character, tween::TweenBox};
 
-use super::Draw;
-
 pub struct CharacterContainer {
     pub current: Vec<TweenBox<Character>>,
 }
 
-impl Draw for CharacterContainer {
+impl Drawable for CharacterContainer {
     fn draw(&self, ctx: &mut Context, param: DrawParam) -> ggez::GameResult {
         for (n, character) in self.current.iter().enumerate() {
             let character = character.get_current();

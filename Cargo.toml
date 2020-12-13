@@ -8,8 +8,7 @@ build = "build-zip.rs"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-#ggez = "0.5.1"
-ggez = { git = "https://github.com/ggez/ggez", rev = "c97f6f6" } # "1000695"
+ggez = { git = "https://github.com/nobbele/ns-engine-ggez", branch = "devel" }
 novelscript = { git = "https://github.com/nobbele/novelscript", features = ["serde"] }
 nsconfig = { git = "https://github.com/nobbele/ns-config" }
 serde_json = "1.0"
