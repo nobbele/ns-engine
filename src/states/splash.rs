@@ -63,7 +63,7 @@ impl StateEventHandler for SplashState {
 
         let mut param = *self.splash.get_current();
         param.scale = mint::Vector2 {
-            x: (drawable_size(ctx).0 / self.splash_img.width() as f32) * param.scale.x,
+            x: (drawable_size(ctx).1 / self.splash_img.height() as f32) * param.scale.x,
             y: (drawable_size(ctx).1 / self.splash_img.height() as f32) * param.scale.y,
         };
         param.offset = mint::Point2 { x: 0.5, y: 0.5 };
