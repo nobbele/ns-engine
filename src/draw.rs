@@ -36,7 +36,15 @@ pub fn load_text(
         speaker_text.set_bounds([f32::INFINITY, f32::INFINITY], graphics::Align::Left);
         let speaker_text_params = DrawParam::new()
             .dest(Position::TopLeft.add_in_from(&layer_bounds, (15.0, 20.0)))
-            .color(resources.config.characters.get(speaker).copied().unwrap_or_default().color);
+            .color(
+                resources
+                    .config
+                    .characters
+                    .get(speaker)
+                    .copied()
+                    .unwrap_or_default()
+                    .color,
+            );
         Some((speaker_text, speaker_text_params))
     } else {
         None

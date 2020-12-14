@@ -1,4 +1,4 @@
-use std::{cell::RefCell, io::Read, rc::Rc};
+use std::{cell::RefCell, io::Read, path::PathBuf, rc::Rc};
 
 use crate::{
     containers::{
@@ -94,26 +94,15 @@ impl MainMenuState {
         if let Some(MenuButtonId::Start) = self.clicked_event {
             let mut novel = novelscript::Novel::new();
 
-            let mut data = String::new();
-            filesystem::open(ctx, "/start.ns")
-                .unwrap()
-                .read_to_string(&mut data)
-                .unwrap();
-            novel.add_scene("start".into(), &data);
-
-            let mut data = String::new();
-            filesystem::open(ctx, "/bridge.ns")
-                .unwrap()
-                .read_to_string(&mut data)
-                .unwrap();
-            novel.add_scene("bridge".into(), &data);
-
-            let mut data = String::new();
-            filesystem::open(ctx, "/ignore.ns")
-                .unwrap()
-                .read_to_string(&mut data)
-                .unwrap();
-            novel.add_scene("ignore".into(), &data);
+            for file in filesystem::read_dir(ctx, "scripts").unwrap().skip(1) {
+                let name = file.file_stem().unwrap().to_string_lossy().into_owned();
+                let mut data = String::new();
+                filesystem::open(ctx, PathBuf::from("/").join(file)).unwrap().read_to_string(&mut data).unwrap();
+                novel.add_scene(
+                    name,
+                    &data,
+                );
+            }
 
             Some(State::Game(GameState::new(ctx, novel, self.resources)))
         } else {
