@@ -1,0 +1,17 @@
+play walking sfx
+
+_: “I try to always help people who look to be in need of help or comfort”
+
+_: Hey there, how are you?
+
+load Souma normal at Left
+
+Girl: *sniffle* I’m fine.
+
+remove Souma
+
+_: “I go and sit down beside her. It looks cold for her, she doesn’t have that much clothing.”
+
+_: Want some hot chocolate?
+
+Girl: But it’s yours, I can’t take that.

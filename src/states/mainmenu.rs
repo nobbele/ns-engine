@@ -93,12 +93,28 @@ impl MainMenuState {
     pub fn change_state(&mut self, ctx: &mut Context) -> Option<State> {
         if let Some(MenuButtonId::Start) = self.clicked_event {
             let mut novel = novelscript::Novel::new();
+
             let mut data = String::new();
-            filesystem::open(ctx, "/test.ns")
+            filesystem::open(ctx, "/start.ns")
                 .unwrap()
                 .read_to_string(&mut data)
                 .unwrap();
             novel.add_scene("start".into(), &data);
+
+            let mut data = String::new();
+            filesystem::open(ctx, "/bridge.ns")
+                .unwrap()
+                .read_to_string(&mut data)
+                .unwrap();
+            novel.add_scene("bridge".into(), &data);
+
+            let mut data = String::new();
+            filesystem::open(ctx, "/ignore.ns")
+                .unwrap()
+                .read_to_string(&mut data)
+                .unwrap();
+            novel.add_scene("ignore".into(), &data);
+
             Some(State::Game(GameState::new(ctx, novel, self.resources)))
         } else {
             None
