@@ -6,7 +6,7 @@ use ggez::{
     graphics,
 };
 use states::{
-    game::{CharacterConfig, Config, Resources},
+    game::{CharacterConfig, Config, Resources, UIConfig},
     splash::SplashState,
     State, StateManager,
 };
@@ -32,24 +32,51 @@ pub fn main() -> ggez::GameResult {
     let mut config_file = ggez::filesystem::open(&mut ctx, "/characters.nsconf").unwrap();
     let mut config_content = String::new();
     config_file.read_to_string(&mut config_content).unwrap();
-    let config = nsconfig::parse(&config_content).unwrap();
+    let char_config = nsconfig::parse(&config_content).unwrap();
+
+    let mut config_file = ggez::filesystem::open(&mut ctx, "/engine.nsconf").unwrap();
+    let mut config_content = String::new();
+    config_file.read_to_string(&mut config_content).unwrap();
+    let engine_config = nsconfig::parse(&config_content).unwrap();
+
+    let ui_config = &engine_config["UI"];
 
     let config = Config {
-        characters: config
+        characters: char_config
             .into_iter()
             .map(|(name, m)| {
                 (
                     name,
                     CharacterConfig {
-                        color: match m.get("color").map(|s| s.as_str()).unwrap_or("white") {
-                            "blue" => graphics::Color::from_rgb_u32(0x0000FFFF),
-                            "white" => graphics::Color::from_rgb_u32(0xFFFFFFFF),
-                            _ => panic!(),
-                        },
+                        color: graphics::Color::from_rgb_u32(
+                            m.get("color")
+                                .map(|s| u32::from_str_radix(s.as_str(), 16).unwrap())
+                                .unwrap_or_default(),
+                        ),
                     },
                 )
             })
             .collect(),
+        ui: UIConfig {
+            button_color: graphics::Color::from_rgb_u32(
+                ui_config
+                    .get("button_color")
+                    .map(|s| u32::from_str_radix(s.as_str(), 16).unwrap())
+                    .unwrap_or_default(),
+            ),
+            button_pressed_color: graphics::Color::from_rgb_u32(
+                ui_config
+                    .get("button_pressed_color")
+                    .map(|s| u32::from_str_radix(s.as_str(), 16).unwrap())
+                    .unwrap_or_default(),
+            ),
+            button_highlight_color: graphics::Color::from_rgb_u32(
+                ui_config
+                    .get("button_highlight_color")
+                    .map(|s| u32::from_str_radix(s.as_str(), 16).unwrap())
+                    .unwrap_or_default(),
+            ),
+        },
     };
 
     let resources = Box::leak(Box::new(Resources {

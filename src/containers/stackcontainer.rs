@@ -1,4 +1,7 @@
-use ggez::{graphics::{DrawParam, Drawable, Rect}, mint};
+use ggez::{
+    graphics::{DrawParam, Drawable, Rect},
+    mint,
+};
 
 use super::Update;
 

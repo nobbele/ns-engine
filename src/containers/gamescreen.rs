@@ -1,4 +1,7 @@
-use ggez::{Context, graphics::{DrawParam, Drawable}};
+use ggez::{
+    graphics::{DrawParam, Drawable},
+    Context,
+};
 
 use super::{
     background::BackgroundContainer, button::Button, character::CharacterContainer,

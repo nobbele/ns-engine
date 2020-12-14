@@ -1,7 +1,10 @@
-use ggez::{graphics::{DrawParam, Drawable}, mint};
 use ggez::{
     graphics::{self, drawable_size},
     Context,
+};
+use ggez::{
+    graphics::{DrawParam, Drawable},
+    mint,
 };
 
 use crate::{helpers::Position, states::game::Character, tween::TweenBox};

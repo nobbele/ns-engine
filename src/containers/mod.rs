@@ -1,5 +1,3 @@
-use ggez::{graphics::DrawParam, Context};
-
 pub mod background;
 pub mod button;
 pub mod character;

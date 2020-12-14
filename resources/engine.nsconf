@@ -1,0 +1,5 @@
+UI {
+    button_color 333333
+    button_highlight_color 999999
+    button_pressed_color 999999
+}

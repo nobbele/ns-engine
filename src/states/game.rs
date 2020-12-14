@@ -7,8 +7,8 @@ use crate::containers::{
 };
 use crate::helpers::Position;
 use crate::node::{load_background_tween, load_character_tween};
-use ggez::graphics::{Color, Drawable};
 use ggez::graphics::{self, DrawParam};
+use ggez::graphics::{Color, Drawable};
 use ggez::{
     self,
     event::{KeyCode, KeyMods, MouseButton},
@@ -107,6 +107,7 @@ impl GameState {
         {
             state.screen.ui.menu.children.push(
                 Button::new(
+                    &resources,
                     &resources.button,
                     state.screen.ui.menu.get_rect_for(n as f32),
                     d.0.into(),
@@ -134,8 +135,16 @@ pub struct CharacterConfig {
 }
 
 #[derive(Debug)]
+pub struct UIConfig {
+    pub button_color: Color,
+    pub button_pressed_color: Color,
+    pub button_highlight_color: Color,
+}
+
+#[derive(Debug)]
 pub struct Config {
     pub characters: HashMap<String, CharacterConfig>,
+    pub ui: UIConfig,
 }
 
 pub struct Resources {
@@ -244,7 +253,7 @@ impl StateEventHandler for GameState {
                         *n = 0.0;
                         self.continue_text(ctx)?;
                     }
-                },
+                }
                 ContinueMethod::Auto(ref mut n) => {
                     if textbox.content.0.is_done() {
                         *n += dt;

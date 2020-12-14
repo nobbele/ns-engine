@@ -1746,7 +1746,7 @@ dependencies = [
 [[package]]
 name = "nsconfig"
 version = "0.1.0"
-source = "git+https://github.com/nobbele/ns-config#9d06816b61f88d6e7462a70303e1e9b0b6f358df"
+source = "git+https://github.com/nobbele/ns-config#20a61f7bcbe7b1674ae6953a8a09efbe4ec0b2d0"
 dependencies = [
  "pest",
  "pest_derive",

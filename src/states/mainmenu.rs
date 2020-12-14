@@ -7,7 +7,14 @@ use crate::{
     },
     helpers::Position,
 };
-use ggez::{Context, audio::SoundSource, event::{self, MouseButton}, filesystem, graphics::DrawParam, graphics::{self, Drawable, drawable_size}};
+use ggez::{
+    audio::SoundSource,
+    event::{self, MouseButton},
+    filesystem,
+    graphics::DrawParam,
+    graphics::{self, drawable_size, Drawable},
+    Context,
+};
 
 use super::{
     game::{GameState, Resources},
@@ -69,6 +76,7 @@ impl MainMenuState {
         {
             state.screen.menu.children.push(
                 Button::new(
+                    &resources,
                     &resources.button,
                     state.screen.menu.get_rect_for(n as f32),
                     d.0.into(),

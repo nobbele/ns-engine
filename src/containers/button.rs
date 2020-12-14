@@ -6,34 +6,22 @@ use ggez::{
     mint, Context,
 };
 
+use crate::states::game::Resources;
+
 pub struct Button<T: Copy> {
     pub layer: (&'static graphics::Image, DrawParam),
     pub text: graphics::Text,
     pub data_on_click: T,
     pub ui_sfx: Rc<RefCell<Option<ggez::audio::Source>>>,
     pub last_state: bool,
-}
-
-fn get_layer_color(is_hovered: bool) -> Color {
-    if is_hovered {
-        Color {
-            r: 0.6,
-            g: 0.6,
-            b: 0.6,
-            a: 1.0,
-        }
-    } else {
-        Color {
-            r: 0.2,
-            g: 0.2,
-            b: 0.2,
-            a: 1.0,
-        }
-    }
+    pub color: &'static Color,
+    pub on_hover_color: &'static Color,
+    pub on_click_color: &'static Color,
 }
 
 impl<T: Copy> Button<T> {
     pub fn new(
+        resources: &'static Resources,
         layer: &'static graphics::Image,
         rect: Rect,
         text: String,
@@ -57,12 +45,15 @@ impl<T: Copy> Button<T> {
                         x: rect.w / layer.dimensions().w,
                         y: rect.h / layer.dimensions().h,
                     })
-                    .color(get_layer_color(false)),
+                    .color(resources.config.ui.button_color),
             ),
             text,
             data_on_click,
             ui_sfx,
             last_state: false,
+            color: &resources.config.ui.button_color,
+            on_hover_color: &resources.config.ui.button_highlight_color,
+            on_click_color: &resources.config.ui.button_pressed_color,
         })
     }
 
@@ -78,7 +69,11 @@ impl<T: Copy> Button<T> {
     pub fn mouse_motion_event(&mut self, ctx: &mut Context, x: f32, y: f32) {
         let rect = self.layer_dimensions();
         let is_hovered = x > rect.x && x < rect.x + rect.w && y > rect.y && y < rect.y + rect.h;
-        self.layer.1.color = get_layer_color(is_hovered);
+        self.layer.1.color = if is_hovered {
+            *self.on_hover_color
+        } else {
+            *self.color
+        };
         if self.last_state != is_hovered {
             if is_hovered {
                 let mut audio = ggez::audio::Source::new(ctx, "/audio/ui_select.wav").unwrap();

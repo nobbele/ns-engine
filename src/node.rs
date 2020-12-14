@@ -117,11 +117,13 @@ pub fn load_load_node(
         new_src.play(ctx).unwrap();
         *src = Some(new_src);
     } else if let novelscript::SceneNodeLoad::RemoveCharacter { name } = node {
-        if let Some(idx) = screen.current_characters.current.iter().position(|c| c.get_current().name == name) {
-            screen
-                .current_characters
-                .current
-                .remove(idx);
+        if let Some(idx) = screen
+            .current_characters
+            .current
+            .iter()
+            .position(|c| c.get_current().name == name)
+        {
+            screen.current_characters.current.remove(idx);
         }
     }
     Ok(())
@@ -148,6 +150,7 @@ pub fn load_data_node(
         for (n, d) in choices.iter().enumerate() {
             stack.children.push(
                 Button::new(
+                    &resources,
                     &resources.button,
                     stack.get_rect_for(n as f32),
                     d.clone(),

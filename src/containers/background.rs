@@ -1,4 +1,7 @@
-use ggez::{Context, graphics::{self, DrawParam, Drawable, drawable_size}};
+use ggez::{
+    graphics::{self, drawable_size, DrawParam, Drawable},
+    Context,
+};
 
 use crate::{states::game::Background, tween::TransitionTweenBox};
 
