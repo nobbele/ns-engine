@@ -129,9 +129,17 @@ pub struct SaveData {
     pub current_characters: Vec<(String, String)>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
 pub struct CharacterConfig {
     pub color: Color,
+}
+
+impl Default for CharacterConfig {
+    fn default() -> Self {
+        Self {
+            color: graphics::WHITE,
+        }
+    }
 }
 
 #[derive(Debug)]
