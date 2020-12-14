@@ -59,6 +59,8 @@ impl StateEventHandler for SplashState {
     }
 
     fn draw(&mut self, ctx: &mut Context, parent_param: DrawParam) -> GameResult {
+        graphics::clear(ctx, [1.0, 1.0, 1.0, 1.0].into());
+
         let mut param = *self.splash.get_current();
         param.scale = mint::Vector2 {
             x: (drawable_size(ctx).0 / self.splash_img.width() as f32) * param.scale.x,

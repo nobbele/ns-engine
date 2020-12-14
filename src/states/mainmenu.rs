@@ -125,9 +125,6 @@ impl StateEventHandler for MainMenuState {
     }
 
     fn draw(&mut self, ctx: &mut ggez::Context, param: DrawParam) -> ggez::GameResult {
-        // Clear this one specific screen because ggez is dumb
-        graphics::clear(ctx, [1.0, 1.0, 1.0, 1.0].into());
-
         self.screen.draw(ctx, param)?;
 
         graphics::present(ctx)?;
