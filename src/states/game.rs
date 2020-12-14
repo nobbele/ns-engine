@@ -49,8 +49,8 @@ impl Background {
 
 #[derive(PartialEq)]
 pub enum ContinueMethod {
-    Auto(f32), // time counter
-    Skip,      // wait time counter
+    Auto(f32),
+    Skip(f32),
     Normal,
 }
 
@@ -238,7 +238,13 @@ impl StateEventHandler for GameState {
         let dt = ggez::timer::delta(ctx).as_secs_f32();
         if let Action::Text(textbox) = &self.screen.action {
             match self.continue_method {
-                ContinueMethod::Skip => self.continue_text(ctx)?,
+                ContinueMethod::Skip(ref mut n) => {
+                    *n += dt;
+                    if *n >= 0.1 {
+                        *n = 0.0;
+                        self.continue_text(ctx)?;
+                    }
+                },
                 ContinueMethod::Auto(ref mut n) => {
                     if textbox.content.0.is_done() {
                         *n += dt;
@@ -249,6 +255,10 @@ impl StateEventHandler for GameState {
                     }
                 }
                 _ => {}
+            }
+        } else if let Action::Choice(..) = self.screen.action {
+            if let ContinueMethod::Skip(..) = self.continue_method {
+                self.continue_method = ContinueMethod::Normal;
             }
         }
         self.screen.update(dt);
@@ -321,7 +331,7 @@ impl StateEventHandler for GameState {
             match e {
                 MenuButtonId::Save => self.on_save_click(ctx),
                 MenuButtonId::Load => self.on_load_click(ctx),
-                MenuButtonId::Skip => self.continue_method = ContinueMethod::Skip,
+                MenuButtonId::Skip => self.continue_method = ContinueMethod::Skip(0.0),
                 MenuButtonId::Auto => self.continue_method = ContinueMethod::Auto(0.0),
             }
         }
