@@ -5,6 +5,7 @@ pub trait Tween<T> {
     fn take_final_box(self: Box<Self>) -> T;
     fn update(&mut self, dt: f32);
     fn is_done(&self) -> bool;
+    fn finish(&mut self) {}
 }
 
 pub struct Tweener<T, F: Fn(&mut T, f32, f32) -> bool> {
@@ -37,6 +38,10 @@ impl<T, F: Fn(&mut T, f32, f32) -> bool> Tween<T> for Tweener<T, F> {
 
     fn is_done(&self) -> bool {
         self.is_done
+    }
+
+    fn finish(&mut self) {
+        self.time = f32::MAX;
     }
 }
 
@@ -75,6 +80,10 @@ impl<T, F: Fn(&mut T, f32)> Tween<T> for TargetTweener<T, F> {
 
     fn is_done(&self) -> bool {
         self.time >= self.target
+    }
+
+    fn finish(&mut self) {
+        self.time = self.target;
     }
 }
 
@@ -120,6 +129,10 @@ impl<T1, T2, F: Fn(&mut Option<T1>, &mut T2, f32)> Tween<(Option<T1>, T2)>
 
     fn is_done(&self) -> bool {
         self.time >= self.target
+    }
+
+    fn finish(&mut self) {
+        self.time = self.target;
     }
 }
 

@@ -248,6 +248,18 @@ impl GameState {
     pub fn change_state(&mut self, _ctx: &mut Context) -> Option<State> {
         None
     }
+
+    fn advance_text(&mut self, ctx: &mut Context) {
+        if let Action::Text(text) = &mut self.screen.action {
+            if self.continue_method == ContinueMethod::Normal {
+                if text.content.0.is_done() {
+                    self.continue_text(ctx).unwrap();
+                } else {
+                    text.content.0.finish();
+                }
+            }
+        }
+    }
 }
 
 impl StateEventHandler for GameState {
@@ -291,12 +303,8 @@ impl StateEventHandler for GameState {
 
     fn key_down_event(&mut self, ctx: &mut Context, key: KeyCode, _mods: KeyMods, _: bool) {
         match key {
-            KeyCode::Space => {
-                if let Action::Text(..) = &mut self.screen.action {
-                    if self.continue_method == ContinueMethod::Normal {
-                        self.continue_text(ctx).unwrap();
-                    }
-                }
+            KeyCode::Space | KeyCode::Return => {
+                self.advance_text(ctx);
             }
             _ => (),
         }
