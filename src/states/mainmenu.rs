@@ -97,11 +97,11 @@ impl MainMenuState {
             for file in filesystem::read_dir(ctx, "scripts").unwrap().skip(1) {
                 let name = file.file_stem().unwrap().to_string_lossy().into_owned();
                 let mut data = String::new();
-                filesystem::open(ctx, PathBuf::from("/").join(file)).unwrap().read_to_string(&mut data).unwrap();
-                novel.add_scene(
-                    name,
-                    &data,
-                );
+                filesystem::open(ctx, PathBuf::from("/").join(file))
+                    .unwrap()
+                    .read_to_string(&mut data)
+                    .unwrap();
+                novel.add_scene(name, &data);
             }
 
             Some(State::Game(GameState::new(ctx, novel, self.resources)))
