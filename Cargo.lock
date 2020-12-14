@@ -1719,12 +1719,14 @@ dependencies = [
 [[package]]
 name = "novelscript"
 version = "0.1.0"
-source = "git+https://github.com/nobbele/novelscript#7fcaaf8d41afca13c7a6d355c5d560a1fa33d9d1"
+source = "git+https://github.com/nobbele/novelscript#17a2c9f1cfdfa9d18f9e2a6ed4aa43a032bfc2b9"
 dependencies = [
  "pest",
  "pest_derive",
  "serde",
+ "serde_json",
  "thiserror",
+ "vec1",
 ]
 
 [[package]]
@@ -2831,6 +2833,15 @@ name = "uuid"
 version = "0.8.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9fde2f6a4bea1d6e007c4ad38c6839fa71cbb63b6dbf5b595aa38dc9b1093c11"
+
+[[package]]
+name = "vec1"
+version = "1.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f2fffd117bafd8d50c625cce64efde70f416ce6d38f78104035a0913cf15fe97"
+dependencies = [
+ "serde",
+]
 
 [[package]]
 name = "vec_map"
