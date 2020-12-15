@@ -2,19 +2,24 @@ use std::{cell::RefCell, io::Read, path::PathBuf, rc::Rc};
 
 use crate::{
     containers::{
-        button::Button, mainmenuscreen::MainMenuScreen, mainmenuscreen::MenuButtonId,
-        stackcontainer::Direction, stackcontainer::StackContainer,
+        button::Button,
+        config_window::{ButtonActionId, ConfigWindow},
+        mainmenuscreen::MainMenuScreen,
+        mainmenuscreen::{MenuButtonId, Window},
+        stackcontainer::Direction,
+        stackcontainer::StackContainer,
     },
-    helpers::Position,
+    helpers::{points_to_rect, Position},
 };
 use ggez::{
     audio::SoundSource,
     event::{self, MouseButton},
     filesystem,
     graphics::DrawParam,
-    graphics::{self, drawable_size, Drawable},
+    graphics::{self, drawable_size, DrawMode, Drawable},
     Context,
 };
+use graphics::{FillOptions, Rect, Text};
 
 use super::{
     game::{GameState, Resources},
@@ -66,13 +71,18 @@ impl MainMenuState {
                     spacing: 5.0,
                     direction: Direction::Vertical,
                 },
+                window: Window::None,
             },
             music: ggez::audio::Source::new(ctx, "/audio/bgm.mp3").unwrap(),
             ui_sfx: Rc::new(RefCell::new(None)),
         };
-        for (n, d) in [("Start", MenuButtonId::Start), ("Quit", MenuButtonId::Quit)]
-            .iter()
-            .enumerate()
+        for (n, d) in [
+            ("Start", MenuButtonId::Start),
+            ("Options", MenuButtonId::Options),
+            ("Quit", MenuButtonId::Quit),
+        ]
+        .iter()
+        .enumerate()
         {
             state.screen.menu.children.push(
                 Button::new(
@@ -116,10 +126,48 @@ impl StateEventHandler for MainMenuState {
         if let Some(e) = self.clicked_event {
             match e {
                 MenuButtonId::Start => {} // Handled in change_state
+                MenuButtonId::Options => {
+                    self.screen.window = Window::Options(ConfigWindow {
+                        panel: graphics::Mesh::new_rectangle(
+                            ctx,
+                            DrawMode::Fill(FillOptions::DEFAULT),
+                            Rect {
+                                x: 0.0,
+                                y: 0.0,
+                                w: drawable_size(ctx).0,
+                                h: drawable_size(ctx).1,
+                            },
+                            graphics::Color {
+                                r: 0.0,
+                                g: 0.0,
+                                b: 0.0,
+                                a: 0.5,
+                            },
+                        )
+                        .unwrap(),
+                        exit_button: Button::new(
+                            self.resources,
+                            &self.resources.button,
+                            points_to_rect(
+                                Position::TopRight.add_in(ctx, (55.0, 5.0)),
+                                Position::TopRight.add_in(ctx, (5.0, 55.0)),
+                            ),
+                            "X".into(),
+                            ButtonActionId::Exit,
+                            self.ui_sfx.clone(),
+                        )
+                        .unwrap(),
+                        text: (
+                            Text::new("WIP"),
+                            DrawParam::new().dest(Position::Center.add_in(ctx, (0.0, 0.0))),
+                        ),
+                    })
+                }
                 MenuButtonId::Quit => {
                     event::quit(ctx);
                 }
             }
+            self.clicked_event = None;
         }
         Ok(())
     }
@@ -132,20 +180,34 @@ impl StateEventHandler for MainMenuState {
     }
 
     fn mouse_motion_event(&mut self, ctx: &mut Context, x: f32, y: f32, _dx: f32, _dy: f32) {
-        for button in &mut self.screen.menu.children {
-            button.mouse_motion_event(ctx, x, y);
+        if let Window::None = self.screen.window {
+            for button in &mut self.screen.menu.children {
+                button.mouse_motion_event(ctx, x, y);
+            }
+        } else if let Window::Options(window) = &mut self.screen.window {
+            window.exit_button.mouse_motion_event(ctx, x, y);
         }
     }
 
     fn mouse_button_up_event(&mut self, ctx: &mut Context, _button: MouseButton, x: f32, y: f32) {
-        if let Some(e) = self
-            .screen
-            .menu
-            .children
-            .iter()
-            .find_map(|button| button.click_event(ctx, x, y))
-        {
-            self.clicked_event = Some(e);
+        if let Window::None = self.screen.window {
+            if let Some(e) = self
+                .screen
+                .menu
+                .children
+                .iter()
+                .find_map(|button| button.click_event(ctx, x, y))
+            {
+                self.clicked_event = Some(e);
+            }
+        } else if let Window::Options(window) = &mut self.screen.window {
+            if let Some(e) = window.exit_button.click_event(ctx, x, y) {
+                match e {
+                    crate::containers::config_window::ButtonActionId::Exit => {
+                        self.screen.window = Window::None;
+                    }
+                }
+            }
         }
     }
 }

@@ -4,18 +4,25 @@ use ggez::{
 };
 use graphics::DrawParam;
 
-use super::{button::Button, stackcontainer::StackContainer, Update};
+use super::{button::Button, config_window::ConfigWindow, stackcontainer::StackContainer, Update};
 
 #[derive(Copy, Clone)]
 pub enum MenuButtonId {
     Start,
+    Options,
     Quit,
+}
+
+pub enum Window {
+    None,
+    Options(ConfigWindow),
 }
 
 pub struct MainMenuScreen {
     pub background: graphics::Image,
     pub panel: graphics::Mesh,
     pub menu: StackContainer<Button<MenuButtonId>>,
+    pub window: Window,
 }
 
 impl Drawable for MainMenuScreen {
@@ -34,6 +41,13 @@ impl Drawable for MainMenuScreen {
 
         for button in &self.menu.children {
             button.draw(ctx, param)?;
+        }
+
+        match &self.window {
+            Window::Options(window) => {
+                window.draw(ctx, param).unwrap();
+            }
+            _ => {}
         }
 
         Ok(())

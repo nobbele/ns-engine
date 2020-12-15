@@ -8,6 +8,7 @@ use ggez::{
 
 use crate::states::game::Resources;
 
+#[derive(Debug)]
 pub struct Button<T: Copy> {
     pub layer: (&'static graphics::Image, DrawParam),
     pub text: graphics::Text,
