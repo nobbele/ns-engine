@@ -3,17 +3,7 @@ use std::{cell::RefCell, rc::Rc};
 use ggez::{audio::SoundSource, graphics, Context};
 use novelscript::SceneNodeLoad;
 
-use crate::{
-    containers::{background::BackgroundContainer, gamescreen::GameScreen},
-    containers::{button::Button, gamescreen::Action, stackcontainer::StackContainer},
-    draw::load_text,
-    helpers::Position,
-    states::game::Character,
-    states::game::{Background, Placement},
-    tween::TargetTweener,
-    tween::TransitionTweener,
-    Resources,
-};
+use crate::{Resources, containers::{background::BackgroundContainer, gamescreen::GameScreen}, containers::{button::Button, gamescreen::Action, stackcontainer::StackContainer}, draw::load_text, helpers::Position, states::game::Character, states::game::{Background, Placement, UserConfig}, tween::TargetTweener, tween::TransitionTweener};
 
 pub fn load_character_tween(
     ctx: &mut Context,
@@ -82,6 +72,7 @@ pub fn load_load_node(
     node: SceneNodeLoad,
     sfx: &mut Option<ggez::audio::Source>,
     music: &mut Option<ggez::audio::Source>,
+    config: &'static UserConfig,
 ) -> ggez::GameResult {
     if let novelscript::SceneNodeLoad::Character {
         character,
@@ -107,13 +98,14 @@ pub fn load_load_node(
             current: Box::new(load_background_tween(ctx, prev, name)?),
         });
     } else if let novelscript::SceneNodeLoad::PlaySound { name, channel } = node {
-        let src = match channel.as_ref().map(|s| s.as_str()) {
-            Some("sfx") => sfx,
-            Some("music") => music,
-            None => sfx,
+        let channel = channel.as_ref().map(|s| s.as_str()).unwrap_or("sfx");
+        let src = match channel {
+            "sfx" => sfx,
+            "music" => music,
             _ => panic!(),
         };
         let mut new_src = ggez::audio::Source::new(ctx, format!("/audio/{}.mp3", name)).unwrap();
+        new_src.set_volume(config.master_volume * config.channel_volumes.0[channel]);
         new_src.play(ctx).unwrap();
         *src = Some(new_src);
     } else if let novelscript::SceneNodeLoad::RemoveCharacter { name } = node {
@@ -156,6 +148,7 @@ pub fn load_data_node(
                     d.clone(),
                     n as u32,
                     ui_sfx.clone(),
+                    &resources.config.user,
                 )
                 .unwrap(),
             )

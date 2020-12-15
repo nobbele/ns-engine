@@ -6,7 +6,7 @@ use ggez::{
     mint, Context,
 };
 
-use crate::states::game::Resources;
+use crate::states::game::{Resources, UserConfig};
 
 #[derive(Debug)]
 pub struct Button<T: Copy> {
@@ -18,6 +18,7 @@ pub struct Button<T: Copy> {
     pub color: &'static Color,
     pub on_hover_color: &'static Color,
     pub on_click_color: &'static Color,
+    pub config: &'static UserConfig,
 }
 
 impl<T: Copy> Button<T> {
@@ -28,6 +29,7 @@ impl<T: Copy> Button<T> {
         text: String,
         data_on_click: T,
         ui_sfx: Rc<RefCell<Option<ggez::audio::Source>>>,
+        config: &'static UserConfig,
     ) -> ggez::GameResult<Self> {
         let mut text = graphics::Text::new(text);
         text.set_bounds(
@@ -55,6 +57,7 @@ impl<T: Copy> Button<T> {
             color: &resources.config.ui.button_color,
             on_hover_color: &resources.config.ui.button_highlight_color,
             on_click_color: &resources.config.ui.button_pressed_color,
+            config,
         })
     }
 
@@ -78,6 +81,7 @@ impl<T: Copy> Button<T> {
         if self.last_state != is_hovered {
             if is_hovered {
                 let mut audio = ggez::audio::Source::new(ctx, "/audio/ui_select.wav").unwrap();
+                audio.set_volume(self.config.master_volume * self.config.channel_volumes.0["sfx"]);
                 audio.play(ctx).unwrap();
                 self.ui_sfx.replace(Some(audio));
             }
@@ -90,6 +94,7 @@ impl<T: Copy> Button<T> {
         let rect = self.layer_dimensions();
         if x > rect.x && x < rect.x + rect.w && y > rect.y && y < rect.y + rect.h {
             let mut audio = ggez::audio::Source::new(ctx, "/audio/ui_confirm.wav").unwrap();
+            audio.set_volume(self.config.master_volume * self.config.channel_volumes.0["sfx"]);
             audio.play(ctx).unwrap();
             self.ui_sfx.replace(Some(audio));
             Some(self.data_on_click)

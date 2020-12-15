@@ -7,12 +7,15 @@ use crate::containers::{
 };
 use crate::helpers::Position;
 use crate::node::{load_background_tween, load_character_tween};
-use ggez::graphics::{self, DrawParam};
 use ggez::graphics::{Color, Drawable};
 use ggez::{
     self,
     event::{KeyCode, KeyMods, MouseButton},
     Context,
+};
+use ggez::{
+    filesystem::OpenOptions,
+    graphics::{self, DrawParam},
 };
 
 use super::{State, StateEventHandler};
@@ -113,6 +116,7 @@ impl GameState {
                     d.0.into(),
                     d.1,
                     state.ui_sfx.clone(),
+                    &resources.config.user,
                 )
                 .unwrap(),
             )
@@ -149,10 +153,62 @@ pub struct UIConfig {
     pub button_highlight_color: Color,
 }
 
+#[derive(Debug, serde::Serialize, serde::Deserialize)]
+pub struct Channels(pub HashMap<String, f32>);
+
+impl Default for Channels {
+    fn default() -> Self {
+        Self (
+            [("sfx".into(), 1.0), ("music".into(), 1.0)]
+                .iter()
+                .cloned()
+                .collect()
+        )
+    }
+}
+
+#[derive(Debug, serde::Serialize, serde::Deserialize)]
+pub struct UserConfig {
+    #[serde(default)]
+    pub master_volume: f32,
+    #[serde(default)]
+    pub channel_volumes: Channels,
+}
+
+impl UserConfig {
+    pub fn update_data(&self, ctx: &mut Context) {
+        if ggez::filesystem::exists(ctx, "/config.json") {
+            println!("Updating user config");
+            let file = ggez::filesystem::open_options(
+                ctx,
+                "/config.json",
+                OpenOptions::new().write(true).truncate(true),
+            )
+            .unwrap();
+            serde_json::to_writer(file, self).unwrap();
+        } else {
+            println!("Creating user config");
+            let user_config = UserConfig::default();
+            let file = ggez::filesystem::create(ctx, "/config.json").unwrap();
+            serde_json::to_writer(file, &user_config).unwrap();
+        };
+    }
+}
+
+impl Default for UserConfig {
+    fn default() -> Self {
+        Self {
+            master_volume: 0.5,
+            channel_volumes: Channels::default(),
+        }
+    }
+}
+
 #[derive(Debug)]
 pub struct Config {
     pub characters: HashMap<String, CharacterConfig>,
     pub ui: UIConfig,
+    pub user: UserConfig,
 }
 
 pub struct Resources {
@@ -180,6 +236,7 @@ impl GameState {
                     node.clone(),
                     &mut self.sfx,
                     &mut self.music,
+                    &self.resources.config.user,
                 )?;
                 self.continue_text(ctx).unwrap();
             }

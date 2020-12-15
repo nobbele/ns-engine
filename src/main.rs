@@ -6,7 +6,7 @@ use ggez::{
     graphics,
 };
 use states::{
-    game::{CharacterConfig, Config, Resources, UIConfig},
+    game::{CharacterConfig, Config, Resources, UIConfig, UserConfig},
     splash::SplashState,
     State, StateManager,
 };
@@ -40,6 +40,16 @@ pub fn main() -> ggez::GameResult {
     let engine_config = nsconfig::parse(&config_content).unwrap();
 
     let ui_config = &engine_config["UI"];
+
+    let user_config = if ggez::filesystem::exists(&ctx, "/config.json") {
+        println!("Loading user config");
+        let file = ggez::filesystem::open(&mut ctx, "/config.json").unwrap();
+        serde_json::from_reader(file).unwrap()
+    } else {
+        let user_config = UserConfig::default();
+        user_config.update_data(&mut ctx);
+        user_config
+    };
 
     let config = Config {
         characters: char_config
@@ -77,6 +87,7 @@ pub fn main() -> ggez::GameResult {
                     .unwrap_or_default(),
             ),
         },
+        user: user_config,
     };
 
     let resources = Box::leak(Box::new(Resources {

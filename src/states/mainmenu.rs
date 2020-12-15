@@ -36,6 +36,8 @@ pub struct MainMenuState {
 
 impl MainMenuState {
     pub fn new(ctx: &mut Context, resources: &'static Resources) -> Self {
+        let mut music = ggez::audio::Source::new(ctx, "/audio/bgm.mp3").unwrap();
+        music.set_volume(resources.config.user.master_volume * resources.config.user.channel_volumes.0["music"]);
         let mut state = Self {
             resources,
             clicked_event: None,
@@ -73,7 +75,7 @@ impl MainMenuState {
                 },
                 window: Window::None,
             },
-            music: ggez::audio::Source::new(ctx, "/audio/bgm.mp3").unwrap(),
+            music: music,
             ui_sfx: Rc::new(RefCell::new(None)),
         };
         for (n, d) in [
@@ -92,6 +94,7 @@ impl MainMenuState {
                     d.0.into(),
                     d.1,
                     state.ui_sfx.clone(),
+                    &state.resources.config.user
                 )
                 .unwrap(),
             )
@@ -155,6 +158,7 @@ impl StateEventHandler for MainMenuState {
                             "X".into(),
                             ButtonActionId::Exit,
                             self.ui_sfx.clone(),
+                            &self.resources.config.user
                         )
                         .unwrap(),
                         text: (
@@ -167,7 +171,10 @@ impl StateEventHandler for MainMenuState {
                     event::quit(ctx);
                 }
             }
-            self.clicked_event = None;
+            // this is handled elsewhere, kinda gross but what you gonna do
+            if self.clicked_event != Some(MenuButtonId::Start) {
+                self.clicked_event = None;
+            }
         }
         Ok(())
     }

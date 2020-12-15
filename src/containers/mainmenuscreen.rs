@@ -6,7 +6,7 @@ use graphics::DrawParam;
 
 use super::{button::Button, config_window::ConfigWindow, stackcontainer::StackContainer, Update};
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, PartialEq)]
 pub enum MenuButtonId {
     Start,
     Options,
