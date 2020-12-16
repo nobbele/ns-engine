@@ -185,7 +185,6 @@ macro_rules! impl_eventhandler_for_statemanager {
                     ),*
                 }
                 if let Some((img, drawparam)) = &current.0 {
-                    println!("draw {:#?}", drawparam);
                     img.draw(ctx, *drawparam).unwrap();
                 }
                 graphics::present(ctx)?;
