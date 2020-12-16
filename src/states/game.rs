@@ -404,6 +404,7 @@ impl StateEventHandler for GameState {
     }
 
     fn mouse_button_up_event(&mut self, ctx: &mut Context, _button: MouseButton, x: f32, y: f32) {
+        let mut clicked_anything = false;
         if let Action::Choice(container) = &self.screen.action {
             if let Some(n) = container
                 .children
@@ -412,6 +413,7 @@ impl StateEventHandler for GameState {
             {
                 self.state.set_choice(n as i32 + 1);
                 self.continue_text(ctx).unwrap();
+                clicked_anything = true;
             }
         }
 
@@ -429,6 +431,11 @@ impl StateEventHandler for GameState {
                 MenuButtonId::Skip => self.continue_method = ContinueMethod::Skip(0.0),
                 MenuButtonId::Auto => self.continue_method = ContinueMethod::Auto(0.0),
             }
+            clicked_anything = true;
+        }
+
+        if !clicked_anything {
+            self.advance_text(ctx);
         }
     }
 }
