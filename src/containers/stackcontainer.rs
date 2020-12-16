@@ -10,15 +10,15 @@ pub enum Direction {
     Vertical,
 }
 
-pub struct StackContainer<T> {
-    pub children: Vec<T>,
+pub struct StackContainer<T, D> {
+    pub children: Vec<(T, D)>,
     pub position: mint::Point2<f32>,
     pub spacing: f32,
     pub cell_size: (f32, f32),
     pub direction: Direction,
 }
 
-impl<T> StackContainer<T> {
+impl<T, D> StackContainer<T, D> {
     pub fn get_rect_for(&self, n: f32) -> Rect {
         let pos = match self.direction {
             Direction::Vertical => {
@@ -41,18 +41,18 @@ impl<T> StackContainer<T> {
     }
 }
 
-impl<T: Drawable> Drawable for StackContainer<T> {
+impl<T: Drawable, D> Drawable for StackContainer<T, D> {
     fn draw(&self, ctx: &mut ggez::Context, param: DrawParam) -> ggez::GameResult {
-        for child in &self.children {
+        for (child, _) in &self.children {
             child.draw(ctx, param)?;
         }
         Ok(())
     }
 }
 
-impl<T: Update> Update for StackContainer<T> {
+impl<T: Update, D> Update for StackContainer<T, D> {
     fn update(&mut self, dt: f32) {
-        for child in &mut self.children {
+        for (child, _) in &mut self.children {
             child.update(dt);
         }
     }

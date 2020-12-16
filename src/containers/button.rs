@@ -6,7 +6,7 @@ use ggez::{
     mint, Context,
 };
 
-use crate::states::game::{Config, Resources};
+use crate::states::game::Config;
 
 #[derive(Debug)]
 pub struct Button<T: Copy> {
@@ -23,7 +23,6 @@ pub struct Button<T: Copy> {
 
 impl<T: Copy> Button<T> {
     pub fn new(
-        resources: &'static Resources,
         layer: &'static graphics::Image,
         rect: Rect,
         text: String,
@@ -81,7 +80,6 @@ impl<T: Copy> Button<T> {
         if self.last_state != is_hovered {
             if is_hovered {
                 let mut audio = ggez::audio::Source::new(ctx, "/audio/ui_select.wav").unwrap();
-                audio.set_volume(self.config.user.master_volume * self.config.user.channel_volumes.0["sfx"]);
                 audio.play(ctx).unwrap();
                 self.ui_sfx.replace(Some(audio));
             }
@@ -94,7 +92,6 @@ impl<T: Copy> Button<T> {
         let rect = self.layer_dimensions();
         if x > rect.x && x < rect.x + rect.w && y > rect.y && y < rect.y + rect.h {
             let mut audio = ggez::audio::Source::new(ctx, "/audio/ui_confirm.wav").unwrap();
-            audio.set_volume(self.config.user.master_volume * self.config.user.channel_volumes.0["sfx"]);
             audio.play(ctx).unwrap();
             self.ui_sfx.replace(Some(audio));
             Some(self.data_on_click)

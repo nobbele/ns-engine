@@ -21,7 +21,7 @@ pub enum Window {
 pub struct MainMenuScreen {
     pub background: graphics::Image,
     pub panel: graphics::Mesh,
-    pub menu: StackContainer<Button<MenuButtonId>>,
+    pub menu: StackContainer<Button<MenuButtonId>, MenuButtonId>,
     pub window: Window,
 }
 
@@ -39,7 +39,7 @@ impl Drawable for MainMenuScreen {
 
         self.panel.draw(ctx, DrawParam::new())?;
 
-        for button in &self.menu.children {
+        for (button, _) in &self.menu.children {
             button.draw(ctx, param)?;
         }
 

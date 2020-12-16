@@ -1,4 +1,8 @@
-use ggez::{Context, event::MouseButton, graphics::{Color, DrawMode, Drawable, FillOptions, Mesh, Rect}};
+use ggez::{
+    event::MouseButton,
+    graphics::{Color, DrawMode, Drawable, FillOptions, Mesh, Rect},
+    Context,
+};
 
 pub struct Slider {
     layer: Mesh,
@@ -45,7 +49,14 @@ impl Slider {
         }
     }
 
-    pub fn mouse_motion_event(&mut self, ctx: &mut Context, x: f32, y: f32, _dx: f32, _dy: f32) -> Option<f32> {
+    pub fn mouse_motion_event(
+        &mut self,
+        ctx: &mut Context,
+        x: f32,
+        _y: f32,
+        _dx: f32,
+        _dy: f32,
+    ) -> Option<f32> {
         if self.is_clicking {
             let bounds = self.layer.dimensions(ctx).unwrap();
             let x = x.max(bounds.x).min(bounds.x + bounds.w);
@@ -57,14 +68,27 @@ impl Slider {
         }
     }
 
-    pub fn mouse_button_down_event(&mut self, ctx: &mut Context, _button: MouseButton, x: f32, y: f32) {
+    pub fn mouse_button_down_event(
+        &mut self,
+        ctx: &mut Context,
+        _button: MouseButton,
+        x: f32,
+        y: f32,
+    ) {
         let bounds = self.layer.dimensions(ctx).unwrap();
         if x > bounds.x && x < bounds.x + bounds.w && y > bounds.y && y < bounds.y + bounds.h {
             self.is_clicking = true;
+            self.mouse_motion_event(ctx, x, y, 0.0, 0.0);
         }
     }
 
-    pub fn mouse_button_up_event(&mut self, _ctx: &mut Context, _button: MouseButton, x: f32, y: f32) {
+    pub fn mouse_button_up_event(
+        &mut self,
+        _ctx: &mut Context,
+        _button: MouseButton,
+        _x: f32,
+        _y: f32,
+    ) {
         self.is_clicking = false;
     }
 }

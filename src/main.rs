@@ -1,4 +1,4 @@
-use std::io::Read;
+use std::{cell::RefCell, io::Read, rc::Rc};
 
 use ggez::event;
 use ggez::{
@@ -87,7 +87,7 @@ pub fn main() -> ggez::GameResult {
                     .unwrap_or_default(),
             ),
         },
-        user: user_config,
+        user: Rc::new(RefCell::new(user_config)),
     }));
 
     let resources = Box::leak(Box::new(Resources {

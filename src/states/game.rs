@@ -7,11 +7,14 @@ use crate::containers::{
 };
 use crate::helpers::Position;
 use crate::node::{load_background_tween, load_character_tween};
-use ggez::graphics::{Color, Drawable};
 use ggez::{
     self,
     event::{KeyCode, KeyMods, MouseButton},
     Context,
+};
+use ggez::{
+    audio::SoundSource,
+    graphics::{Color, Drawable},
 };
 use ggez::{
     filesystem::OpenOptions,
@@ -112,8 +115,7 @@ impl GameState {
         .enumerate()
         {
             state.screen.ui.menu.children.push(
-                Button::new(
-                    &resources,
+                (Button::new(
                     &resources.button,
                     state.screen.ui.menu.get_rect_for(n as f32),
                     d.0.into(),
@@ -121,7 +123,7 @@ impl GameState {
                     state.ui_sfx.clone(),
                     &config,
                 )
-                .unwrap(),
+                .unwrap(), d.1),
             )
         }
         state.continue_text(ctx).unwrap();
@@ -211,7 +213,7 @@ impl Default for UserConfig {
 pub struct Config {
     pub characters: HashMap<String, CharacterConfig>,
     pub ui: UIConfig,
-    pub user: UserConfig,
+    pub user: Rc<RefCell<UserConfig>>,
 }
 
 pub struct Resources {
@@ -239,7 +241,6 @@ impl GameState {
                     node.clone(),
                     &mut self.sfx,
                     &mut self.music,
-                    &self.config.user,
                 )?;
                 self.continue_text(ctx).unwrap();
             }
@@ -351,6 +352,18 @@ impl StateEventHandler for GameState {
             }
         }
         self.screen.update(dt);
+        if let Some(audio) = self.ui_sfx.borrow_mut().as_mut() {
+            audio.set_volume(
+                self.config.user.borrow().master_volume
+                    * self.config.user.borrow().channel_volumes.0["sfx"],
+            )
+        }
+        if let Some(audio) = &mut self.music {
+            audio.set_volume(
+                self.config.user.borrow().master_volume
+                    * self.config.user.borrow().channel_volumes.0["music"],
+            )
+        }
         Ok(())
     }
 
@@ -369,7 +382,7 @@ impl StateEventHandler for GameState {
                 }
                 _ => (),
             }
-        }  
+        }
     }
 
     fn text_input_event(&mut self, ctx: &mut Context, ch: char) {
@@ -385,12 +398,12 @@ impl StateEventHandler for GameState {
 
     fn mouse_motion_event(&mut self, ctx: &mut Context, x: f32, y: f32, _dx: f32, _dy: f32) {
         if let Action::Choice(choices) = &mut self.screen.action {
-            for button in &mut choices.children {
+            for (button, _) in &mut choices.children {
                 button.mouse_motion_event(ctx, x, y);
             }
         }
 
-        for button in &mut self.screen.ui.menu.children {
+        for (button, _) in &mut self.screen.ui.menu.children {
             button.mouse_motion_event(ctx, x, y);
         }
     }
@@ -400,7 +413,7 @@ impl StateEventHandler for GameState {
             if let Some(n) = container
                 .children
                 .iter()
-                .find_map(|button| button.click_event(ctx, x, y))
+                .find_map(|(button, _)| button.click_event(ctx, x, y))
             {
                 self.state.set_choice(n as i32 + 1);
                 self.continue_text(ctx).unwrap();
@@ -413,7 +426,7 @@ impl StateEventHandler for GameState {
             .menu
             .children
             .iter()
-            .find_map(|button| button.click_event(ctx, x, y))
+            .find_map(|(button, _)| button.click_event(ctx, x, y))
         {
             match e {
                 MenuButtonId::Save => self.on_save_click(ctx),

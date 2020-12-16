@@ -9,7 +9,7 @@ use super::{
 };
 
 pub enum Action {
-    Choice(StackContainer<Button<u32>>),
+    Choice(StackContainer<Button<u32>, u32>),
     Text(Box<TextBox>),
     None,
 }
@@ -30,7 +30,7 @@ impl Drawable for GameScreen {
         self.current_characters.draw(ctx, param)?;
 
         if let Action::Choice(container) = &self.action {
-            for choice in &container.children {
+            for (choice, _) in &container.children {
                 choice.draw(ctx, param)?;
             }
         } else if let Action::Text(text) = &self.action {

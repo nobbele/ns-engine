@@ -3,7 +3,17 @@ use std::{cell::RefCell, rc::Rc};
 use ggez::{audio::SoundSource, graphics, Context};
 use novelscript::SceneNodeLoad;
 
-use crate::{Resources, containers::{background::BackgroundContainer, gamescreen::GameScreen}, containers::{button::Button, gamescreen::Action, stackcontainer::StackContainer}, draw::load_text, helpers::Position, states::game::Character, states::game::{Background, Config, Placement, UserConfig}, tween::TargetTweener, tween::TransitionTweener};
+use crate::{
+    containers::{background::BackgroundContainer, gamescreen::GameScreen},
+    containers::{button::Button, gamescreen::Action, stackcontainer::StackContainer},
+    draw::load_text,
+    helpers::Position,
+    states::game::Character,
+    states::game::{Background, Config, Placement},
+    tween::TargetTweener,
+    tween::TransitionTweener,
+    Resources,
+};
 
 pub fn load_character_tween(
     ctx: &mut Context,
@@ -72,7 +82,6 @@ pub fn load_load_node(
     node: SceneNodeLoad,
     sfx: &mut Option<ggez::audio::Source>,
     music: &mut Option<ggez::audio::Source>,
-    config: &'static UserConfig,
 ) -> ggez::GameResult {
     if let novelscript::SceneNodeLoad::Character {
         character,
@@ -105,7 +114,6 @@ pub fn load_load_node(
             _ => panic!(),
         };
         let mut new_src = ggez::audio::Source::new(ctx, format!("/audio/{}.mp3", name)).unwrap();
-        new_src.set_volume(config.master_volume * config.channel_volumes.0[channel]);
         new_src.play(ctx).unwrap();
         *src = Some(new_src);
     } else if let novelscript::SceneNodeLoad::RemoveCharacter { name } = node {
@@ -142,8 +150,7 @@ pub fn load_data_node(
         };
         for (n, d) in choices.iter().enumerate() {
             stack.children.push(
-                Button::new(
-                    &resources,
+                (Button::new(
                     &resources.button,
                     stack.get_rect_for(n as f32),
                     d.clone(),
@@ -151,7 +158,7 @@ pub fn load_data_node(
                     ui_sfx.clone(),
                     &config,
                 )
-                .unwrap(),
+                .unwrap(), n as u32),
             )
         }
         screen.action = Action::Choice(stack);

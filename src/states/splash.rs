@@ -3,7 +3,11 @@ use graphics::{drawable_size, DrawParam};
 
 use crate::tween::{TargetTweener, TweenBox};
 
-use super::{State, StateEventHandler, game::{Config, Resources}, mainmenu::MainMenuState};
+use super::{
+    game::{Config, Resources},
+    mainmenu::MainMenuState,
+    State, StateEventHandler,
+};
 
 #[derive(PartialEq, Debug)]
 pub enum SplashAnimState {

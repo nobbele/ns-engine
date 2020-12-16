@@ -1,6 +1,6 @@
 use std::{cell::RefCell, io::Read, path::PathBuf, rc::Rc};
 
-use crate::{containers::{button::Button, config_window::{ButtonActionId, ConfigWindow}, mainmenuscreen::MainMenuScreen, mainmenuscreen::{MenuButtonId, Window}, slider::Slider, stackcontainer::Direction, stackcontainer::StackContainer, text_sprite::TextSprite}, helpers::{points_to_rect, Position}};
+use crate::{containers::{button::Button, config_window::{ButtonActionId, ConfigWindow, VolumeControl}, mainmenuscreen::MainMenuScreen, mainmenuscreen::{MenuButtonId, Window}, slider::Slider, stackcontainer::Direction, stackcontainer::StackContainer, text_sprite::TextSprite}, helpers::{points_to_rect, Position}};
 use ggez::{
     audio::SoundSource,
     event::{self, MouseButton},
@@ -11,7 +11,10 @@ use ggez::{
 };
 use graphics::{FillOptions, Rect, Text};
 
-use super::{State, StateEventHandler, game::{Config, GameState, Resources}};
+use super::{
+    game::{Config, GameState, Resources},
+    State, StateEventHandler,
+};
 
 pub struct MainMenuState {
     pub resources: &'static Resources,
@@ -24,10 +27,7 @@ pub struct MainMenuState {
 
 impl MainMenuState {
     pub fn new(ctx: &mut Context, resources: &'static Resources, config: &'static Config) -> Self {
-        let mut music = ggez::audio::Source::new(ctx, "/audio/bgm.mp3").unwrap();
-        music.set_volume(
-            config.user.master_volume * config.user.channel_volumes.0["music"],
-        );
+        let music = ggez::audio::Source::new(ctx, "/audio/bgm.mp3").unwrap();
         let mut state = Self {
             resources,
             clicked_event: None,
@@ -78,8 +78,7 @@ impl MainMenuState {
         .enumerate()
         {
             state.screen.menu.children.push(
-                Button::new(
-                    &resources,
+                (Button::new(
                     &resources.button,
                     state.screen.menu.get_rect_for(n as f32),
                     d.0.into(),
@@ -87,7 +86,7 @@ impl MainMenuState {
                     state.ui_sfx.clone(),
                     &state.config,
                 )
-                .unwrap(),
+                .unwrap(), d.1),
             )
         }
         state.music.play(ctx).unwrap();
@@ -108,7 +107,12 @@ impl MainMenuState {
                 novel.add_scene(name, &data);
             }
 
-            Some(State::Game(GameState::new(ctx, novel, self.resources, self.config)))
+            Some(State::Game(GameState::new(
+                ctx,
+                novel,
+                self.resources,
+                self.config,
+            )))
         } else {
             None
         }
@@ -121,7 +125,7 @@ impl StateEventHandler for MainMenuState {
             match e {
                 MenuButtonId::Start => {} // Handled in change_state
                 MenuButtonId::Options => {
-                    self.screen.window = Window::Options(ConfigWindow {
+                    let mut config_window = ConfigWindow {
                         panel: graphics::Mesh::new_rectangle(
                             ctx,
                             DrawMode::Fill(FillOptions::DEFAULT),
@@ -140,7 +144,6 @@ impl StateEventHandler for MainMenuState {
                         )
                         .unwrap(),
                         exit_button: Button::new(
-                            self.resources,
                             &self.resources.button,
                             points_to_rect(
                                 Position::TopRight.add_in(ctx, (55.0, 5.0)),
@@ -152,19 +155,37 @@ impl StateEventHandler for MainMenuState {
                             &self.config,
                         )
                         .unwrap(),
-                        master_volume_label: TextSprite {
-                            content: Text::new("Master"),
-                            params: DrawParam::new().dest(Position::Center.add_in(ctx, (0.0, -50.0))),
-                        },
-                        master_volume: Slider::new(
-                            ctx,
-                            points_to_rect(
-                                Position::Center.add_in(ctx, (-120.0, -20.0)),
-                                Position::Center.add_in(ctx, (120.0, 20.0)),
-                            ),
-                            self.config.user.master_volume,
-                        ),
-                    })
+                        volume_controls: StackContainer {
+                            children: Vec::new(),
+                            position: Position::Center.add_in(ctx, (-120.0, (-46.0 * 3.0) / 2.0)),
+                            spacing: 5.0,
+                            cell_size: (240.0, 46.0),
+                            direction: Direction::Vertical,
+                        }
+                    };
+                    for (n, &(d, v, s)) in [
+                        ("Master", self.config.user.borrow().master_volume, "master"),
+                        ("SFX", self.config.user.borrow().channel_volumes.0["sfx"], "sfx"),
+                        ("BGM", self.config.user.borrow().channel_volumes.0["music"], "music"),
+                    ]
+                    .iter()
+                    .enumerate()
+                    {
+                        let rect = config_window.volume_controls.get_rect_for(n as f32);
+                        config_window.volume_controls.children.push(
+                            (VolumeControl(TextSprite {
+                                content: Text::new(d),
+                                params: DrawParam::new().dest(rect.point()),
+
+                            }, Slider::new(ctx, Rect {
+                                x: rect.x,
+                                y: rect.y + 16.0,
+                                w: rect.w,
+                                h: rect.h - 16.0,
+                            }, v)), s)
+                        )
+                    }
+                    self.screen.window = Window::Options(config_window);
                 }
                 MenuButtonId::Quit => {
                     event::quit(ctx);
@@ -174,6 +195,16 @@ impl StateEventHandler for MainMenuState {
             if self.clicked_event != Some(MenuButtonId::Start) {
                 self.clicked_event = None;
             }
+        }
+        self.music.set_volume(
+            self.config.user.borrow().master_volume
+                * self.config.user.borrow().channel_volumes.0["music"],
+        );
+        if let Some(audio) = &mut *self.ui_sfx.borrow_mut() {
+            audio.set_volume(
+                self.config.user.borrow().master_volume
+                    * self.config.user.borrow().channel_volumes.0["sfx"],
+            )
         }
         Ok(())
     }
@@ -187,21 +218,30 @@ impl StateEventHandler for MainMenuState {
 
     fn mouse_motion_event(&mut self, ctx: &mut Context, x: f32, y: f32, dx: f32, dy: f32) {
         if let Window::None = self.screen.window {
-            for button in &mut self.screen.menu.children {
+            for (button, _) in &mut self.screen.menu.children {
                 button.mouse_motion_event(ctx, x, y);
             }
         } else if let Window::Options(window) = &mut self.screen.window {
             window.exit_button.mouse_motion_event(ctx, x, y);
-           if let Some(n) = window.master_volume.mouse_motion_event(ctx, x, y, dx, dy) {
-               todo!();
-               //self.config.user.master_volume = n;
-           }
+            for (slider, d) in &mut window.volume_controls.children {
+                if let Some(n) = slider.1.mouse_motion_event(ctx, x, y, dx, dy) {
+                    let mut config = self.config.user.borrow_mut();
+                    match *d {
+                        "master" => config.master_volume = n,
+                        s => {
+                            *config.channel_volumes.0.get_mut(s).unwrap() = n;
+                        },
+                    }
+                }
+            }
         }
     }
 
     fn mouse_button_down_event(&mut self, ctx: &mut Context, button: MouseButton, x: f32, y: f32) {
         if let Window::Options(window) = &mut self.screen.window {
-            window.master_volume.mouse_button_down_event(ctx, button, x, y);
+            for (slider, _) in &mut window.volume_controls.children {
+                slider.1.mouse_button_down_event(ctx, button, x, y);
+            }
         }
     }
 
@@ -212,14 +252,16 @@ impl StateEventHandler for MainMenuState {
                 .menu
                 .children
                 .iter()
-                .find_map(|button| button.click_event(ctx, x, y))
+                .find_map(|(button, _)| button.click_event(ctx, x, y))
             {
                 self.clicked_event = Some(e);
             }
         } else if let Window::Options(window) = &mut self.screen.window {
+            for (slider, _) in &mut window.volume_controls.children {
+                slider.1.mouse_button_up_event(ctx, button, x, y);
+            }
             if let Some(e) = window.exit_button.click_event(ctx, x, y) {
-                window.master_volume.mouse_button_up_event(ctx, button, x, y);
-                self.config.user.update_data(ctx);
+                self.config.user.borrow().update_data(ctx);
                 match e {
                     crate::containers::config_window::ButtonActionId::Exit => {
                         self.screen.window = Window::None;
