@@ -127,7 +127,7 @@ impl GameState {
                 d.1,
             ))
         }
-        state.continue_text(ctx).unwrap();
+        state.continue_text(ctx, true).unwrap();
         state
     }
 }
@@ -223,8 +223,8 @@ pub struct Resources {
 }
 
 impl GameState {
-    fn continue_text(&mut self, ctx: &mut Context) -> ggez::GameResult {
-        match self.novel.next(&mut self.state) {
+    fn continue_text(&mut self, ctx: &mut Context, inc: bool) -> ggez::GameResult {
+        match if inc { self.novel.next(&mut self.state) } else { self.novel.current(&mut self.state) } {
             Some(novelscript::SceneNodeUser::Data(node)) => {
                 crate::node::load_data_node(
                     ctx,
@@ -243,7 +243,7 @@ impl GameState {
                     &mut self.sfx,
                     &mut self.music,
                 )?;
-                self.continue_text(ctx).unwrap();
+                self.continue_text(ctx, true).unwrap();
             }
             None => {}
         };
@@ -300,7 +300,7 @@ impl GameState {
                 self.screen.current_background = None;
             }
 
-            self.continue_text(ctx).unwrap();
+            self.continue_text(ctx, false).unwrap();
             println!("Loaded game!");
         } else {
             println!("Unable to find save file");
@@ -311,7 +311,7 @@ impl GameState {
         if let Action::Text(text) = &mut self.screen.action {
             if self.continue_method == ContinueMethod::Normal {
                 if text.content.0.is_done() {
-                    self.continue_text(ctx).unwrap();
+                    self.continue_text(ctx, true).unwrap();
                 } else {
                     text.content.0.finish();
                 }
@@ -329,7 +329,7 @@ impl StateEventHandler for GameState {
                     *n += dt;
                     if *n >= 0.1 {
                         *n = 0.0;
-                        self.continue_text(ctx)?;
+                        self.continue_text(ctx, true)?;
                     }
                 }
                 ContinueMethod::Auto(ref mut n) => {
@@ -337,7 +337,7 @@ impl StateEventHandler for GameState {
                         *n += dt;
                         if *n >= 1.0 {
                             *n = 0.0;
-                            self.continue_text(ctx)?;
+                            self.continue_text(ctx, true)?;
                         }
                     }
                 }
@@ -385,7 +385,7 @@ impl StateEventHandler for GameState {
             if let Some(n) = ch.to_digit(10) {
                 if n >= 1 && n < choices.children.len() as u32 {
                     self.state.set_choice(n as i32);
-                    self.continue_text(ctx).unwrap();
+                    self.continue_text(ctx, true).unwrap();
                 }
             }
         }
@@ -412,7 +412,7 @@ impl StateEventHandler for GameState {
                 .find_map(|(button, _)| button.click_event(ctx, x, y))
             {
                 self.state.set_choice(n as i32 + 1);
-                self.continue_text(ctx).unwrap();
+                self.continue_text(ctx, true).unwrap();
                 clicked_anything = true;
             }
         }

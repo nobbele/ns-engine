@@ -1717,7 +1717,7 @@ dependencies = [
 [[package]]
 name = "novelscript"
 version = "0.1.0"
-source = "git+https://github.com/nobbele/novelscript#5af342f230c3a2eed4c33da40b45c497aa7c86bb"
+source = "git+https://github.com/nobbele/novelscript#3b7c98f26ca43cd00e41e87814e41b7675347709"
 dependencies = [
  "pest",
  "pest_derive",

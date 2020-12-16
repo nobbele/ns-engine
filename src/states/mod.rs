@@ -8,12 +8,11 @@ use ggez::input::mouse::MouseButton;
 use ggez::Context;
 use ggez::{event::quit, event::Axis, graphics, mint::Vector2, GameResult};
 use ggez::{event::Button, GameError};
-use ggez::{event::EventHandler, mint::Point2};
-use graphics::drawable_size;
+use ggez::event::EventHandler;
 
 use crate::tween::{TransitionTweener, TweenBox};
 
-use log::{error, info};
+use log::error;
 
 use self::{error::ErrorState, mainmenu::MainMenuState, splash::SplashState};
 
