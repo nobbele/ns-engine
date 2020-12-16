@@ -10,7 +10,7 @@ use ggez::Context;
 use ggez::{event::quit, event::Axis, graphics, mint::Vector2, GameResult};
 use ggez::{event::Button, GameError};
 
-use crate::tween::{TransitionTweener, TweenBox};
+use crate::{containers::sprite::Sprite, tween::{TransitionTweener, TweenBox}};
 
 use log::error;
 
@@ -86,6 +86,7 @@ trait StateEventHandler {
     }
 }
 
+#[allow(clippy::large_enum_variant)]
 pub enum State {
     Game(GameState),
     MainMenu(MainMenuState),
@@ -94,7 +95,7 @@ pub enum State {
 }
 
 pub struct StateManager {
-    pub state: TweenBox<(Option<(graphics::Image, DrawParam)>, (State, DrawParam))>,
+    pub state: TweenBox<(Option<Sprite<graphics::Image>>, Sprite<State>)>,
     pub error: Option<GameError>,
 }
 
@@ -102,7 +103,7 @@ fn switch_scene_tween(
     ctx: &mut Context,
     has_current: bool,
     state: State,
-) -> TweenBox<(Option<(graphics::Image, DrawParam)>, (State, DrawParam))> {
+) -> TweenBox<(Option<Sprite<graphics::Image>>, Sprite<State>)> {
     let img = if has_current {
         let img = graphics::screenshot(ctx).unwrap();
         let data = img.to_rgba8(ctx).unwrap();
@@ -117,17 +118,23 @@ fn switch_scene_tween(
         set_instantly_if_no_prev: true,
         current: (
             match img {
-                Some(img) => Some((img, DrawParam::new().scale(Vector2 { x: 1.0, y: 1.0 }))),
+                Some(img) => Some(Sprite {
+                    content: img, 
+                    param: DrawParam::new().scale(Vector2 { x: 1.0, y: 1.0 })
+                }),
                 None => None,
             },
-            (state, DrawParam::new()),
+            Sprite {
+                content: state, 
+                param: DrawParam::new(),
+            },
         ),
         update: |from, to, progress| {
-            if let Some((_, from_param)) = from {
-                from_param.color.a = 1.0 - progress;
+            if let Some(Sprite { param, ..}) = from {
+                param.color.a = 1.0 - progress;
             }
 
-            to.1.color.a = progress;
+            to.param.color.a = progress;
         },
     })
 }
@@ -153,7 +160,7 @@ macro_rules! impl_eventhandler_for_statemanager {
                     return Ok(());
                 }
                 self.state.update(ggez::timer::delta(ctx).as_secs_f32());
-                match &mut self.state.get_current_mut().1.0 {
+                match &mut self.state.get_current_mut().1.content {
                     $(
                         $p(state) => {
                             if let Err(e) = state.update(ctx) {
@@ -174,17 +181,17 @@ macro_rules! impl_eventhandler_for_statemanager {
             fn draw(&mut self, ctx: &mut ggez::Context) -> ggez::GameResult {
                 graphics::clear(ctx, graphics::WHITE);
                 let current = self.state.get_current_mut();
-                match &mut current.1.0 {
+                match &mut current.1.content {
                     $(
                         $p(state) => {
-                            if let Err(e) = state.draw(ctx, current.1.1) {
+                            if let Err(e) = state.draw(ctx, current.1.param) {
                                 self.error = Some(e);
                             }
                         }
                     ),*
                 }
-                if let Some((img, drawparam)) = &current.0 {
-                    img.draw(ctx, *drawparam).unwrap();
+                if let Some(Sprite { content, param }) = &current.0 {
+                    content.draw(ctx, *param).unwrap();
                 }
                 graphics::present(ctx)?;
                 Ok(())
@@ -197,7 +204,7 @@ macro_rules! impl_eventhandler_for_statemanager {
                 x: f32,
                 y: f32,
             ) {
-                match &mut self.state.get_current_mut().1.0 {
+                match &mut self.state.get_current_mut().1.content {
                     $(
                         $p(state) => state.mouse_button_down_event(ctx, button, x, y)
                     ),*
@@ -212,7 +219,7 @@ macro_rules! impl_eventhandler_for_statemanager {
                 x: f32,
                 y: f32,
             ) {
-                match &mut self.state.get_current_mut().1.0 {
+                match &mut self.state.get_current_mut().1.content {
                     $(
                         $p(state) => state.mouse_button_up_event(ctx, button, x, y)
                     ),*
@@ -220,7 +227,7 @@ macro_rules! impl_eventhandler_for_statemanager {
             }
 
             fn mouse_motion_event(&mut self, ctx: &mut Context, x: f32, y: f32, dx: f32, dy: f32) {
-                match &mut self.state.get_current_mut().1.0 {
+                match &mut self.state.get_current_mut().1.content {
                     $(
                         $p(state) => state.mouse_motion_event(ctx, x, y, dx, dy)
                     ),*
@@ -228,7 +235,7 @@ macro_rules! impl_eventhandler_for_statemanager {
             }
 
             fn mouse_enter_or_leave(&mut self, ctx: &mut Context, entered: bool) {
-                match &mut self.state.get_current_mut().1.0 {
+                match &mut self.state.get_current_mut().1.content {
                     $(
                         $p(state) => state.mouse_enter_or_leave(ctx, entered)
                     ),*
@@ -236,7 +243,7 @@ macro_rules! impl_eventhandler_for_statemanager {
             }
 
             fn mouse_wheel_event(&mut self, ctx: &mut Context, x: f32, y: f32) {
-                match &mut self.state.get_current_mut().1.0 {
+                match &mut self.state.get_current_mut().1.content {
                     $(
                         $p(state) => state.mouse_wheel_event(ctx, x, y)
                     ),*
@@ -250,7 +257,7 @@ macro_rules! impl_eventhandler_for_statemanager {
                 keymods: KeyMods,
                 repeat: bool,
             ) {
-                match &mut self.state.get_current_mut().1.0 {
+                match &mut self.state.get_current_mut().1.content {
                     $(
                         $p(state) => state.key_down_event(ctx, keycode, keymods, repeat)
                     ),*
@@ -258,7 +265,7 @@ macro_rules! impl_eventhandler_for_statemanager {
             }
 
             fn key_up_event(&mut self, ctx: &mut Context, keycode: KeyCode, keymods: KeyMods) {
-                match &mut self.state.get_current_mut().1.0 {
+                match &mut self.state.get_current_mut().1.content {
                     $(
                         $p(state) => state.key_up_event(ctx, keycode, keymods)
                     ),*
@@ -266,7 +273,7 @@ macro_rules! impl_eventhandler_for_statemanager {
             }
 
             fn text_input_event(&mut self, ctx: &mut Context, character: char) {
-                match &mut self.state.get_current_mut().1.0 {
+                match &mut self.state.get_current_mut().1.content {
                     $(
                         $p(state) => state.text_input_event(ctx, character)
                     ),*
@@ -274,7 +281,7 @@ macro_rules! impl_eventhandler_for_statemanager {
             }
 
             fn gamepad_button_down_event(&mut self, ctx: &mut Context, btn: Button, id: GamepadId) {
-                match &mut self.state.get_current_mut().1.0 {
+                match &mut self.state.get_current_mut().1.content {
                     $(
                         $p(state) => state.gamepad_button_down_event(ctx, btn, id)
                     ),*
@@ -282,7 +289,7 @@ macro_rules! impl_eventhandler_for_statemanager {
             }
 
             fn gamepad_button_up_event(&mut self, ctx: &mut Context, btn: Button, id: GamepadId) {
-                match &mut self.state.get_current_mut().1.0 {
+                match &mut self.state.get_current_mut().1.content {
                     $(
                         $p(state) => state.gamepad_button_up_event(ctx, btn, id)
                     ),*
@@ -290,7 +297,7 @@ macro_rules! impl_eventhandler_for_statemanager {
             }
 
             fn gamepad_axis_event(&mut self, ctx: &mut Context, axis: Axis, value: f32, id: GamepadId) {
-                match &mut self.state.get_current_mut().1.0 {
+                match &mut self.state.get_current_mut().1.content {
                     $(
                         $p(state) => state.gamepad_axis_event(ctx, axis, value, id)
                     ),*
@@ -298,7 +305,7 @@ macro_rules! impl_eventhandler_for_statemanager {
             }
 
             fn focus_event(&mut self, ctx: &mut Context, gained: bool) {
-                match &mut self.state.get_current_mut().1.0 {
+                match &mut self.state.get_current_mut().1.content {
                     $(
                         $p(state) => state.focus_event(ctx, gained)
                     ),*
@@ -306,7 +313,7 @@ macro_rules! impl_eventhandler_for_statemanager {
             }
 
             fn quit_event(&mut self, ctx: &mut Context) -> bool {
-                match &mut self.state.get_current_mut().1.0 {
+                match &mut self.state.get_current_mut().1.content {
                     $(
                         $p(state) => state.quit_event(ctx)
                     ),*
@@ -317,7 +324,7 @@ macro_rules! impl_eventhandler_for_statemanager {
                 ggez::graphics::set_screen_coordinates(ctx, ggez::graphics::Rect::new(0.0, 0.0, width, height))
                     .unwrap();
 
-                match &mut self.state.get_current_mut().1.0 {
+                match &mut self.state.get_current_mut().1.content {
                     $(
                         $p(state) => state.resize_event(ctx, width, height)
                     ),*

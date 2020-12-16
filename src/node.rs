@@ -107,7 +107,7 @@ pub fn load_load_node(
             current: Box::new(load_background_tween(ctx, prev, name)?),
         });
     } else if let novelscript::SceneNodeLoad::PlaySound { name, channel } = node {
-        let channel = channel.as_ref().map(|s| s.as_str()).unwrap_or("sfx");
+        let channel = channel.as_deref().unwrap_or("sfx");
         let src = match channel {
             "sfx" => sfx,
             "music" => music,

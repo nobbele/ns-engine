@@ -5,8 +5,8 @@ pub mod config_window;
 pub mod gamescreen;
 pub mod mainmenuscreen;
 pub mod slider;
+pub mod sprite;
 pub mod stackcontainer;
-pub mod text_sprite;
 pub mod textbox;
 pub mod ui;
 

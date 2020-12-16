@@ -5,31 +5,29 @@ use ggez::{
 
 use crate::tween::TweenBox;
 
-use super::Update;
+use super::{Update, sprite::Sprite};
 
 pub struct TextBox {
-    pub layer: (&'static graphics::Image, DrawParam),
-    pub speaker: Option<(graphics::Text, DrawParam)>,
-    pub content: (TweenBox<graphics::Text>, DrawParam),
+    pub layer: Sprite<&'static graphics::Image>,
+    pub speaker: Option<Sprite<graphics::Text>>,
+    pub content: Sprite<TweenBox<graphics::Text>>,
 }
 
 impl Drawable for TextBox {
     fn draw(&self, ctx: &mut Context, parent_param: DrawParam) -> ggez::GameResult {
-        self.layer.0.draw(ctx, self.layer.1)?;
+        self.layer.draw(ctx, parent_param)?;
         if let Some(speaker) = &self.speaker {
-            let mut param = speaker.1;
-            param.color.a = parent_param.color.a;
-            speaker.0.draw(ctx, param)?;
+            speaker.draw(ctx, parent_param)?;
         }
-        let mut param = self.content.1;
+        let mut param = self.content.param;
         param.color.a = parent_param.color.a;
-        self.content.0.get_current().draw(ctx, param)?;
+        self.content.draw(ctx, param)?;
         Ok(())
     }
 }
 
 impl Update for TextBox {
     fn update(&mut self, dt: f32) {
-        self.content.0.update(dt);
+        self.content.content.update(dt);
     }
 }

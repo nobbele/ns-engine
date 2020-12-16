@@ -7,9 +7,9 @@ use crate::{
         mainmenuscreen::MainMenuScreen,
         mainmenuscreen::{MenuButtonId, Window},
         slider::Slider,
+        sprite::Sprite,
         stackcontainer::Direction,
         stackcontainer::StackContainer,
-        text_sprite::TextSprite,
     },
     helpers::{points_to_rect, Position},
 };
@@ -193,9 +193,9 @@ impl StateEventHandler for MainMenuState {
                         let rect = config_window.volume_controls.get_rect_for(n as f32);
                         config_window.volume_controls.children.push((
                             VolumeControl(
-                                TextSprite {
+                                Sprite {
                                     content: Text::new(d),
-                                    params: DrawParam::new().dest(rect.point()),
+                                    param: DrawParam::new().dest(rect.point()),
                                 },
                                 Slider::new(
                                     ctx,

@@ -313,10 +313,10 @@ impl GameState {
     fn advance_text(&mut self, ctx: &mut Context) {
         if let Action::Text(text) = &mut self.screen.action {
             if self.continue_method == ContinueMethod::Normal {
-                if text.content.0.is_done() {
+                if text.content.content.is_done() {
                     self.continue_text(ctx, true).unwrap();
                 } else {
-                    text.content.0.finish();
+                    text.content.content.finish();
                 }
             }
         }
@@ -336,7 +336,7 @@ impl StateEventHandler for GameState {
                     }
                 }
                 ContinueMethod::Auto(ref mut n) => {
-                    if textbox.content.0.is_done() {
+                    if textbox.content.content.is_done() {
                         *n += dt;
                         if *n >= 1.0 {
                             *n = 0.0;

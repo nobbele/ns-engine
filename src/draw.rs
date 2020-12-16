@@ -1,13 +1,4 @@
-use crate::{
-    containers::{
-        gamescreen::{Action, GameScreen},
-        textbox::TextBox,
-    },
-    helpers::{points_to_rect, Position},
-    states::game::Config,
-    tween::Tweener,
-    Resources,
-};
+use crate::{Resources, containers::{gamescreen::{Action, GameScreen}, sprite::Sprite, textbox::TextBox}, helpers::{points_to_rect, Position}, states::game::Config, tween::Tweener};
 use ggez::{
     graphics::{self, DrawParam},
     Context,
@@ -46,7 +37,10 @@ pub fn load_text(
                     .unwrap_or_default()
                     .color,
             );
-        Some((speaker_text, speaker_text_params))
+        Some(Sprite {
+            content: speaker_text,
+            param: speaker_text_params,
+        })
     } else {
         None
     };
@@ -90,9 +84,15 @@ pub fn load_text(
     let text_params = (Position::TopLeft.add_in_from(&layer_bounds, (15.0, 55.0)),).into();
 
     screen.action = Action::Text(Box::new(TextBox {
-        layer: (layer_image, layer_params),
+        layer: Sprite {
+            content: layer_image,
+            param: layer_params,
+        },
         speaker: speaker_text,
-        content: (Box::new(text_tween), text_params),
+        content: Sprite {
+            content: Box::new(text_tween),
+            param: text_params,
+        }
     }));
 
     Ok(())

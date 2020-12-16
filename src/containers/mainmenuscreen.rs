@@ -13,6 +13,7 @@ pub enum MenuButtonId {
     Quit,
 }
 
+#[allow(clippy::large_enum_variant)]
 pub enum Window {
     None,
     Options(ConfigWindow),
@@ -43,11 +44,8 @@ impl Drawable for MainMenuScreen {
             button.draw(ctx, param)?;
         }
 
-        match &self.window {
-            Window::Options(window) => {
-                window.draw(ctx, param).unwrap();
-            }
-            _ => {}
+        if let Window::Options(window) = &self.window {
+            window.draw(ctx, param).unwrap();
         }
 
         Ok(())

@@ -946,7 +946,7 @@ dependencies = [
 [[package]]
 name = "ggez"
 version = "0.6.0-norelease"
-source = "git+https://github.com/nobbele/ns-engine-ggez?branch=devel#e7e483b999544846017d1a24cddb6a15ed0cf142"
+source = "git+https://github.com/nobbele/ns-engine-ggez?branch=devel#f227b35e758746a183671f5288e363f69860911d"
 dependencies = [
  "approx",
  "bitflags",
