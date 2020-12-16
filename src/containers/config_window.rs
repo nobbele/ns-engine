@@ -1,6 +1,8 @@
 use ggez::graphics::{Drawable, Mesh};
 
-use super::{button::Button, slider::Slider, stackcontainer::StackContainer, text_sprite::TextSprite};
+use super::{
+    button::Button, slider::Slider, stackcontainer::StackContainer, text_sprite::TextSprite,
+};
 
 #[derive(Debug, Clone, Copy)]
 pub enum ButtonActionId {

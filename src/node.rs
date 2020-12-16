@@ -149,8 +149,8 @@ pub fn load_data_node(
             direction: crate::containers::stackcontainer::Direction::Vertical,
         };
         for (n, d) in choices.iter().enumerate() {
-            stack.children.push(
-                (Button::new(
+            stack.children.push((
+                Button::new(
                     &resources.button,
                     stack.get_rect_for(n as f32),
                     d.clone(),
@@ -158,8 +158,9 @@ pub fn load_data_node(
                     ui_sfx.clone(),
                     &config,
                 )
-                .unwrap(), n as u32),
-            )
+                .unwrap(),
+                n as u32,
+            ))
         }
         screen.action = Action::Choice(stack);
     }

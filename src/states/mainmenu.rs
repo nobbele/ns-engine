@@ -1,6 +1,18 @@
 use std::{cell::RefCell, io::Read, path::PathBuf, rc::Rc};
 
-use crate::{containers::{button::Button, config_window::{ButtonActionId, ConfigWindow, VolumeControl}, mainmenuscreen::MainMenuScreen, mainmenuscreen::{MenuButtonId, Window}, slider::Slider, stackcontainer::Direction, stackcontainer::StackContainer, text_sprite::TextSprite}, helpers::{points_to_rect, Position}};
+use crate::{
+    containers::{
+        button::Button,
+        config_window::{ButtonActionId, ConfigWindow, VolumeControl},
+        mainmenuscreen::MainMenuScreen,
+        mainmenuscreen::{MenuButtonId, Window},
+        slider::Slider,
+        stackcontainer::Direction,
+        stackcontainer::StackContainer,
+        text_sprite::TextSprite,
+    },
+    helpers::{points_to_rect, Position},
+};
 use ggez::{
     audio::SoundSource,
     event::{self, MouseButton},
@@ -77,8 +89,8 @@ impl MainMenuState {
         .iter()
         .enumerate()
         {
-            state.screen.menu.children.push(
-                (Button::new(
+            state.screen.menu.children.push((
+                Button::new(
                     &resources.button,
                     state.screen.menu.get_rect_for(n as f32),
                     d.0.into(),
@@ -86,14 +98,17 @@ impl MainMenuState {
                     state.ui_sfx.clone(),
                     &state.config,
                 )
-                .unwrap(), d.1),
-            )
+                .unwrap(),
+                d.1,
+            ))
         }
         state.music.play(ctx).unwrap();
         state
     }
+}
 
-    pub fn change_state(&mut self, ctx: &mut Context) -> Option<State> {
+impl StateEventHandler for MainMenuState {
+    fn change_state(&mut self, ctx: &mut Context) -> Option<State> {
         if let Some(MenuButtonId::Start) = self.clicked_event {
             let mut novel = novelscript::Novel::new();
 
@@ -117,9 +132,7 @@ impl MainMenuState {
             None
         }
     }
-}
 
-impl StateEventHandler for MainMenuState {
     fn update(&mut self, ctx: &mut ggez::Context) -> ggez::GameResult {
         if let Some(e) = self.clicked_event {
             match e {
@@ -161,29 +174,44 @@ impl StateEventHandler for MainMenuState {
                             spacing: 5.0,
                             cell_size: (240.0, 46.0),
                             direction: Direction::Vertical,
-                        }
+                        },
                     };
                     for (n, &(d, v, s)) in [
                         ("Master", self.config.user.borrow().master_volume, "master"),
-                        ("SFX", self.config.user.borrow().channel_volumes.0["sfx"], "sfx"),
-                        ("BGM", self.config.user.borrow().channel_volumes.0["music"], "music"),
+                        (
+                            "SFX",
+                            self.config.user.borrow().channel_volumes.0["sfx"],
+                            "sfx",
+                        ),
+                        (
+                            "BGM",
+                            self.config.user.borrow().channel_volumes.0["music"],
+                            "music",
+                        ),
                     ]
                     .iter()
                     .enumerate()
                     {
                         let rect = config_window.volume_controls.get_rect_for(n as f32);
-                        config_window.volume_controls.children.push(
-                            (VolumeControl(TextSprite {
-                                content: Text::new(d),
-                                params: DrawParam::new().dest(rect.point()),
-
-                            }, Slider::new(ctx, Rect {
-                                x: rect.x,
-                                y: rect.y + 16.0,
-                                w: rect.w,
-                                h: rect.h - 16.0,
-                            }, v)), s)
-                        )
+                        config_window.volume_controls.children.push((
+                            VolumeControl(
+                                TextSprite {
+                                    content: Text::new(d),
+                                    params: DrawParam::new().dest(rect.point()),
+                                },
+                                Slider::new(
+                                    ctx,
+                                    Rect {
+                                        x: rect.x,
+                                        y: rect.y + 16.0,
+                                        w: rect.w,
+                                        h: rect.h - 16.0,
+                                    },
+                                    v,
+                                ),
+                            ),
+                            s,
+                        ))
                     }
                     self.screen.window = Window::Options(config_window);
                 }
@@ -211,8 +239,6 @@ impl StateEventHandler for MainMenuState {
 
     fn draw(&mut self, ctx: &mut ggez::Context, param: DrawParam) -> ggez::GameResult {
         self.screen.draw(ctx, param)?;
-
-        graphics::present(ctx)?;
         Ok(())
     }
 
@@ -230,7 +256,7 @@ impl StateEventHandler for MainMenuState {
                         "master" => config.master_volume = n,
                         s => {
                             *config.channel_volumes.0.get_mut(s).unwrap() = n;
-                        },
+                        }
                     }
                 }
             }

@@ -1,6 +1,4 @@
 use game::GameState;
-use ggez::event::Button;
-use ggez::event::EventHandler;
 use ggez::graphics::DrawParam;
 use ggez::graphics::Drawable;
 use ggez::input::gamepad::GamepadId;
@@ -9,11 +7,17 @@ use ggez::input::keyboard::KeyMods;
 use ggez::input::mouse::MouseButton;
 use ggez::Context;
 use ggez::{event::quit, event::Axis, graphics, mint::Vector2, GameResult};
+use ggez::{event::Button, GameError};
+use ggez::{event::EventHandler, mint::Point2};
+use graphics::drawable_size;
 
 use crate::tween::{TransitionTweener, TweenBox};
 
-use self::{mainmenu::MainMenuState, splash::SplashState};
+use log::{error, info};
 
+use self::{error::ErrorState, mainmenu::MainMenuState, splash::SplashState};
+
+pub mod error;
 pub mod game;
 pub mod mainmenu;
 pub mod splash;
@@ -77,16 +81,22 @@ trait StateEventHandler {
     }
 
     fn resize_event(&mut self, _ctx: &mut Context, _width: f32, _height: f32) {}
+
+    fn change_state(&mut self, _ctx: &mut Context) -> Option<State> {
+        None
+    }
 }
 
 pub enum State {
     Game(GameState),
     MainMenu(MainMenuState),
     Splash(SplashState),
+    Error(ErrorState),
 }
 
 pub struct StateManager {
     pub state: TweenBox<(Option<(graphics::Image, DrawParam)>, (State, DrawParam))>,
+    pub error: Option<GameError>,
 }
 
 fn switch_scene_tween(
@@ -95,18 +105,20 @@ fn switch_scene_tween(
     state: State,
 ) -> TweenBox<(Option<(graphics::Image, DrawParam)>, (State, DrawParam))> {
     let img = if has_current {
-        let img = ggez::graphics::screenshot(ctx).unwrap();
+        let img = graphics::screenshot(ctx).unwrap();
+        let data = img.to_rgba8(ctx).unwrap();
+        let img = graphics::Image::from_rgba8(ctx, img.width(), img.height(), &data).unwrap();
         Some(img)
     } else {
         None
     };
     Box::new(TransitionTweener {
         time: 0.0,
-        target: 1.0,
+        target: 0.25,
         set_instantly_if_no_prev: true,
         current: (
             match img {
-                Some(img) => Some((img, DrawParam::new().scale(Vector2 { x: 1.0, y: -1.0 }))), // -1 scale because ggez is dumb
+                Some(img) => Some((img, DrawParam::new().scale(Vector2 { x: 1.0, y: 1.0 }))),
                 None => None,
             },
             (state, DrawParam::new()),
@@ -125,6 +137,7 @@ impl StateManager {
     pub fn new(ctx: &mut Context, state: State) -> Self {
         Self {
             state: switch_scene_tween(ctx, false, state),
+            error: None,
         }
     }
 }
@@ -133,11 +146,23 @@ macro_rules! impl_eventhandler_for_statemanager {
     ($($p:path),+) => {
         impl EventHandler for StateManager {
             fn update(&mut self, ctx: &mut ggez::Context) -> ggez::GameResult {
+                if let Some(e) = &self.error {
+                    error!("Draw Error: {}", e);
+                    let state = State::Error(ErrorState::new(ctx, e.clone()));
+                    self.state = switch_scene_tween(ctx, true, state);
+                    self.error = None;
+                    return Ok(());
+                }
                 self.state.update(ggez::timer::delta(ctx).as_secs_f32());
                 match &mut self.state.get_current_mut().1.0 {
                     $(
                         $p(state) => {
-                            state.update(ctx).unwrap();
+                            if let Err(e) = state.update(ctx) {
+                                error!("Update Error: {}", e);
+                                let state = State::Error(ErrorState::new(ctx, e));
+                                self.state = switch_scene_tween(ctx, true, state);
+                                return Ok(());
+                            }
                             if let Some(new_state) = state.change_state(ctx) {
                                 self.state = switch_scene_tween(ctx, true, new_state);
                             }
@@ -148,15 +173,22 @@ macro_rules! impl_eventhandler_for_statemanager {
             }
 
             fn draw(&mut self, ctx: &mut ggez::Context) -> ggez::GameResult {
+                graphics::clear(ctx, graphics::WHITE);
                 let current = self.state.get_current_mut();
                 match &mut current.1.0 {
                     $(
-                        $p(state) => state.draw(ctx, current.1.1).unwrap()
+                        $p(state) => {
+                            if let Err(e) = state.draw(ctx, current.1.1) {
+                                self.error = Some(e);
+                            }
+                        }
                     ),*
                 }
                 if let Some((img, drawparam)) = &current.0 {
+                    println!("draw {:#?}", drawparam);
                     img.draw(ctx, *drawparam).unwrap();
                 }
+                graphics::present(ctx)?;
                 Ok(())
             }
 
@@ -297,4 +329,4 @@ macro_rules! impl_eventhandler_for_statemanager {
     };
 }
 
-impl_eventhandler_for_statemanager!(State::Game, State::MainMenu, State::Splash);
+impl_eventhandler_for_statemanager!(State::Game, State::MainMenu, State::Splash, State::Error);

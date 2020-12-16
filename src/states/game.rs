@@ -21,7 +21,7 @@ use ggez::{
     graphics::{self, DrawParam},
 };
 
-use super::{State, StateEventHandler};
+use super::StateEventHandler;
 
 pub enum Placement {
     Left,
@@ -114,8 +114,8 @@ impl GameState {
         .iter()
         .enumerate()
         {
-            state.screen.ui.menu.children.push(
-                (Button::new(
+            state.screen.ui.menu.children.push((
+                Button::new(
                     &resources.button,
                     state.screen.ui.menu.get_rect_for(n as f32),
                     d.0.into(),
@@ -123,8 +123,9 @@ impl GameState {
                     state.ui_sfx.clone(),
                     &config,
                 )
-                .unwrap(), d.1),
-            )
+                .unwrap(),
+                d.1,
+            ))
         }
         state.continue_text(ctx).unwrap();
         state
@@ -306,10 +307,6 @@ impl GameState {
         }
     }
 
-    pub fn change_state(&mut self, _ctx: &mut Context) -> Option<State> {
-        None
-    }
-
     fn advance_text(&mut self, ctx: &mut Context) {
         if let Action::Text(text) = &mut self.screen.action {
             if self.continue_method == ContinueMethod::Normal {
@@ -369,8 +366,6 @@ impl StateEventHandler for GameState {
 
     fn draw(&mut self, ctx: &mut Context, param: DrawParam) -> ggez::GameResult {
         self.screen.draw(ctx, param)?;
-
-        graphics::present(ctx)?;
         Ok(())
     }
 

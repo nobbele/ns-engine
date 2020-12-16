@@ -5,6 +5,7 @@ use ggez::{
     conf::{WindowMode, WindowSetup},
     graphics,
 };
+use log::error;
 use states::{
     game::{CharacterConfig, Config, Resources, UIConfig, UserConfig},
     splash::SplashState,
@@ -19,6 +20,23 @@ mod states;
 mod tween;
 
 pub fn main() -> ggez::GameResult {
+    simple_logging::log_to_file("run.log", log::LevelFilter::Info).unwrap();
+    let default_hook = std::panic::take_hook();
+    std::panic::set_hook(Box::new(move |panic_info| {
+        let loc = panic_info.location().unwrap();
+        let loc = format!("{}:{}", loc.file(), loc.line());
+
+        let msg = match panic_info.payload().downcast_ref::<&'static str>() {
+            Some(s) => *s,
+            None => match panic_info.payload().downcast_ref::<String>() {
+                Some(s) => &s[..],
+                None => "Box<Any>",
+            },
+        };
+        error!("panic at {}: {}", loc, msg);
+        default_hook(panic_info);
+    }));
+
     let cb = ggez::ContextBuilder::new("ns-engine", "nobbele")
         .window_setup(WindowSetup::default().title("NS Engine"))
         .window_mode(
