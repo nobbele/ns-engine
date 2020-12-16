@@ -172,6 +172,7 @@ macro_rules! impl_eventhandler_for_statemanager {
                         $p(state) => state.mouse_button_down_event(ctx, button, x, y)
                     ),*
                 }
+                self.mouse_motion_event(ctx, x, y, 0.0, 0.0);
             }
 
             fn mouse_button_up_event(

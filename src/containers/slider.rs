@@ -78,7 +78,6 @@ impl Slider {
         let bounds = self.layer.dimensions(ctx).unwrap();
         if x > bounds.x && x < bounds.x + bounds.w && y > bounds.y && y < bounds.y + bounds.h {
             self.is_clicking = true;
-            self.mouse_motion_event(ctx, x, y, 0.0, 0.0);
         }
     }
 
