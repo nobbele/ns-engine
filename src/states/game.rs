@@ -39,8 +39,8 @@ pub struct Character {
 #[derive(Debug)]
 pub struct Background {
     pub name: String,
-    pub fade: f32,
     pub image: graphics::Image,
+    pub fade: f32,
 }
 
 impl Background {
@@ -89,18 +89,15 @@ impl GameState {
             ui_sfx: Rc::new(RefCell::new(None)),
             screen: GameScreen {
                 current_background: None,
-                current_characters: CharacterContainer {
-                    current: Vec::new(),
-                },
+                current_characters: CharacterContainer::new(),
                 action: Action::None,
                 ui: UI {
-                    menu: StackContainer {
-                        children: Vec::new(),
-                        position: Position::BottomLeft.add_in(ctx, (10.0, 40.0)),
-                        cell_size: (50.0, 30.0),
-                        spacing: 5.0,
-                        direction: Direction::Horizontal,
-                    },
+                    menu: StackContainer::new(
+                        Position::BottomLeft.add_in(ctx, (10.0, 40.0)),
+                        5.0,
+                        (50.0, 30.0),
+                        Direction::Horizontal,
+                    ),
                 },
             },
             config,

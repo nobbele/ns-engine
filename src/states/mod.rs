@@ -10,7 +10,10 @@ use ggez::Context;
 use ggez::{event::quit, event::Axis, graphics, mint::Vector2, GameResult};
 use ggez::{event::Button, GameError};
 
-use crate::{containers::sprite::Sprite, tween::{TransitionTweener, TweenBox}};
+use crate::{
+    containers::sprite::Sprite,
+    tween::{TransitionTweener, TweenBox},
+};
 
 use log::error;
 
@@ -112,31 +115,27 @@ fn switch_scene_tween(
     } else {
         None
     };
-    Box::new(TransitionTweener {
-        time: 0.0,
-        target: 0.25,
-        set_instantly_if_no_prev: true,
-        current: (
+    Box::new(TransitionTweener::new(
+        true,
+        0.25,
+        (
             match img {
                 Some(img) => Some(Sprite {
-                    content: img, 
-                    param: DrawParam::new().scale(Vector2 { x: 1.0, y: 1.0 })
+                    content: img,
+                    param: DrawParam::new().scale(Vector2 { x: 1.0, y: 1.0 }),
                 }),
                 None => None,
             },
-            Sprite {
-                content: state, 
-                param: DrawParam::new(),
-            },
+            Sprite::new(state),
         ),
-        update: |from, to, progress| {
-            if let Some(Sprite { param, ..}) = from {
+        |from, to, progress| {
+            if let Some(Sprite { param, .. }) = from {
                 param.color.a = 1.0 - progress;
             }
 
             to.param.color.a = progress;
         },
-    })
+    ))
 }
 
 impl StateManager {

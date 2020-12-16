@@ -33,8 +33,7 @@ impl StateEventHandler for ErrorState {
             y: drawable_size(ctx).0 / self.bg.height() as f32,
         });
         self.bg.draw(ctx, param).unwrap();
-        self.text
-            .draw(
+        self.text.draw(
                 ctx,
                 param
                     .dest(Position::Center.add_in(ctx, (self.text.width(ctx) as f32 / -2.0, 0.0)))

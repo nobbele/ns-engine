@@ -1,7 +1,4 @@
-use ggez::{
-    graphics::{self, drawable_size, DrawParam, Drawable},
-    Context,
-};
+use ggez::{Context, graphics::{self, drawable_size, DrawParam, Drawable}, mint};
 
 use crate::{states::game::Background, tween::TransitionTweenBox};
 
@@ -21,18 +18,15 @@ impl Drawable for BackgroundContainer {
             graphics::draw(
                 ctx,
                 image,
-                graphics::DrawParam {
-                    scale: [
-                        drawable_size(ctx).0 / image.width() as f32,
-                        drawable_size(ctx).1 / image.height() as f32,
-                    ]
-                    .into(),
-                    color: graphics::Color {
+                graphics::DrawParam::new()
+                    .scale(mint::Vector2 {
+                        x: drawable_size(ctx).0 / image.width() as f32,
+                        y: drawable_size(ctx).1 / image.height() as f32,
+                    })
+                    .color(graphics::Color {
                         a: *fade * param.color.a,
                         ..graphics::WHITE
-                    },
-                    ..Default::default()
-                },
+                    }),
             )?;
         }
         let Background {
@@ -43,18 +37,15 @@ impl Drawable for BackgroundContainer {
         graphics::draw(
             ctx,
             image,
-            graphics::DrawParam {
-                scale: [
-                    drawable_size(ctx).0 / image.width() as f32,
-                    drawable_size(ctx).1 / image.height() as f32,
-                ]
-                .into(),
-                color: graphics::Color {
+            graphics::DrawParam::new()
+                .scale(mint::Vector2 {
+                    x: drawable_size(ctx).0 / image.width() as f32,
+                    y: drawable_size(ctx).1 / image.height() as f32,
+                })
+                .color(graphics::Color {
                     a: *fade * param.color.a,
                     ..graphics::WHITE
-                },
-                ..Default::default()
-            },
+                }),
         )?;
         Ok(())
     }

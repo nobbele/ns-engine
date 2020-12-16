@@ -1,3 +1,6 @@
+use derive_new::new;
+use ggez::graphics::Drawable;
+
 pub trait Tween<T> {
     fn get_current(&self) -> &T;
     fn get_current_mut(&mut self) -> &mut T;
@@ -8,10 +11,20 @@ pub trait Tween<T> {
     fn finish(&mut self) {}
 }
 
+impl<T: Drawable> Drawable for Box<dyn Tween<T>> {
+    fn draw(&self, ctx: &mut ggez::Context, param: ggez::graphics::DrawParam) -> ggez::GameResult {
+        let current = self.get_current();
+        current.draw(ctx, param)
+    }
+}
+
+#[derive(new)]
 pub struct Tweener<T, F: Fn(&mut T, f32, f32) -> bool> {
+    #[new(value = "0.0")]
     pub time: f32,
     pub current: T,
     pub update: F,
+    #[new(value = "false")]
     pub is_done: bool,
 }
 impl<T, F: Fn(&mut T, f32, f32) -> bool> Tween<T> for Tweener<T, F> {
@@ -45,7 +58,9 @@ impl<T, F: Fn(&mut T, f32, f32) -> bool> Tween<T> for Tweener<T, F> {
     }
 }
 
+#[derive(new)]
 pub struct TargetTweener<T, F: Fn(&mut T, f32)> {
+    #[new(value = "0.0")]
     pub time: f32,
     pub target: f32,
     pub current: T,
@@ -87,8 +102,10 @@ impl<T, F: Fn(&mut T, f32)> Tween<T> for TargetTweener<T, F> {
     }
 }
 
+#[derive(new)]
 pub struct TransitionTweener<T1, T2, F: Fn(&mut Option<T1>, &mut T2, f32)> {
     pub set_instantly_if_no_prev: bool,
+    #[new(value = "0.0")]
     pub time: f32,
     pub target: f32,
     pub current: (Option<T1>, T2),

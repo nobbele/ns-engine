@@ -5,12 +5,16 @@ use ggez::{
 
 use super::Update;
 
+use derive_new::new;
+
 pub enum Direction {
     Horizontal,
     Vertical,
 }
 
+#[derive(new)]
 pub struct StackContainer<T, D> {
+    #[new(default)]
     pub children: Vec<(T, D)>,
     pub position: mint::Point2<f32>,
     pub spacing: f32,

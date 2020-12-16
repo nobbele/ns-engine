@@ -62,19 +62,18 @@ impl MainMenuState {
                     },
                 )
                 .unwrap(),
-                menu: StackContainer {
-                    children: Vec::new(),
-                    position: Position::TopLeft.add_in(
+                menu: StackContainer::new(
+                    Position::TopLeft.add_in(
                         ctx,
                         (
                             drawable_size(ctx).0 / (2.5 * 2.0) - (300.0 / 2.0),
                             drawable_size(ctx).1 / 2.0 - (60.0 * 2.0 / 2.0),
                         ),
                     ),
-                    cell_size: (300.0, 60.0),
-                    spacing: 5.0,
-                    direction: Direction::Vertical,
-                },
+                    5.0,
+                    (300.0, 60.0),
+                    Direction::Vertical,
+                ),
                 window: Window::None,
             },
             music,
@@ -118,6 +117,7 @@ impl StateEventHandler for MainMenuState {
                     .unwrap()
                     .read_to_string(&mut data)
                     .unwrap();
+
                 novel.add_scene(name, &data);
             }
 
@@ -166,13 +166,12 @@ impl StateEventHandler for MainMenuState {
                             &self.config,
                         )
                         .unwrap(),
-                        volume_controls: StackContainer {
-                            children: Vec::new(),
-                            position: Position::Center.add_in(ctx, (-120.0, (-46.0 * 3.0) / 2.0)),
-                            spacing: 5.0,
-                            cell_size: (240.0, 46.0),
-                            direction: Direction::Vertical,
-                        },
+                        volume_controls: StackContainer::new(
+                            Position::Center.add_in(ctx, (-120.0, (-46.0 * 3.0) / 2.0)),
+                            5.0,
+                            (240.0, 46.0),
+                            Direction::Vertical,
+                        ),
                     };
                     for (n, &(d, v, s)) in [
                         ("Master", self.config.user.borrow().master_volume, "master"),

@@ -21,13 +21,9 @@ pub fn load_character_tween(
     expression: String,
     placement: &str,
 ) -> ggez::GameResult<TargetTweener<Character, impl Fn(&mut Character, f32)>> {
-    Ok(TargetTweener {
-        time: 0.0,
-        target: 0.75,
-        update: |cur: &mut Character, progress| {
-            cur.alpha = progress;
-        },
-        current: Character {
+    Ok(TargetTweener::new(
+        0.75,
+        Character {
             alpha: 0.0,
             image: graphics::Image::new(ctx, format!("/char/{}/{}.png", name, expression))?,
             name,
@@ -38,7 +34,10 @@ pub fn load_character_tween(
                 _ => None,
             },
         },
-    })
+        |cur: &mut Character, progress| {
+            cur.alpha = progress;
+        },
+    ))
 }
 
 pub fn load_background_tween(
@@ -56,24 +55,23 @@ pub fn load_background_tween(
         n.fade = 0.0;
         n
     });
-    Ok(TransitionTweener {
-        time: 0.0,
-        target: 0.5,
-        set_instantly_if_no_prev: true,
-        current: (
+    Ok(TransitionTweener::new(
+        true,
+        0.5,
+        (
             prev,
             Background::new(
                 graphics::Image::new(ctx, format!("/bg/{}.png", name))?,
                 name,
             ),
         ),
-        update: |prev: &mut Option<Background>, to: &mut Background, progress| {
+        |prev: &mut Option<Background>, to: &mut Background, progress| {
             if let Some(prev) = prev {
                 prev.fade = 1.0 / progress;
             }
             to.fade = progress;
         },
-    })
+    ))
 }
 
 pub fn load_load_node(
@@ -140,14 +138,12 @@ pub fn load_data_node(
     if let novelscript::SceneNodeData::Text { speaker, content } = node {
         load_text(ctx, screen, resources, speaker, content, config)?;
     } else if let novelscript::SceneNodeData::Choice(choices) = node {
-        let mut stack = StackContainer {
-            children: Vec::new(),
-            position: Position::Center
-                .add_in(ctx, (250.0 / -2.0, 60.0 * choices.len() as f32 / -2.0)),
-            spacing: 5.0,
-            cell_size: (250.0, 50.0),
-            direction: crate::containers::stackcontainer::Direction::Vertical,
-        };
+        let mut stack = StackContainer::new(
+            Position::Center.add_in(ctx, (250.0 / -2.0, 60.0 * choices.len() as f32 / -2.0)),
+            5.0,
+            (250.0, 50.0),
+            crate::containers::stackcontainer::Direction::Vertical,
+        );
         for (n, d) in choices.iter().enumerate() {
             stack.children.push((
                 Button::new(

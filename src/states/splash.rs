@@ -29,15 +29,14 @@ impl SplashState {
             anim_state: SplashAnimState::Enter,
             resources,
             splash_img: graphics::Image::new(ctx, "/Splash.png").unwrap(),
-            splash: Box::new(TargetTweener {
-                time: 0.0,
-                target: 3.0,
-                current: DrawParam::new(),
-                update: |param, progress| {
+            splash: Box::new(TargetTweener::new(
+                3.0,
+                DrawParam::new(),
+                |param, progress| {
                     let scale = 0.8 + 0.2 * (2.5 * std::f32::consts::PI * progress.sqrt()).sin();
                     param.scale = mint::Vector2 { x: scale, y: scale };
                 },
-            }),
+            )),
             config,
         }
     }

@@ -5,7 +5,7 @@ use ggez::{
 
 use crate::tween::TweenBox;
 
-use super::{Update, sprite::Sprite};
+use super::{sprite::Sprite, Update};
 
 pub struct TextBox {
     pub layer: Sprite<&'static graphics::Image>,

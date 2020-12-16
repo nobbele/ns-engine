@@ -9,7 +9,11 @@ use ggez::{
 
 use crate::{helpers::Position, states::game::Character, tween::TweenBox};
 
+use derive_new::new;
+
+#[derive(new)]
 pub struct CharacterContainer {
+    #[new(default)]
     pub current: Vec<TweenBox<Character>>,
 }
 

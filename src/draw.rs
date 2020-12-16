@@ -1,4 +1,14 @@
-use crate::{Resources, containers::{gamescreen::{Action, GameScreen}, sprite::Sprite, textbox::TextBox}, helpers::{points_to_rect, Position}, states::game::Config, tween::Tweener};
+use crate::{
+    containers::{
+        gamescreen::{Action, GameScreen},
+        sprite::Sprite,
+        textbox::TextBox,
+    },
+    helpers::{points_to_rect, Position},
+    states::game::Config,
+    tween::Tweener,
+    Resources,
+};
 use ggez::{
     graphics::{self, DrawParam},
     Context,
@@ -48,10 +58,8 @@ pub fn load_text(
     let mut text = graphics::Text::default();
     for c in content.chars() {
         text.add(graphics::TextFragment::new(c).color(graphics::Color {
-            r: 1.0,
-            g: 1.0,
-            b: 1.0,
             a: 0.0,
+            ..graphics::WHITE
         }));
     }
     text.set_bounds(
@@ -59,27 +67,22 @@ pub fn load_text(
         graphics::Align::Left,
     );
 
-    let text_tween = Tweener {
-        current: text,
-        time: 0.0,
-        is_done: false,
-        update: |text, time, _| {
-            let cps = 75.0f32;
+    let text_tween = Tweener::new(text, |text, time, _| {
+        let cps = 75.0f32;
 
-            let frag_count = text.fragments().len();
+        let frag_count = text.fragments().len();
 
-            let lim = (time * cps) as usize;
-            let lim = if lim > frag_count { frag_count } else { lim };
+        let lim = (time * cps) as usize;
+        let lim = if lim > frag_count { frag_count } else { lim };
 
-            for i in 0..lim {
-                if let Some(color) = &mut text.fragments_mut()[i].color {
-                    color.a = 1.0;
-                }
+        for i in 0..lim {
+            if let Some(color) = &mut text.fragments_mut()[i].color {
+                color.a = 1.0;
             }
+        }
 
-            lim == frag_count
-        },
-    };
+        lim == frag_count
+    });
 
     let text_params = (Position::TopLeft.add_in_from(&layer_bounds, (15.0, 55.0)),).into();
 
@@ -92,7 +95,7 @@ pub fn load_text(
         content: Sprite {
             content: Box::new(text_tween),
             param: text_params,
-        }
+        },
     }));
 
     Ok(())
