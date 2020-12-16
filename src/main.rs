@@ -24,7 +24,7 @@ pub fn main() -> ggez::GameResult {
         .window_mode(
             WindowMode::default()
                 .dimensions(1280.0, 720.0)
-                .resizable(true),
+                .resizable(false),
         )
         .add_zipfile_bytes(include_bytes!("../resources.zip").to_vec());
     let (mut ctx, event_loop) = cb.build()?;
