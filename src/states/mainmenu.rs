@@ -3,7 +3,7 @@ use std::{cell::RefCell, io::Read, path::PathBuf, rc::Rc};
 use crate::{
     containers::{
         button::Button,
-        config_window::{ButtonActionId, ConfigWindow, VolumeControl},
+        config_window::{ConfigWindow, VolumeControl},
         mainmenuscreen::MainMenuScreen,
         mainmenuscreen::{MenuButtonId, Window},
         slider::Slider,
@@ -94,7 +94,6 @@ impl MainMenuState {
                     &resources.button,
                     state.screen.menu.get_rect_for(n as f32),
                     d.0.into(),
-                    d.1,
                     state.ui_sfx.clone(),
                     &state.config,
                 )
@@ -163,7 +162,6 @@ impl StateEventHandler for MainMenuState {
                                 Position::TopRight.add_in(ctx, (5.0, 55.0)),
                             ),
                             "X".into(),
-                            ButtonActionId::Exit,
                             self.ui_sfx.clone(),
                             &self.config,
                         )
@@ -278,21 +276,17 @@ impl StateEventHandler for MainMenuState {
                 .menu
                 .children
                 .iter()
-                .find_map(|(button, _)| button.click_event(ctx, x, y))
+                .find_map(|(button, n)| if button.click_event(ctx, x, y) { Some(n) } else { None })
             {
-                self.clicked_event = Some(e);
+                self.clicked_event = Some(*e);
             }
         } else if let Window::Options(window) = &mut self.screen.window {
             for (slider, _) in &mut window.volume_controls.children {
                 slider.1.mouse_button_up_event(ctx, button, x, y);
             }
-            if let Some(e) = window.exit_button.click_event(ctx, x, y) {
+            if window.exit_button.click_event(ctx, x, y) {
                 self.config.user.borrow().update_data(ctx);
-                match e {
-                    crate::containers::config_window::ButtonActionId::Exit => {
-                        self.screen.window = Window::None;
-                    }
-                }
+                self.screen.window = Window::None;
             }
         }
     }

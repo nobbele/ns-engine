@@ -11,7 +11,7 @@ pub enum MenuButtonId {
 }
 
 pub struct UI {
-    pub menu: StackContainer<Button<MenuButtonId>, MenuButtonId>,
+    pub menu: StackContainer<Button, MenuButtonId>,
 }
 
 impl Drawable for UI {

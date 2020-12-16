@@ -21,7 +21,7 @@ pub enum Window {
 pub struct MainMenuScreen {
     pub background: graphics::Image,
     pub panel: graphics::Mesh,
-    pub menu: StackContainer<Button<MenuButtonId>, MenuButtonId>,
+    pub menu: StackContainer<Button, MenuButtonId>,
     pub window: Window,
 }
 

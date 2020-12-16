@@ -119,7 +119,6 @@ impl GameState {
                     &resources.button,
                     state.screen.ui.menu.get_rect_for(n as f32),
                     d.0.into(),
-                    d.1,
                     state.ui_sfx.clone(),
                     &config,
                 )
@@ -409,9 +408,9 @@ impl StateEventHandler for GameState {
             if let Some(n) = container
                 .children
                 .iter()
-                .find_map(|(button, _)| button.click_event(ctx, x, y))
+                .find_map(|(button, n)| if button.click_event(ctx, x, y) { Some(n) } else { None })
             {
-                self.state.set_choice(n as i32 + 1);
+                self.state.set_choice(*n as i32 + 1);
                 self.continue_text(ctx, true).unwrap();
                 clicked_anything = true;
             }
@@ -423,7 +422,7 @@ impl StateEventHandler for GameState {
             .menu
             .children
             .iter()
-            .find_map(|(button, _)| button.click_event(ctx, x, y))
+            .find_map(|(button, n)| if button.click_event(ctx, x, y) { Some(n) } else { None })
         {
             match e {
                 MenuButtonId::Save => self.on_save_click(ctx),

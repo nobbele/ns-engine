@@ -4,11 +4,6 @@ use super::{
     button::Button, slider::Slider, stackcontainer::StackContainer, text_sprite::TextSprite,
 };
 
-#[derive(Debug, Clone, Copy)]
-pub enum ButtonActionId {
-    Exit,
-}
-
 pub struct VolumeControl(pub TextSprite, pub Slider);
 
 impl Drawable for VolumeControl {
@@ -21,7 +16,7 @@ impl Drawable for VolumeControl {
 
 pub struct ConfigWindow {
     pub panel: Mesh,
-    pub exit_button: Button<ButtonActionId>,
+    pub exit_button: Button,
     pub volume_controls: StackContainer<VolumeControl, &'static str>,
 }
 

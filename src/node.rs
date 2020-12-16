@@ -154,7 +154,6 @@ pub fn load_data_node(
                     &resources.button,
                     stack.get_rect_for(n as f32),
                     d.clone(),
-                    n as u32,
                     ui_sfx.clone(),
                     &config,
                 )

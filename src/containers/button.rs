@@ -9,10 +9,9 @@ use ggez::{
 use crate::states::game::Config;
 
 #[derive(Debug)]
-pub struct Button<T: Copy> {
+pub struct Button {
     pub layer: (&'static graphics::Image, DrawParam),
     pub text: graphics::Text,
-    pub data_on_click: T,
     pub ui_sfx: Rc<RefCell<Option<ggez::audio::Source>>>,
     pub last_state: bool,
     pub color: &'static Color,
@@ -21,12 +20,11 @@ pub struct Button<T: Copy> {
     pub config: &'static Config,
 }
 
-impl<T: Copy> Button<T> {
+impl Button {
     pub fn new(
         layer: &'static graphics::Image,
         rect: Rect,
         text: String,
-        data_on_click: T,
         ui_sfx: Rc<RefCell<Option<ggez::audio::Source>>>,
         config: &'static Config,
     ) -> ggez::GameResult<Self> {
@@ -50,7 +48,6 @@ impl<T: Copy> Button<T> {
                     .color(config.ui.button_color),
             ),
             text,
-            data_on_click,
             ui_sfx,
             last_state: false,
             color: &config.ui.button_color,
@@ -88,20 +85,20 @@ impl<T: Copy> Button<T> {
         }
     }
 
-    pub fn click_event(&self, ctx: &mut Context, x: f32, y: f32) -> Option<T> {
+    pub fn click_event(&self, ctx: &mut Context, x: f32, y: f32) -> bool {
         let rect = self.layer_dimensions();
         if x > rect.x && x < rect.x + rect.w && y > rect.y && y < rect.y + rect.h {
             let mut audio = ggez::audio::Source::new(ctx, "/audio/ui_confirm.wav").unwrap();
             audio.play(ctx).unwrap();
             self.ui_sfx.replace(Some(audio));
-            Some(self.data_on_click)
+            true
         } else {
-            None
+            false
         }
     }
 }
 
-impl<T: Copy> Drawable for Button<T> {
+impl Drawable for Button {
     fn draw(&self, ctx: &mut ggez::Context, parent_param: DrawParam) -> ggez::GameResult {
         let mut layer_param = self.layer.1;
         layer_param.color.a = parent_param.color.a;

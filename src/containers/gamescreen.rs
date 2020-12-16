@@ -9,7 +9,7 @@ use super::{
 };
 
 pub enum Action {
-    Choice(StackContainer<Button<u32>, u32>),
+    Choice(StackContainer<Button, u32>),
     Text(Box<TextBox>),
     None,
 }
