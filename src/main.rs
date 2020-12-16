@@ -51,7 +51,7 @@ pub fn main() -> ggez::GameResult {
         user_config
     };
 
-    let config = Config {
+    let config = Box::leak(Box::new(Config {
         characters: char_config
             .into_iter()
             .map(|(name, m)| {
@@ -88,15 +88,14 @@ pub fn main() -> ggez::GameResult {
             ),
         },
         user: user_config,
-    };
+    }));
 
     let resources = Box::leak(Box::new(Resources {
         text_box: graphics::Image::new(&mut ctx, "/TextBox.png")?,
         button: graphics::Image::new(&mut ctx, "/Button.png")?,
-        config,
     }));
 
-    let state = State::Splash(SplashState::new(&mut ctx, resources));
+    let state = State::Splash(SplashState::new(&mut ctx, resources, config));
     let manager = StateManager::new(&mut ctx, state);
     event::run(ctx, event_loop, manager)
 }

@@ -66,6 +66,7 @@ pub struct GameState {
     pub sfx: Option<ggez::audio::Source>,
     pub music: Option<ggez::audio::Source>,
     pub ui_sfx: Rc<RefCell<Option<ggez::audio::Source>>>,
+    pub config: &'static Config,
 }
 
 impl GameState {
@@ -73,6 +74,7 @@ impl GameState {
         ctx: &mut Context,
         novel: novelscript::Novel,
         resources: &'static Resources,
+        config: &'static Config,
     ) -> GameState {
         let mut state = GameState {
             state: novel.new_state("start"),
@@ -98,6 +100,7 @@ impl GameState {
                     },
                 },
             },
+            config,
         };
         for (n, d) in [
             ("Save", MenuButtonId::Save),
@@ -116,7 +119,7 @@ impl GameState {
                     d.0.into(),
                     d.1,
                     state.ui_sfx.clone(),
-                    &resources.config.user,
+                    &config,
                 )
                 .unwrap(),
             )
@@ -158,11 +161,11 @@ pub struct Channels(pub HashMap<String, f32>);
 
 impl Default for Channels {
     fn default() -> Self {
-        Self (
+        Self(
             [("sfx".into(), 1.0), ("music".into(), 1.0)]
                 .iter()
                 .cloned()
-                .collect()
+                .collect(),
         )
     }
 }
@@ -214,7 +217,6 @@ pub struct Config {
 pub struct Resources {
     pub text_box: graphics::Image,
     pub button: graphics::Image,
-    pub config: Config,
 }
 
 impl GameState {
@@ -227,6 +229,7 @@ impl GameState {
                     node,
                     &self.resources,
                     self.ui_sfx.clone(),
+                    self.config,
                 )?;
             }
             Some(novelscript::SceneNodeUser::Load(node)) => {
@@ -236,7 +239,7 @@ impl GameState {
                     node.clone(),
                     &mut self.sfx,
                     &mut self.music,
-                    &self.resources.config.user,
+                    &self.config.user,
                 )?;
                 self.continue_text(ctx).unwrap();
             }
@@ -359,12 +362,14 @@ impl StateEventHandler for GameState {
     }
 
     fn key_down_event(&mut self, ctx: &mut Context, key: KeyCode, _mods: KeyMods, _: bool) {
-        match key {
-            KeyCode::Space | KeyCode::Return => {
-                self.advance_text(ctx);
+        if let Action::Text(..) = &self.screen.action {
+            match key {
+                KeyCode::Space | KeyCode::Return => {
+                    self.advance_text(ctx);
+                }
+                _ => (),
             }
-            _ => (),
-        }
+        }  
     }
 
     fn text_input_event(&mut self, ctx: &mut Context, ch: char) {

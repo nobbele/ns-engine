@@ -3,7 +3,7 @@ use graphics::{drawable_size, DrawParam};
 
 use crate::tween::{TargetTweener, TweenBox};
 
-use super::{game::Resources, mainmenu::MainMenuState, State, StateEventHandler};
+use super::{State, StateEventHandler, game::{Config, Resources}, mainmenu::MainMenuState};
 
 #[derive(PartialEq, Debug)]
 pub enum SplashAnimState {
@@ -16,10 +16,11 @@ pub struct SplashState {
     splash_img: graphics::Image,
     splash: TweenBox<DrawParam>,
     resources: &'static Resources,
+    config: &'static Config,
 }
 
 impl SplashState {
-    pub fn new(ctx: &mut Context, resources: &'static Resources) -> Self {
+    pub fn new(ctx: &mut Context, resources: &'static Resources, config: &'static Config) -> Self {
         Self {
             anim_state: SplashAnimState::Enter,
             resources,
@@ -33,6 +34,7 @@ impl SplashState {
                     param.scale = mint::Vector2 { x: scale, y: scale };
                 },
             }),
+            config,
         }
     }
 
@@ -40,7 +42,8 @@ impl SplashState {
         if self.anim_state == SplashAnimState::Exit && self.splash.is_done() {
             Some(State::MainMenu(MainMenuState::new(
                 ctx,
-                &mut self.resources,
+                self.resources,
+                self.config,
             )))
         } else {
             None

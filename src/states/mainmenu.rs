@@ -1,16 +1,6 @@
 use std::{cell::RefCell, io::Read, path::PathBuf, rc::Rc};
 
-use crate::{
-    containers::{
-        button::Button,
-        config_window::{ButtonActionId, ConfigWindow},
-        mainmenuscreen::MainMenuScreen,
-        mainmenuscreen::{MenuButtonId, Window},
-        stackcontainer::Direction,
-        stackcontainer::StackContainer,
-    },
-    helpers::{points_to_rect, Position},
-};
+use crate::{containers::{button::Button, config_window::{ButtonActionId, ConfigWindow}, mainmenuscreen::MainMenuScreen, mainmenuscreen::{MenuButtonId, Window}, slider::Slider, stackcontainer::Direction, stackcontainer::StackContainer, text_sprite::TextSprite}, helpers::{points_to_rect, Position}};
 use ggez::{
     audio::SoundSource,
     event::{self, MouseButton},
@@ -21,10 +11,7 @@ use ggez::{
 };
 use graphics::{FillOptions, Rect, Text};
 
-use super::{
-    game::{GameState, Resources},
-    State, StateEventHandler,
-};
+use super::{State, StateEventHandler, game::{Config, GameState, Resources}};
 
 pub struct MainMenuState {
     pub resources: &'static Resources,
@@ -32,12 +19,15 @@ pub struct MainMenuState {
     pub clicked_event: Option<MenuButtonId>,
     pub music: ggez::audio::Source,
     pub ui_sfx: Rc<RefCell<Option<ggez::audio::Source>>>,
+    pub config: &'static Config,
 }
 
 impl MainMenuState {
-    pub fn new(ctx: &mut Context, resources: &'static Resources) -> Self {
+    pub fn new(ctx: &mut Context, resources: &'static Resources, config: &'static Config) -> Self {
         let mut music = ggez::audio::Source::new(ctx, "/audio/bgm.mp3").unwrap();
-        music.set_volume(resources.config.user.master_volume * resources.config.user.channel_volumes.0["music"]);
+        music.set_volume(
+            config.user.master_volume * config.user.channel_volumes.0["music"],
+        );
         let mut state = Self {
             resources,
             clicked_event: None,
@@ -56,7 +46,7 @@ impl MainMenuState {
                         r: 0.1,
                         g: 0.1,
                         b: 0.1,
-                        a: 0.8,
+                        a: 0.9,
                     },
                 )
                 .unwrap(),
@@ -75,8 +65,9 @@ impl MainMenuState {
                 },
                 window: Window::None,
             },
-            music: music,
+            music,
             ui_sfx: Rc::new(RefCell::new(None)),
+            config,
         };
         for (n, d) in [
             ("Start", MenuButtonId::Start),
@@ -94,7 +85,7 @@ impl MainMenuState {
                     d.0.into(),
                     d.1,
                     state.ui_sfx.clone(),
-                    &state.resources.config.user
+                    &state.config,
                 )
                 .unwrap(),
             )
@@ -117,7 +108,7 @@ impl MainMenuState {
                 novel.add_scene(name, &data);
             }
 
-            Some(State::Game(GameState::new(ctx, novel, self.resources)))
+            Some(State::Game(GameState::new(ctx, novel, self.resources, self.config)))
         } else {
             None
         }
@@ -144,7 +135,7 @@ impl StateEventHandler for MainMenuState {
                                 r: 0.0,
                                 g: 0.0,
                                 b: 0.0,
-                                a: 0.5,
+                                a: 0.9,
                             },
                         )
                         .unwrap(),
@@ -158,12 +149,20 @@ impl StateEventHandler for MainMenuState {
                             "X".into(),
                             ButtonActionId::Exit,
                             self.ui_sfx.clone(),
-                            &self.resources.config.user
+                            &self.config,
                         )
                         .unwrap(),
-                        text: (
-                            Text::new("WIP"),
-                            DrawParam::new().dest(Position::Center.add_in(ctx, (0.0, 0.0))),
+                        master_volume_label: TextSprite {
+                            content: Text::new("Master"),
+                            params: DrawParam::new().dest(Position::Center.add_in(ctx, (0.0, -50.0))),
+                        },
+                        master_volume: Slider::new(
+                            ctx,
+                            points_to_rect(
+                                Position::Center.add_in(ctx, (-120.0, -20.0)),
+                                Position::Center.add_in(ctx, (120.0, 20.0)),
+                            ),
+                            self.config.user.master_volume,
                         ),
                     })
                 }
@@ -186,17 +185,27 @@ impl StateEventHandler for MainMenuState {
         Ok(())
     }
 
-    fn mouse_motion_event(&mut self, ctx: &mut Context, x: f32, y: f32, _dx: f32, _dy: f32) {
+    fn mouse_motion_event(&mut self, ctx: &mut Context, x: f32, y: f32, dx: f32, dy: f32) {
         if let Window::None = self.screen.window {
             for button in &mut self.screen.menu.children {
                 button.mouse_motion_event(ctx, x, y);
             }
         } else if let Window::Options(window) = &mut self.screen.window {
             window.exit_button.mouse_motion_event(ctx, x, y);
+           if let Some(n) = window.master_volume.mouse_motion_event(ctx, x, y, dx, dy) {
+               todo!();
+               //self.config.user.master_volume = n;
+           }
         }
     }
 
-    fn mouse_button_up_event(&mut self, ctx: &mut Context, _button: MouseButton, x: f32, y: f32) {
+    fn mouse_button_down_event(&mut self, ctx: &mut Context, button: MouseButton, x: f32, y: f32) {
+        if let Window::Options(window) = &mut self.screen.window {
+            window.master_volume.mouse_button_down_event(ctx, button, x, y);
+        }
+    }
+
+    fn mouse_button_up_event(&mut self, ctx: &mut Context, button: MouseButton, x: f32, y: f32) {
         if let Window::None = self.screen.window {
             if let Some(e) = self
                 .screen
@@ -209,6 +218,8 @@ impl StateEventHandler for MainMenuState {
             }
         } else if let Window::Options(window) = &mut self.screen.window {
             if let Some(e) = window.exit_button.click_event(ctx, x, y) {
+                window.master_volume.mouse_button_up_event(ctx, button, x, y);
+                self.config.user.update_data(ctx);
                 match e {
                     crate::containers::config_window::ButtonActionId::Exit => {
                         self.screen.window = Window::None;

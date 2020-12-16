@@ -1,6 +1,6 @@
-use ggez::graphics::{DrawParam, Drawable, Mesh, Text};
+use ggez::graphics::{Drawable, Mesh};
 
-use super::button::Button;
+use super::{button::Button, slider::Slider, text_sprite::TextSprite};
 
 #[derive(Debug, Clone, Copy)]
 pub enum ButtonActionId {
@@ -10,14 +10,16 @@ pub enum ButtonActionId {
 pub struct ConfigWindow {
     pub panel: Mesh,
     pub exit_button: Button<ButtonActionId>,
-    pub text: (Text, DrawParam),
+    pub master_volume_label: TextSprite,
+    pub master_volume: Slider,
 }
 
 impl Drawable for ConfigWindow {
     fn draw(&self, ctx: &mut ggez::Context, param: ggez::graphics::DrawParam) -> ggez::GameResult {
         self.panel.draw(ctx, param).unwrap();
         self.exit_button.draw(ctx, param).unwrap();
-        self.text.0.draw(ctx, self.text.1).unwrap();
+        self.master_volume.draw(ctx, param).unwrap();
+        self.master_volume_label.draw(ctx, param).unwrap();
         Ok(())
     }
 }

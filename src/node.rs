@@ -3,7 +3,7 @@ use std::{cell::RefCell, rc::Rc};
 use ggez::{audio::SoundSource, graphics, Context};
 use novelscript::SceneNodeLoad;
 
-use crate::{Resources, containers::{background::BackgroundContainer, gamescreen::GameScreen}, containers::{button::Button, gamescreen::Action, stackcontainer::StackContainer}, draw::load_text, helpers::Position, states::game::Character, states::game::{Background, Placement, UserConfig}, tween::TargetTweener, tween::TransitionTweener};
+use crate::{Resources, containers::{background::BackgroundContainer, gamescreen::GameScreen}, containers::{button::Button, gamescreen::Action, stackcontainer::StackContainer}, draw::load_text, helpers::Position, states::game::Character, states::game::{Background, Config, Placement, UserConfig}, tween::TargetTweener, tween::TransitionTweener};
 
 pub fn load_character_tween(
     ctx: &mut Context,
@@ -127,9 +127,10 @@ pub fn load_data_node(
     node: &novelscript::SceneNodeData,
     resources: &'static Resources,
     ui_sfx: Rc<RefCell<Option<ggez::audio::Source>>>,
+    config: &'static Config,
 ) -> ggez::GameResult {
     if let novelscript::SceneNodeData::Text { speaker, content } = node {
-        load_text(ctx, screen, resources, speaker, content)?;
+        load_text(ctx, screen, resources, speaker, content, config)?;
     } else if let novelscript::SceneNodeData::Choice(choices) = node {
         let mut stack = StackContainer {
             children: Vec::new(),
@@ -148,7 +149,7 @@ pub fn load_data_node(
                     d.clone(),
                     n as u32,
                     ui_sfx.clone(),
-                    &resources.config.user,
+                    &config,
                 )
                 .unwrap(),
             )
