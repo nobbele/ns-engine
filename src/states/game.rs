@@ -223,7 +223,11 @@ pub struct Resources {
 
 impl GameState {
     fn continue_text(&mut self, ctx: &mut Context, inc: bool) -> ggez::GameResult {
-        match if inc { self.novel.next(&mut self.state) } else { self.novel.current(&mut self.state) } {
+        match if inc {
+            self.novel.next(&mut self.state)
+        } else {
+            self.novel.current(&mut self.state)
+        } {
             Some(novelscript::SceneNodeUser::Data(node)) => {
                 crate::node::load_data_node(
                     ctx,
@@ -405,25 +409,26 @@ impl StateEventHandler for GameState {
     fn mouse_button_up_event(&mut self, ctx: &mut Context, _button: MouseButton, x: f32, y: f32) {
         let mut clicked_anything = false;
         if let Action::Choice(container) = &self.screen.action {
-            if let Some(n) = container
-                .children
-                .iter()
-                .find_map(|(button, n)| if button.click_event(ctx, x, y) { Some(n) } else { None })
-            {
+            if let Some(n) = container.children.iter().find_map(|(button, n)| {
+                if button.click_event(ctx, x, y) {
+                    Some(n)
+                } else {
+                    None
+                }
+            }) {
                 self.state.set_choice(*n as i32 + 1);
                 self.continue_text(ctx, true).unwrap();
                 clicked_anything = true;
             }
         }
 
-        if let Some(e) = self
-            .screen
-            .ui
-            .menu
-            .children
-            .iter()
-            .find_map(|(button, n)| if button.click_event(ctx, x, y) { Some(n) } else { None })
-        {
+        if let Some(e) = self.screen.ui.menu.children.iter().find_map(|(button, n)| {
+            if button.click_event(ctx, x, y) {
+                Some(n)
+            } else {
+                None
+            }
+        }) {
             match e {
                 MenuButtonId::Save => self.on_save_click(ctx),
                 MenuButtonId::Load => self.on_load_click(ctx),

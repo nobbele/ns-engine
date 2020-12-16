@@ -271,13 +271,13 @@ impl StateEventHandler for MainMenuState {
 
     fn mouse_button_up_event(&mut self, ctx: &mut Context, button: MouseButton, x: f32, y: f32) {
         if let Window::None = self.screen.window {
-            if let Some(e) = self
-                .screen
-                .menu
-                .children
-                .iter()
-                .find_map(|(button, n)| if button.click_event(ctx, x, y) { Some(n) } else { None })
-            {
+            if let Some(e) = self.screen.menu.children.iter().find_map(|(button, n)| {
+                if button.click_event(ctx, x, y) {
+                    Some(n)
+                } else {
+                    None
+                }
+            }) {
                 self.clicked_event = Some(*e);
             }
         } else if let Window::Options(window) = &mut self.screen.window {

@@ -1,4 +1,5 @@
 use game::GameState;
+use ggez::event::EventHandler;
 use ggez::graphics::DrawParam;
 use ggez::graphics::Drawable;
 use ggez::input::gamepad::GamepadId;
@@ -8,7 +9,6 @@ use ggez::input::mouse::MouseButton;
 use ggez::Context;
 use ggez::{event::quit, event::Axis, graphics, mint::Vector2, GameResult};
 use ggez::{event::Button, GameError};
-use ggez::event::EventHandler;
 
 use crate::tween::{TransitionTweener, TweenBox};
 
