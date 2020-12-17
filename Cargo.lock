@@ -1728,7 +1728,7 @@ dependencies = [
 [[package]]
 name = "novelscript"
 version = "0.1.0"
-source = "git+https://github.com/nobbele/novelscript#3b7c98f26ca43cd00e41e87814e41b7675347709"
+source = "git+https://github.com/nobbele/novelscript#c29e1be0581c06579f39a8397b7a847afa94d6fc"
 dependencies = [
  "pest",
  "pest_derive",
@@ -1758,6 +1758,7 @@ dependencies = [
  "log",
  "novelscript",
  "nsconfig",
+ "rayon",
  "rodio",
  "serde",
  "serde_json",

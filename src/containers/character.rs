@@ -29,7 +29,8 @@ impl Drawable for CharacterContainer {
             };
 
             let x_position = (drawable_size(ctx).0 as f32 / (self.current.len() as f32 + 1.0))
-                * (n as f32 + 1.0) - (target_size.x / 2.0);
+                * (n as f32 + 1.0)
+                - (target_size.x / 2.0);
 
             graphics::draw(
                 ctx,

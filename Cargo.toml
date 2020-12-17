@@ -24,6 +24,7 @@ image = "0.23.12"
 simple-logging = "2.0.2"
 log = { version = "0.4.11", features = ["std", "serde"] }
 derive-new = "0.5"
+rayon = "1.5.0"
 
 [build-dependencies]
 fs_extra = "1.2.0"

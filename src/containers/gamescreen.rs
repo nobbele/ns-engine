@@ -38,7 +38,7 @@ impl Drawable for GameScreen {
             } else if let Action::Text(text) = &self.action {
                 text.draw(ctx, param)?;
             }
-    
+
             self.ui.draw(ctx, param)?;
         }
 
