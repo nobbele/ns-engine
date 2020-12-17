@@ -1739,7 +1739,16 @@ dependencies = [
 ]
 
 [[package]]
-name = "ns-engine"
+name = "nsconfig"
+version = "0.1.0"
+source = "git+https://github.com/nobbele/ns-config#20a61f7bcbe7b1674ae6953a8a09efbe4ec0b2d0"
+dependencies = [
+ "pest",
+ "pest_derive",
+]
+
+[[package]]
+name = "nsengine"
 version = "0.1.0"
 dependencies = [
  "derive-new",
@@ -1755,15 +1764,6 @@ dependencies = [
  "simple-logging",
  "walkdir",
  "zip",
-]
-
-[[package]]
-name = "nsconfig"
-version = "0.1.0"
-source = "git+https://github.com/nobbele/ns-config#20a61f7bcbe7b1674ae6953a8a09efbe4ec0b2d0"
-dependencies = [
- "pest",
- "pest_derive",
 ]
 
 [[package]]

@@ -1,11 +1,17 @@
 [package]
-name = "ns-engine"
+name = "nsengine"
 version = "0.1.0"
 authors = ["Nobbele <realnobbele@gmail.com>"]
 edition = "2018"
 build = "build-zip.rs"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[lib]
+name = "nsengine"
+path = "src/lib.rs"
+
+[[bin]]
+name = "nsengine-example"
+path = "src/main.rs"
 
 [dependencies]
 ggez = { git = "https://github.com/nobbele/ns-engine-ggez", branch = "devel" }
