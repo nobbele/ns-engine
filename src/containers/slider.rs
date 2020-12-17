@@ -1,4 +1,8 @@
-use ggez::{Context, event::MouseButton, graphics::{Color, DrawMode, Drawable, FillOptions, Mesh, Rect}, mint};
+use ggez::{
+    event::MouseButton,
+    graphics::{Color, DrawMode, Drawable, FillOptions, Mesh, Rect},
+    mint, Context,
+};
 
 pub struct Slider {
     layer: Mesh,
@@ -71,7 +75,12 @@ impl Slider {
         x: f32,
         y: f32,
     ) {
-        if self.layer.dimensions(ctx).unwrap().contains(mint::Point2 { x, y }) {
+        if self
+            .layer
+            .dimensions(ctx)
+            .unwrap()
+            .contains(mint::Point2 { x, y })
+        {
             self.is_clicking = true;
         }
     }

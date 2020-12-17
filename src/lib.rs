@@ -1,17 +1,15 @@
 use std::{cell::RefCell, io::Read, rc::Rc};
 
+use config::{CharacterConfig, Config, UIConfig, UserConfig};
 use ggez::event;
 use ggez::{
     conf::{WindowMode, WindowSetup},
     graphics,
 };
 use log::error;
-use states::{
-    game::{CharacterConfig, Config, Resources, UIConfig, UserConfig},
-    splash::SplashState,
-    State, StateManager,
-};
+use states::{game::Resources, splash::SplashState, State, StateManager};
 
+mod config;
 mod containers;
 mod draw;
 mod helpers;

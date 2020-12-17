@@ -4,12 +4,13 @@ use ggez::{audio::SoundSource, graphics, Context};
 use novelscript::SceneNodeLoad;
 
 use crate::{
+    config::Config,
     containers::{background::BackgroundContainer, gamescreen::GameScreen},
     containers::{button::Button, gamescreen::Action, stackcontainer::StackContainer},
     draw::load_text,
     helpers::Position,
     states::game::Character,
-    states::game::{Background, Config, Placement},
+    states::game::{Background, Placement},
     tween::TargetTweener,
     tween::TransitionTweener,
     Resources,

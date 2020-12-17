@@ -1,11 +1,11 @@
 use crate::{
+    config::Config,
     containers::{
         gamescreen::{Action, GameScreen},
         sprite::Sprite,
         textbox::TextBox,
     },
     helpers::{points_to_rect, Position},
-    states::game::Config,
     tween::Tweener,
     Resources,
 };

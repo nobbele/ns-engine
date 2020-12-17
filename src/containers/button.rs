@@ -6,7 +6,7 @@ use ggez::{
     mint, Context,
 };
 
-use crate::states::game::Config;
+use crate::config::Config;
 
 use super::sprite::Sprite;
 

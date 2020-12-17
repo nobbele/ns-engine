@@ -1,6 +1,7 @@
 use std::{cell::RefCell, io::Read, path::PathBuf, rc::Rc};
 
 use crate::{
+    config::Config,
     containers::{
         button::Button,
         config_window::{ConfigWindow, VolumeControl},
@@ -24,7 +25,7 @@ use ggez::{
 use graphics::{FillOptions, Rect, Text};
 
 use super::{
-    game::{Config, GameState, Resources},
+    game::{GameState, Resources},
     State, StateEventHandler,
 };
 

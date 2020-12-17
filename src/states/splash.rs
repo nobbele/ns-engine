@@ -1,13 +1,12 @@
 use ggez::{graphics, graphics::Drawable, mint, Context, GameResult};
 use graphics::{drawable_size, DrawParam};
 
-use crate::tween::{TargetTweener, TweenBox};
-
-use super::{
-    game::{Config, Resources},
-    mainmenu::MainMenuState,
-    State, StateEventHandler,
+use crate::{
+    config::Config,
+    tween::{TargetTweener, TweenBox},
 };
+
+use super::{game::Resources, mainmenu::MainMenuState, State, StateEventHandler};
 
 #[derive(PartialEq, Debug)]
 pub enum SplashAnimState {
