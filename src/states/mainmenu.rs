@@ -29,8 +29,6 @@ use super::{
     State, StateEventHandler,
 };
 
-use rayon::prelude::*;
-
 pub struct MainMenuState {
     pub resources: &'static Resources,
     pub screen: MainMenuScreen,
@@ -113,28 +111,15 @@ impl StateEventHandler for MainMenuState {
         if let Some(MenuButtonId::Start) = self.clicked_event {
             let mut novel = novelscript::Novel::new();
 
-            let datas = filesystem::read_dir(ctx, "scripts")
-                .unwrap()
-                .skip(1)
-                .map(|file| {
-                    let name = file.file_stem().unwrap().to_string_lossy().into_owned();
-                    let mut data = String::new();
-                    filesystem::open(ctx, PathBuf::from("/").join(file))
-                        .unwrap()
-                        .read_to_string(&mut data)
-                        .unwrap();
+            for file in filesystem::read_dir(ctx, "scripts").unwrap().skip(1) {
+                let name = file.file_stem().unwrap().to_string_lossy().into_owned();
+                let mut data = String::new();
+                filesystem::open(ctx, PathBuf::from("/").join(file))
+                    .unwrap()
+                    .read_to_string(&mut data)
+                    .unwrap();
 
-                    (name, data)
-                })
-                .collect::<Vec<_>>();
-
-            let datas = datas
-                .into_par_iter()
-                .map(|(name, data)| (name, novelscript::parse(&data)))
-                .collect::<Vec<_>>();
-
-            for (name, data) in datas {
-                novel.add_nodes(name, data);
+                novel.add_scene(name, &data);
             }
 
             Some(State::Game(GameState::new(

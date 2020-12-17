@@ -269,16 +269,16 @@ impl StateEventHandler for GameState {
             }
         }
         self.screen.update(dt);
-        if let Some(audio) = self.ui_sfx.borrow_mut().as_mut() {
-            audio.set_volume(
-                self.config.user.borrow().master_volume
-                    * self.config.user.borrow().channel_volumes.0["sfx"],
-            )
-        }
         if let Some(audio) = &mut self.music {
             audio.set_volume(
                 self.config.user.borrow().master_volume
                     * self.config.user.borrow().channel_volumes.0["music"],
+            )
+        }
+        if let Some(audio) = self.ui_sfx.borrow_mut().as_mut() {
+            audio.set_volume(
+                self.config.user.borrow().master_volume
+                    * self.config.user.borrow().channel_volumes.0["sfx"],
             )
         }
         Ok(())

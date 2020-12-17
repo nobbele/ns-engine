@@ -780,6 +780,18 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e78d4f1cc4ae33bbfc157ed5d5a5ef3bc29227303d595861deb238fcec4e9457"
 
 [[package]]
+name = "enum_dispatch"
+version = "0.3.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "15b748aeb1b8c58d317739aa3171a2752ca3e76b8077c13dc748f327aebc0a72"
+dependencies = [
+ "once_cell",
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
 name = "error-chain"
 version = "0.12.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1752,13 +1764,13 @@ name = "nsengine"
 version = "0.1.0"
 dependencies = [
  "derive-new",
+ "enum_dispatch",
  "fs_extra",
  "ggez",
  "image",
  "log",
  "novelscript",
  "nsconfig",
- "rayon",
  "rodio",
  "serde",
  "serde_json",

@@ -39,8 +39,10 @@ impl SplashState {
             config,
         }
     }
+}
 
-    pub fn change_state(&mut self, ctx: &mut Context) -> Option<State> {
+impl StateEventHandler for SplashState {
+    fn change_state(&mut self, ctx: &mut Context) -> Option<State> {
         if self.anim_state == SplashAnimState::Exit && self.splash.is_done() {
             Some(State::MainMenu(MainMenuState::new(
                 ctx,
@@ -51,9 +53,7 @@ impl SplashState {
             None
         }
     }
-}
 
-impl StateEventHandler for SplashState {
     fn update(&mut self, ctx: &mut Context) -> GameResult {
         let dt = ggez::timer::delta(ctx).as_secs_f32();
         self.splash.update(dt);
