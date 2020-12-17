@@ -96,6 +96,7 @@ impl GameState {
                         Direction::Horizontal,
                     ),
                 },
+                is_screenshot: false,
             },
             config,
         };
@@ -293,6 +294,9 @@ impl StateEventHandler for GameState {
             match key {
                 KeyCode::Space | KeyCode::Return => {
                     self.advance_text(ctx);
+                },
+                KeyCode::H => {
+                    self.screen.is_screenshot = !self.screen.is_screenshot;
                 }
                 _ => (),
             }

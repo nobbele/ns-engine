@@ -19,6 +19,7 @@ pub struct GameScreen {
     pub current_characters: CharacterContainer,
     pub action: Action,
     pub ui: UI,
+    pub is_screenshot: bool,
 }
 
 impl Drawable for GameScreen {
@@ -29,15 +30,17 @@ impl Drawable for GameScreen {
 
         self.current_characters.draw(ctx, param)?;
 
-        if let Action::Choice(container) = &self.action {
-            for (choice, _) in &container.children {
-                choice.draw(ctx, param)?;
+        if !self.is_screenshot {
+            if let Action::Choice(container) = &self.action {
+                for (choice, _) in &container.children {
+                    choice.draw(ctx, param)?;
+                }
+            } else if let Action::Text(text) = &self.action {
+                text.draw(ctx, param)?;
             }
-        } else if let Action::Text(text) = &self.action {
-            text.draw(ctx, param)?;
+    
+            self.ui.draw(ctx, param)?;
         }
-
-        self.ui.draw(ctx, param)?;
 
         Ok(())
     }
