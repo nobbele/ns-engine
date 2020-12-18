@@ -17,7 +17,7 @@ mod node;
 mod states;
 mod tween;
 
-pub fn run(resource_data: Vec<u8>) -> ggez::GameResult {
+pub fn run(resource_data: Option<Vec<u8>>) -> ggez::GameResult {
     simple_logging::log_to_file("run.log", log::LevelFilter::Info).unwrap();
     let default_hook = std::panic::take_hook();
     std::panic::set_hook(Box::new(move |panic_info| {
@@ -35,14 +35,16 @@ pub fn run(resource_data: Vec<u8>) -> ggez::GameResult {
         default_hook(panic_info);
     }));
 
-    let cb = ggez::ContextBuilder::new("ns-engine", "nobbele")
+    let mut cb = ggez::ContextBuilder::new("ns-engine", "nobbele")
         .window_setup(WindowSetup::default().title("NS Engine"))
         .window_mode(
             WindowMode::default()
                 .dimensions(1280.0, 720.0)
                 .resizable(false),
-        )
-        .add_zipfile_bytes(resource_data);
+        );
+    if let Some(data) = resource_data {
+        cb = cb.add_zipfile_bytes(data);
+    }
     let (mut ctx, event_loop) = cb.build()?;
 
     let mut config_file = ggez::filesystem::open(&mut ctx, "/characters.nsconf").unwrap();
