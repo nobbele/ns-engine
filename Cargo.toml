@@ -30,6 +30,7 @@ simple-logging = "2.0.2"
 log = { version = "0.4.11", features = ["std", "serde"] }
 derive-new = "0.5"
 enum_dispatch = "0.3.4"
+webbrowser = "0.5.5"
 
 [build-dependencies]
 fs_extra = "1.2.0"

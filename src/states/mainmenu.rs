@@ -1,19 +1,6 @@
 use std::{cell::RefCell, io::Read, path::PathBuf, rc::Rc};
 
-use crate::{
-    config::Config,
-    containers::{
-        button::Button,
-        config_window::{ConfigWindow, VolumeControl},
-        mainmenuscreen::MainMenuScreen,
-        mainmenuscreen::{MenuButtonId, Window},
-        slider::Slider,
-        sprite::Sprite,
-        stackcontainer::Direction,
-        stackcontainer::StackContainer,
-    },
-    helpers::{points_to_rect, Position},
-};
+use crate::{config::Config, containers::{adv_text::AdvancedText, button::Button, config_window::{ConfigWindow, VolumeControl}, mainmenuscreen::MainMenuScreen, mainmenuscreen::{MenuButtonId, Window}, slider::Slider, sprite::Sprite, stackcontainer::Direction, stackcontainer::StackContainer}, helpers::{points_to_rect, Position}};
 use ggez::{
     audio::SoundSource,
     event::{self, MouseButton},
@@ -45,6 +32,7 @@ impl MainMenuState {
             resources,
             clicked_event: None,
             screen: MainMenuScreen {
+                text: AdvancedText::new("Hello World [link](https://www.google.com)"),
                 background: graphics::Image::new(ctx, "/MainMenuBackground.png").unwrap(),
                 panel: graphics::Mesh::new_rectangle(
                     ctx,
@@ -280,6 +268,8 @@ impl StateEventHandler for MainMenuState {
             }) {
                 self.clicked_event = Some(*e);
             }
+
+            self.screen.text.mouse_button_up_event(ctx, button, x, y);
         } else if let Window::Options(window) = &mut self.screen.window {
             for (slider, _) in &mut window.volume_controls.children {
                 slider.1.mouse_button_up_event(ctx, button, x, y);

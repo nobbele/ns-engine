@@ -1,3 +1,4 @@
+pub mod adv_text;
 pub mod background;
 pub mod button;
 pub mod character;
