@@ -4,7 +4,10 @@ use ggez::{
 };
 use graphics::DrawParam;
 
-use super::{Update, adv_text::AdvancedText, button::Button, config_window::ConfigWindow, stackcontainer::StackContainer};
+use super::{
+    button::Button, config_window::ConfigWindow, rich_text::RichText,
+    stackcontainer::StackContainer, Update,
+};
 
 #[derive(Copy, Clone, PartialEq)]
 pub enum MenuButtonId {
@@ -24,7 +27,7 @@ pub struct MainMenuScreen {
     pub panel: graphics::Mesh,
     pub menu: StackContainer<Button, MenuButtonId>,
     pub window: Window,
-    pub text: AdvancedText,
+    pub text: RichText,
 }
 
 impl Drawable for MainMenuScreen {

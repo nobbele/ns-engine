@@ -1,4 +1,8 @@
-use ggez::{Context, event::MouseButton, graphics::{Drawable, Rect, Text}, mint};
+use ggez::{
+    event::MouseButton,
+    graphics::{Drawable, Rect, Text},
+    mint, Context,
+};
 
 pub enum Format {
     Link(String), // the url
@@ -10,12 +14,12 @@ pub struct FormatEntry {
     pub end: usize,
 }
 
-pub struct AdvancedText {
+pub struct RichText {
     formatting: Vec<FormatEntry>,
     text: Text,
 }
 
-impl AdvancedText {
+impl RichText {
     pub fn new(content: &str) -> Self {
         let mut text = Text::default();
         let mut formatting = Vec::new();
@@ -24,20 +28,22 @@ impl AdvancedText {
 
         while let Some((n, c)) = chars_it.by_ref().next() {
             if c == '[' {
-                let link_text = chars_it.by_ref()
+                let link_text = chars_it
+                    .by_ref()
                     .map(|(_, c)| c)
-                    .take_while(|c | *c != ']')
+                    .take_while(|c| *c != ']')
                     .collect::<String>();
                 if let Some((_, c)) = chars_it.by_ref().next() {
                     // false positive, it was not a link
                     if c != '(' {
                         text.add(c);
-                        continue; 
+                        continue;
                     }
                 }
-                let link_url = chars_it.by_ref()
+                let link_url = chars_it
+                    .by_ref()
                     .map(|(_, c)| c)
-                    .take_while(|c | *c != ')')
+                    .take_while(|c| *c != ')')
                     .collect::<String>();
                 formatting.push(FormatEntry {
                     start: n,
@@ -52,13 +58,16 @@ impl AdvancedText {
             }
         }
 
-        Self {
-            formatting,
-            text,
-        }
+        Self { formatting, text }
     }
 
-    pub fn mouse_button_up_event(&mut self, ctx: &mut Context, _button: MouseButton, x: f32, y: f32) {
+    pub fn mouse_button_up_event(
+        &mut self,
+        ctx: &mut Context,
+        _button: MouseButton,
+        x: f32,
+        y: f32,
+    ) {
         for format in &self.formatting {
             let positions = &self.text.positions(ctx)[format.start..format.end];
             let bounds = Rect {
@@ -78,7 +87,7 @@ impl AdvancedText {
     }
 }
 
-impl Drawable for AdvancedText {
+impl Drawable for RichText {
     fn draw(&self, ctx: &mut Context, param: ggez::graphics::DrawParam) -> ggez::GameResult {
         self.text.draw(ctx, param).unwrap();
         Ok(())

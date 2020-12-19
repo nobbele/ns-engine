@@ -1,6 +1,20 @@
 use std::{cell::RefCell, io::Read, path::PathBuf, rc::Rc};
 
-use crate::{config::Config, containers::{adv_text::AdvancedText, button::Button, config_window::{ConfigWindow, VolumeControl}, mainmenuscreen::MainMenuScreen, mainmenuscreen::{MenuButtonId, Window}, slider::Slider, sprite::Sprite, stackcontainer::Direction, stackcontainer::StackContainer}, helpers::{points_to_rect, Position}};
+use crate::{
+    config::Config,
+    containers::{
+        button::Button,
+        config_window::{ConfigWindow, VolumeControl},
+        mainmenuscreen::MainMenuScreen,
+        mainmenuscreen::{MenuButtonId, Window},
+        rich_text::RichText,
+        slider::Slider,
+        sprite::Sprite,
+        stackcontainer::Direction,
+        stackcontainer::StackContainer,
+    },
+    helpers::{points_to_rect, Position},
+};
 use ggez::{
     audio::SoundSource,
     event::{self, MouseButton},
@@ -32,7 +46,7 @@ impl MainMenuState {
             resources,
             clicked_event: None,
             screen: MainMenuScreen {
-                text: AdvancedText::new("Hello World [link](https://www.google.com)"),
+                text: RichText::new("Hello World [link](https://www.google.com)"),
                 background: graphics::Image::new(ctx, "/MainMenuBackground.png").unwrap(),
                 panel: graphics::Mesh::new_rectangle(
                     ctx,
