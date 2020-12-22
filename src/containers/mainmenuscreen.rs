@@ -36,8 +36,8 @@ impl Drawable for MainMenuScreen {
             ctx,
             DrawParam::new()
                 .scale(mint::Vector2 {
-                    x: drawable_size(ctx).0 / self.background.width() as f32,
-                    y: drawable_size(ctx).1 / self.background.height() as f32,
+                    x: crate::helpers::target_size().x / self.background.width() as f32,
+                    y: crate::helpers::target_size().y / self.background.height() as f32,
                 })
                 .color(param.color),
         )?;

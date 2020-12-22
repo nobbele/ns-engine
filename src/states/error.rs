@@ -29,8 +29,8 @@ impl StateEventHandler for ErrorState {
 
     fn draw(&mut self, ctx: &mut Context, param: DrawParam) -> GameResult {
         param.scale(ggez::mint::Vector2 {
-            x: drawable_size(ctx).0 / self.bg.width() as f32,
-            y: drawable_size(ctx).0 / self.bg.height() as f32,
+            x: crate::helpers::target_size().x / self.bg.width() as f32,
+            y: crate::helpers::target_size().x / self.bg.height() as f32,
         });
         self.bg.draw(ctx, param).unwrap();
         self.text

@@ -66,13 +66,13 @@ impl StateEventHandler for SplashState {
     fn draw(&mut self, ctx: &mut Context, parent_param: DrawParam) -> GameResult {
         let mut param = *self.splash.get_current();
         param.scale = mint::Vector2 {
-            x: (drawable_size(ctx).1 / self.splash_img.height() as f32) * param.scale.x,
-            y: (drawable_size(ctx).1 / self.splash_img.height() as f32) * param.scale.y,
+            x: (crate::helpers::target_size().y / self.splash_img.height() as f32) * param.scale.x,
+            y: (crate::helpers::target_size().y / self.splash_img.height() as f32) * param.scale.y,
         };
         param.offset = mint::Point2 { x: 0.5, y: 0.5 };
         param.dest = mint::Point2 {
-            x: drawable_size(ctx).0 / 2.0,
-            y: drawable_size(ctx).1 / 2.0,
+            x: crate::helpers::target_size().x / 2.0,
+            y: crate::helpers::target_size().y / 2.0,
         };
         param.color.a = parent_param.color.a;
         self.splash_img.draw(ctx, param)?;

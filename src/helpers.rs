@@ -3,6 +3,13 @@ use ggez::{
     Context,
 };
 
+pub const fn target_size() -> glam::Vec2 {
+    glam::Vec2 {
+        x: 1280.0,
+        y: 720.0
+    }
+}
+
 pub enum Position {
     TopLeft,
     TopRight,
@@ -17,8 +24,8 @@ impl Position {
             &graphics::Rect {
                 x: 0.0,
                 y: 0.0,
-                w: drawable_size(ctx).0,
-                h: drawable_size(ctx).1,
+                w: crate::helpers::target_size().x,
+                h: crate::helpers::target_size().y,
             },
             offset,
         )

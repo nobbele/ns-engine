@@ -176,12 +176,17 @@ macro_rules! impl_eventhandler_for_statemanager {
 
             fn draw(&mut self, ctx: &mut ggez::Context) -> ggez::GameResult {
                 graphics::clear(ctx, graphics::WHITE);
+
+                let pos = graphics::screen_coordinates(ctx).point();
+
                 let current = self.state.get_current_mut();
-                if let Err(e) = current.1.content.draw(ctx, current.1.param) {
+                let state_param = current.1.param;//.dest(pos);
+                if let Err(e) = current.1.content.draw(ctx, state_param) {
                     self.error = Some(e);
                 }
                 if let Some(Sprite { content, param }) = &current.0 {
-                    content.draw(ctx, *param).unwrap();
+                    let new_param = *param;//.dest(pos);
+                    content.draw(ctx, new_param).unwrap();
                 }
                 graphics::present(ctx)?;
                 Ok(())
@@ -313,9 +318,39 @@ macro_rules! impl_eventhandler_for_statemanager {
             }
 
             fn resize_event(&mut self, ctx: &mut Context, width: f32, height: f32) {
+                let ratio = glam::Vec2::new(
+                    width / crate::helpers::target_size().x,
+                    height / crate::helpers::target_size().y,
+                );
+                let target_difference = glam::Vec2::new(width, height) - crate::helpers::target_size();
+
+                //let bar_size = (target_difference.x - target_difference.y).abs();
+
+                let coords = if ratio.x > ratio.y {
+                    ggez::graphics::Rect::new(
+                        0.0,
+                        0.0,
+                        width / ratio.y,
+                        crate::helpers::target_size().y,
+                    )
+                } else if ratio.y > ratio.x {
+                    ggez::graphics::Rect::new(
+                        0.0,
+                        0.0,
+                        crate::helpers::target_size().x,
+                        height / ratio.x,
+                    )
+                } else {
+                    ggez::graphics::Rect::new(
+                        0.0,
+                        0.0,
+                        width, 
+                        height,
+                    )
+                };
                 ggez::graphics::set_screen_coordinates(
                     ctx,
-                    ggez::graphics::Rect::new(0.0, 0.0, width, height),
+                    coords,
                 )
                 .unwrap();
 

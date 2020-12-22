@@ -54,8 +54,8 @@ impl MainMenuState {
                     graphics::Rect {
                         x: 0.0,
                         y: 0.0,
-                        w: drawable_size(ctx).0 / 2.5,
-                        h: drawable_size(ctx).1,
+                        w: crate::helpers::target_size().x / 2.5,
+                        h: crate::helpers::target_size().y,
                     },
                     graphics::Color {
                         r: 0.1,
@@ -69,8 +69,8 @@ impl MainMenuState {
                     Position::TopLeft.add_in(
                         ctx,
                         glam::Vec2::new(
-                            drawable_size(ctx).0 / (2.5 * 2.0) - (300.0 / 2.0),
-                            drawable_size(ctx).1 / 2.0 - (60.0 * 2.0 / 2.0),
+                            crate::helpers::target_size().x / (2.5 * 2.0) - (300.0 / 2.0),
+                            crate::helpers::target_size().y / 2.0 - (60.0 * 2.0 / 2.0),
                         ),
                     ),
                     5.0,
@@ -147,8 +147,8 @@ impl StateEventHandler for MainMenuState {
                             Rect {
                                 x: 0.0,
                                 y: 0.0,
-                                w: drawable_size(ctx).0,
-                                h: drawable_size(ctx).1,
+                                w: crate::helpers::target_size().x,
+                                h: crate::helpers::target_size().y,
                             },
                             graphics::Color {
                                 r: 0.0,

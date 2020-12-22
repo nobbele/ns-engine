@@ -40,7 +40,7 @@ pub fn run(resource_data: Option<Vec<u8>>) -> ggez::GameResult {
         .window_mode(
             WindowMode::default()
                 .dimensions(1280.0, 720.0)
-                .resizable(false),
+                .resizable(true),
         );
     if let Some(data) = resource_data {
         cb = cb.add_zipfile_bytes(data);

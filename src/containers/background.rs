@@ -23,8 +23,8 @@ impl Drawable for BackgroundContainer {
                 image,
                 graphics::DrawParam::new()
                     .scale(mint::Vector2 {
-                        x: drawable_size(ctx).0 / image.width() as f32,
-                        y: drawable_size(ctx).1 / image.height() as f32,
+                        x: crate::helpers::target_size().x / image.width() as f32,
+                        y: crate::helpers::target_size().y / image.height() as f32,
                     })
                     .color(graphics::Color {
                         a: *fade * param.color.a,
@@ -42,8 +42,8 @@ impl Drawable for BackgroundContainer {
             image,
             graphics::DrawParam::new()
                 .scale(mint::Vector2 {
-                    x: drawable_size(ctx).0 / image.width() as f32,
-                    y: drawable_size(ctx).1 / image.height() as f32,
+                    x: crate::helpers::target_size().x / image.width() as f32,
+                    y: crate::helpers::target_size().y / image.height() as f32,
                 })
                 .color(graphics::Color {
                     a: *fade * param.color.a,
