@@ -1,6 +1,6 @@
 use ggez::{
     graphics::{self, drawable_size},
-    mint, Context,
+    Context,
 };
 
 pub enum Position {
@@ -12,7 +12,7 @@ pub enum Position {
 }
 
 impl Position {
-    pub fn add_in(&self, ctx: &Context, offset: (f32, f32)) -> mint::Point2<f32> {
+    pub fn add_in(&self, ctx: &Context, offset: glam::Vec2) -> glam::Vec2 {
         self.add_in_from(
             &graphics::Rect {
                 x: 0.0,
@@ -24,22 +24,22 @@ impl Position {
         )
     }
 
-    pub fn add_in_from(&self, rect: &graphics::Rect, offset: (f32, f32)) -> mint::Point2<f32> {
+    pub fn add_in_from(&self, rect: &graphics::Rect, offset: glam::Vec2) -> glam::Vec2 {
         match self {
-            Position::TopLeft => [rect.x + offset.0, rect.y + offset.1],
-            Position::TopRight => [(rect.x + rect.w) - offset.0, rect.y + offset.1],
-            Position::BottomLeft => [rect.x + offset.0, (rect.y + rect.h) - offset.1],
-            Position::BottomRight => [(rect.x + rect.w) - offset.0, (rect.y + rect.h) - offset.1],
-            Position::Center => [
-                (rect.x + rect.w) / 2.0 + offset.0,
-                (rect.y + rect.h) / 2.0 + offset.1,
-            ],
+            Position::TopLeft => glam::Vec2::new(rect.top(), rect.left()) + offset,
+            Position::TopRight => {
+                glam::Vec2::new(rect.top(), rect.right()) + glam::Vec2::new(-offset.x, offset.y)
+            }
+            Position::BottomLeft => {
+                glam::Vec2::new(rect.bottom(), rect.left()) + glam::Vec2::new(offset.x, -offset.y)
+            }
+            Position::BottomRight => glam::Vec2::new(rect.bottom(), rect.right()) - offset,
+            Position::Center => glam::Vec2::new(rect.bottom() / 2.0, rect.right() / 2.0) + offset,
         }
-        .into()
     }
 }
 
-pub fn points_to_rect(a: mint::Point2<f32>, b: mint::Point2<f32>) -> graphics::Rect {
+pub fn points_to_rect(a: glam::Vec2, b: glam::Vec2) -> graphics::Rect {
     graphics::Rect {
         x: a.x,
         y: a.y,

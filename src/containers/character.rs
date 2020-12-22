@@ -36,7 +36,10 @@ impl Drawable for CharacterContainer {
                 ctx,
                 &character.image,
                 graphics::DrawParam::new()
-                    .dest(Position::BottomLeft.add_in(ctx, (x_position, target_size.y)))
+                    .dest(
+                        Position::BottomLeft
+                            .add_in(ctx, glam::Vec2::new(x_position, target_size.y)),
+                    )
                     .scale(mint::Vector2 {
                         x: target_size.x / character.image.width() as f32,
                         y: target_size.y / character.image.height() as f32,

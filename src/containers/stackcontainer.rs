@@ -1,7 +1,4 @@
-use ggez::{
-    graphics::{DrawParam, Drawable, Rect},
-    mint,
-};
+use ggez::graphics::{DrawParam, Drawable, Rect};
 
 use super::Update;
 
@@ -16,7 +13,7 @@ pub enum Direction {
 pub struct StackContainer<T, D> {
     #[new(default)]
     pub children: Vec<(T, D)>,
-    pub position: mint::Point2<f32>,
+    pub position: glam::Vec2,
     pub spacing: f32,
     pub cell_size: (f32, f32),
     pub direction: Direction,

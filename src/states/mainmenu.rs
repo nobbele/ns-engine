@@ -68,7 +68,7 @@ impl MainMenuState {
                 menu: StackContainer::new(
                     Position::TopLeft.add_in(
                         ctx,
-                        (
+                        glam::Vec2::new(
                             drawable_size(ctx).0 / (2.5 * 2.0) - (300.0 / 2.0),
                             drawable_size(ctx).1 / 2.0 - (60.0 * 2.0 / 2.0),
                         ),
@@ -161,8 +161,8 @@ impl StateEventHandler for MainMenuState {
                         exit_button: Button::new(
                             &self.resources.button,
                             points_to_rect(
-                                Position::TopRight.add_in(ctx, (55.0, 5.0)),
-                                Position::TopRight.add_in(ctx, (5.0, 55.0)),
+                                Position::TopRight.add_in(ctx, glam::Vec2::new(55.0, 5.0)),
+                                Position::TopRight.add_in(ctx, glam::Vec2::new(5.0, 55.0)),
                             ),
                             "X".into(),
                             self.ui_sfx.clone(),
@@ -170,7 +170,8 @@ impl StateEventHandler for MainMenuState {
                         )
                         .unwrap(),
                         volume_controls: StackContainer::new(
-                            Position::Center.add_in(ctx, (-120.0, (-46.0 * 3.0) / 2.0)),
+                            Position::Center
+                                .add_in(ctx, glam::Vec2::new(-120.0, (-46.0 * 3.0) / 2.0)),
                             5.0,
                             (240.0, 46.0),
                             Direction::Vertical,

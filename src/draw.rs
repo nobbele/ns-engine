@@ -23,8 +23,8 @@ pub fn load_text(
     config: &'static Config,
 ) -> ggez::GameResult {
     let layer_bounds = points_to_rect(
-        Position::BottomLeft.add_in(ctx, (0.0, 240.0)),
-        Position::BottomRight.add_in(ctx, (0.0, 40.0)),
+        Position::BottomLeft.add_in(ctx, glam::Vec2::new(0.0, 240.0)),
+        Position::BottomRight.add_in(ctx, glam::Vec2::new(0.0, 40.0)),
     );
     let layer_image = &resources.text_box;
     let layer_params = graphics::DrawParam::new()
@@ -38,7 +38,7 @@ pub fn load_text(
         let mut speaker_text = graphics::Text::new(speaker.as_str());
         speaker_text.set_bounds([f32::INFINITY, f32::INFINITY], graphics::Align::Left);
         let speaker_text_params = DrawParam::new()
-            .dest(Position::TopLeft.add_in_from(&layer_bounds, (15.0, 20.0)))
+            .dest(Position::TopLeft.add_in_from(&layer_bounds, glam::Vec2::new(15.0, 20.0)))
             .color(
                 config
                     .characters
@@ -84,7 +84,8 @@ pub fn load_text(
         lim == frag_count
     });
 
-    let text_params = (Position::TopLeft.add_in_from(&layer_bounds, (15.0, 55.0)),).into();
+    let text_params =
+        (Position::TopLeft.add_in_from(&layer_bounds, glam::Vec2::new(15.0, 55.0)),).into();
 
     screen.action = Action::Text(Box::new(TextBox {
         layer: Sprite {

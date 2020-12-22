@@ -90,7 +90,7 @@ impl GameState {
                 action: Action::None,
                 ui: UI {
                     menu: StackContainer::new(
-                        Position::BottomLeft.add_in(ctx, (10.0, 40.0)),
+                        Position::BottomLeft.add_in(ctx, glam::Vec2::new(10.0, 40.0)),
                         5.0,
                         (50.0, 30.0),
                         Direction::Horizontal,

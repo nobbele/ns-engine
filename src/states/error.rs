@@ -37,7 +37,10 @@ impl StateEventHandler for ErrorState {
             .draw(
                 ctx,
                 param
-                    .dest(Position::Center.add_in(ctx, (self.text.width(ctx) as f32 / -2.0, 0.0)))
+                    .dest(Position::Center.add_in(
+                        ctx,
+                        glam::Vec2::new(self.text.width(ctx) as f32 / -2.0, 0.0),
+                    ))
                     .color(graphics::RED),
             )
             .unwrap();

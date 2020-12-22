@@ -140,7 +140,10 @@ pub fn load_data_node(
         load_text(ctx, screen, resources, speaker, content, config)?;
     } else if let novelscript::SceneNodeData::Choice(choices) = node {
         let mut stack = StackContainer::new(
-            Position::Center.add_in(ctx, (250.0 / -2.0, 60.0 * choices.len() as f32 / -2.0)),
+            Position::Center.add_in(
+                ctx,
+                glam::Vec2::new(250.0 / -2.0, 60.0 * choices.len() as f32 / -2.0),
+            ),
             5.0,
             (250.0, 50.0),
             crate::containers::stackcontainer::Direction::Vertical,

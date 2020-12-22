@@ -72,9 +72,10 @@ impl RichText {
             let positions = &self.text.positions(ctx)[format.start..format.end];
             let bounds = Rect {
                 x: positions[0].x,
-                y: positions[0].y - 11.0,
+                y: positions[0].y - ggez::graphics::DEFAULT_FONT_SCALE,
                 w: positions[positions.len() - 1].x - positions[0].x,
-                h: positions[positions.len() - 1].y - (positions[0].y - 11.0),
+                h: positions[positions.len() - 1].y
+                    - (positions[0].y - ggez::graphics::DEFAULT_FONT_SCALE),
             };
             if bounds.contains(mint::Point2 { x, y }) {
                 match &format.format {

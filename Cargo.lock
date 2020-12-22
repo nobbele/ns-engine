@@ -1767,6 +1767,7 @@ dependencies = [
  "enum_dispatch",
  "fs_extra",
  "ggez",
+ "glam",
  "image",
  "log",
  "novelscript",
