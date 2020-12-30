@@ -1,5 +1,5 @@
 use ggez::{
-    graphics::{self, drawable_size},
+    graphics,
     Context,
 };
 
@@ -19,7 +19,7 @@ pub enum Position {
 }
 
 impl Position {
-    pub fn add_in(&self, ctx: &Context, offset: glam::Vec2) -> glam::Vec2 {
+    pub fn add_in(&self, _ctx: &Context, offset: glam::Vec2) -> glam::Vec2 {
         self.add_in_from(
             &graphics::Rect {
                 x: 0.0,

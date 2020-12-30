@@ -1,5 +1,5 @@
 use ggez::{graphics, graphics::Drawable, mint, Context, GameResult};
-use graphics::{drawable_size, DrawParam};
+use graphics::DrawParam;
 
 use crate::{
     config::Config,

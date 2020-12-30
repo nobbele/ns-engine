@@ -1,5 +1,5 @@
 use ggez::{
-    graphics::{self, drawable_size, DrawParam, Drawable},
+    graphics::{self, DrawParam, Drawable},
     mint, Context,
 };
 

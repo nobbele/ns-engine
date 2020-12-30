@@ -177,8 +177,6 @@ macro_rules! impl_eventhandler_for_statemanager {
             fn draw(&mut self, ctx: &mut ggez::Context) -> ggez::GameResult {
                 graphics::clear(ctx, graphics::WHITE);
 
-                let pos = graphics::screen_coordinates(ctx).point();
-
                 let current = self.state.get_current_mut();
                 let state_param = current.1.param;//.dest(pos);
                 if let Err(e) = current.1.content.draw(ctx, state_param) {
@@ -322,9 +320,6 @@ macro_rules! impl_eventhandler_for_statemanager {
                     width / crate::helpers::target_size().x,
                     height / crate::helpers::target_size().y,
                 );
-                let target_difference = glam::Vec2::new(width, height) - crate::helpers::target_size();
-
-                //let bar_size = (target_difference.x - target_difference.y).abs();
 
                 let coords = if ratio.x > ratio.y {
                     ggez::graphics::Rect::new(

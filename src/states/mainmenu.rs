@@ -20,7 +20,7 @@ use ggez::{
     event::{self, MouseButton},
     filesystem,
     graphics::DrawParam,
-    graphics::{self, drawable_size, DrawMode, Drawable},
+    graphics::{self, DrawMode, Drawable},
     Context,
 };
 use graphics::{FillOptions, Rect, Text};

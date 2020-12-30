@@ -2,7 +2,7 @@ use ggez::{
     graphics::{self, Drawable},
     Context, GameError, GameResult,
 };
-use graphics::{drawable_size, DrawParam, Text};
+use graphics::{DrawParam, Text};
 
 use crate::helpers::Position;
 
