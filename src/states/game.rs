@@ -10,7 +10,7 @@ use crate::{
         stackcontainer::StackContainer, ui::MenuButtonId, ui::UI, Update,
     },
 };
-use ggez::graphics::{self, DrawParam};
+use ggez::{GameResult, graphics::{self, DrawParam}};
 use ggez::{
     self,
     event::{KeyCode, KeyMods, MouseButton},
@@ -57,15 +57,19 @@ pub enum ContinueMethod {
     Normal,
 }
 
+pub struct Audio {
+    pub sfx: Option<ggez::audio::Source>,
+    pub music: Option<ggez::audio::Source>,
+    pub ui_sfx: Rc<RefCell<Option<ggez::audio::Source>>>,
+}
+
 pub struct GameState {
     pub novel: novelscript::Novel,
     pub state: novelscript::NovelState,
     pub resources: &'static Resources,
     pub continue_method: ContinueMethod,
     pub screen: GameScreen,
-    pub sfx: Option<ggez::audio::Source>,
-    pub music: Option<ggez::audio::Source>,
-    pub ui_sfx: Rc<RefCell<Option<ggez::audio::Source>>>,
+    pub audio: Audio,
     pub config: &'static Config,
 }
 
@@ -81,9 +85,11 @@ impl GameState {
             novel,
             resources,
             continue_method: ContinueMethod::Normal,
-            sfx: None,
-            music: None,
-            ui_sfx: Rc::new(RefCell::new(None)),
+            audio: Audio {
+                sfx: None,
+                music: None,
+                ui_sfx: Rc::new(RefCell::new(None)),
+            },
             screen: GameScreen {
                 current_background: None,
                 current_characters: CharacterContainer::new(),
@@ -114,7 +120,7 @@ impl GameState {
                     &resources.button,
                     state.screen.ui.menu.get_rect_for(n as f32),
                     d.0.into(),
-                    state.ui_sfx.clone(),
+                    state.audio.ui_sfx.clone(),
                     config,
                 )
                 .unwrap(),
@@ -138,35 +144,58 @@ pub struct Resources {
     pub button: graphics::Image,
 }
 
+pub fn consume_node(
+    ctx: &mut Context, 
+    node: &novelscript::SceneNodeUser, 
+    screen: &mut GameScreen, 
+    resources: &'static Resources, 
+    config: &'static Config,
+    audio: &mut Audio
+) -> GameResult {
+    match node {
+        novelscript::SceneNodeUser::Data(node) => {
+            crate::node::load_data_node(
+                ctx,
+                screen,
+                node,
+                resources,
+                audio.ui_sfx.clone(),
+                config,
+            )?;
+        }
+        novelscript::SceneNodeUser::Load(node) => {
+            crate::node::load_load_node(
+                ctx,
+                screen,
+                node.clone(),
+                &mut audio.sfx,
+                &mut audio.music,
+            )?;
+        }
+    };
+    Ok(())
+}
+
 impl GameState {
     fn continue_text(&mut self, ctx: &mut Context, inc: bool) -> ggez::GameResult {
-        match if inc {
+        let node = if inc {
             self.novel.next(&mut self.state)
         } else {
             self.novel.current(&mut self.state)
-        } {
-            Some(novelscript::SceneNodeUser::Data(node)) => {
-                crate::node::load_data_node(
-                    ctx,
-                    &mut self.screen,
-                    node,
-                    &self.resources,
-                    self.ui_sfx.clone(),
-                    self.config,
-                )?;
-            }
-            Some(novelscript::SceneNodeUser::Load(node)) => {
-                crate::node::load_load_node(
-                    ctx,
-                    &mut self.screen,
-                    node.clone(),
-                    &mut self.sfx,
-                    &mut self.music,
-                )?;
+        };
+        if let Some(node) = node {
+            consume_node(
+                ctx, 
+                node,
+                &mut self.screen,
+                &self.resources,
+                &self.config,
+                &mut self.audio,
+            )?;
+            if let novelscript::SceneNodeUser::Load(..) = node {
                 self.continue_text(ctx, true).unwrap();
             }
-            None => {}
-        };
+        }
         Ok(())
     }
 
@@ -269,13 +298,13 @@ impl StateEventHandler for GameState {
             }
         }
         self.screen.update(dt);
-        if let Some(audio) = &mut self.music {
+        if let Some(audio) = &mut self.audio.music {
             audio.set_volume(
                 self.config.user.borrow().master_volume
                     * self.config.user.borrow().channel_volumes.0["music"],
             )
         }
-        if let Some(audio) = self.ui_sfx.borrow_mut().as_mut() {
+        if let Some(audio) = self.audio.ui_sfx.borrow_mut().as_mut() {
             audio.set_volume(
                 self.config.user.borrow().master_volume
                     * self.config.user.borrow().channel_volumes.0["sfx"],

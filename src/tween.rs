@@ -153,5 +153,39 @@ impl<T1, T2, F: Fn(&mut Option<T1>, &mut T2, f32)> Tween<(Option<T1>, T2)>
     }
 }
 
+#[derive(new)]
+pub struct NonTweener<T> {
+    pub current: T,
+}
+impl<T> Tween<T> for NonTweener<T> {
+    fn update(&mut self, _dt: f32) {
+
+    }
+
+    fn get_current(&self) -> &T {
+        &self.current
+    }
+
+    fn get_current_mut(&mut self) -> &mut T {
+        &mut self.current
+    }
+
+    fn take_final(self) -> T {
+        self.current
+    }
+
+    fn take_final_box(self: Box<Self>) -> T {
+        self.current
+    }
+
+    fn is_done(&self) -> bool {
+        true
+    }
+
+    fn finish(&mut self) {
+        
+    }
+}
+
 pub type TweenBox<T> = Box<dyn Tween<T>>;
 pub type TransitionTweenBox<T> = Box<dyn Tween<(Option<T>, T)>>;
