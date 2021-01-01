@@ -93,7 +93,7 @@ impl MainMenuState {
         {
             state.screen.menu.children.push((
                 Button::new(
-                    &resources.button,
+                    ctx,
                     state.screen.menu.get_rect_for(n as f32),
                     d.0.into(),
                     state.ui_sfx.clone(),
@@ -159,7 +159,7 @@ impl StateEventHandler for MainMenuState {
                         )
                         .unwrap(),
                         exit_button: Button::new(
-                            &self.resources.button,
+                            ctx,
                             points_to_rect(
                                 Position::TopRight.add_in(ctx, glam::Vec2::new(55.0, 5.0)),
                                 Position::TopRight.add_in(ctx, glam::Vec2::new(5.0, 55.0)),

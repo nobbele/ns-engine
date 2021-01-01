@@ -158,9 +158,7 @@ pub struct NonTweener<T> {
     pub current: T,
 }
 impl<T> Tween<T> for NonTweener<T> {
-    fn update(&mut self, _dt: f32) {
-
-    }
+    fn update(&mut self, _dt: f32) {}
 
     fn get_current(&self) -> &T {
         &self.current
@@ -182,9 +180,7 @@ impl<T> Tween<T> for NonTweener<T> {
         true
     }
 
-    fn finish(&mut self) {
-        
-    }
+    fn finish(&mut self) {}
 }
 
 pub type TweenBox<T> = Box<dyn Tween<T>>;

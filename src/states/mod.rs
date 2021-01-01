@@ -178,12 +178,12 @@ macro_rules! impl_eventhandler_for_statemanager {
                 graphics::clear(ctx, graphics::WHITE);
 
                 let current = self.state.get_current_mut();
-                let state_param = current.1.param;//.dest(pos);
+                let state_param = current.1.param; //.dest(pos);
                 if let Err(e) = current.1.content.draw(ctx, state_param) {
                     self.error = Some(e);
                 }
                 if let Some(Sprite { content, param }) = &current.0 {
-                    let new_param = *param;//.dest(pos);
+                    let new_param = *param; //.dest(pos);
                     content.draw(ctx, new_param).unwrap();
                 }
                 graphics::present(ctx)?;
@@ -336,18 +336,9 @@ macro_rules! impl_eventhandler_for_statemanager {
                         height / ratio.x,
                     )
                 } else {
-                    ggez::graphics::Rect::new(
-                        0.0,
-                        0.0,
-                        width, 
-                        height,
-                    )
+                    ggez::graphics::Rect::new(0.0, 0.0, width, height)
                 };
-                ggez::graphics::set_screen_coordinates(
-                    ctx,
-                    coords,
-                )
-                .unwrap();
+                ggez::graphics::set_screen_coordinates(ctx, coords).unwrap();
 
                 self.state
                     .get_current_mut()

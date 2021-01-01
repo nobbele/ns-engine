@@ -5,6 +5,7 @@ use ggez::{
     graphics::{self, Color, DrawParam, Drawable, Rect},
     mint, Context,
 };
+use graphics::Mesh;
 
 use crate::config::Config;
 
@@ -12,7 +13,7 @@ use super::sprite::Sprite;
 
 #[derive(Debug)]
 pub struct Button {
-    pub layer: Sprite<&'static graphics::Image>,
+    pub layer: Sprite<Mesh>,
     pub text: graphics::Text,
     pub ui_sfx: Rc<RefCell<Option<ggez::audio::Source>>>,
     pub last_state: bool,
@@ -24,7 +25,7 @@ pub struct Button {
 
 impl Button {
     pub fn new(
-        layer: &'static graphics::Image,
+        ctx: &mut Context,
         rect: Rect,
         text: String,
         ui_sfx: Rc<RefCell<Option<ggez::audio::Source>>>,
@@ -40,14 +41,15 @@ impl Button {
         );
         Ok(Self {
             layer: Sprite {
-                content: layer,
-                param: DrawParam::new()
-                    .dest(rect.point())
-                    .scale(mint::Vector2 {
-                        x: rect.w / layer.dimensions().w,
-                        y: rect.h / layer.dimensions().h,
-                    })
-                    .color(config.ui.button_color),
+                content: Mesh::new_rounded_rectangle(
+                    ctx,
+                    graphics::DrawMode::fill(),
+                    rect,
+                    100.0,
+                    graphics::WHITE,
+                )
+                .unwrap(),
+                param: DrawParam::new().color(config.ui.button_color),
             },
             text,
             ui_sfx,
@@ -59,17 +61,12 @@ impl Button {
         })
     }
 
-    fn layer_dimensions(&self) -> Rect {
-        Rect {
-            x: self.layer.param.dest.x,
-            y: self.layer.param.dest.y,
-            w: self.layer.content.dimensions().w * self.layer.param.scale.x,
-            h: self.layer.content.dimensions().h * self.layer.param.scale.y,
-        }
+    fn layer_dimensions(&self, ctx: &mut Context) -> Rect {
+        self.layer.content.dimensions(ctx).unwrap()
     }
 
     pub fn mouse_motion_event(&mut self, ctx: &mut Context, x: f32, y: f32) {
-        let rect = self.layer_dimensions();
+        let rect = self.layer_dimensions(ctx);
         let is_hovered = rect.contains(mint::Point2 { x, y });
         self.layer.param.color = if is_hovered {
             *self.on_hover_color
@@ -88,7 +85,7 @@ impl Button {
     }
 
     pub fn click_event(&self, ctx: &mut Context, x: f32, y: f32) -> bool {
-        let rect = self.layer_dimensions();
+        let rect = self.layer_dimensions(ctx);
         if rect.contains(mint::Point2 { x, y }) {
             let mut audio = ggez::audio::Source::new(ctx, "/audio/ui_confirm.wav").unwrap();
             audio.play(ctx).unwrap();
@@ -104,7 +101,7 @@ impl Drawable for Button {
     fn draw(&self, ctx: &mut ggez::Context, parent_param: DrawParam) -> ggez::GameResult {
         self.layer.draw(ctx, parent_param)?;
 
-        let layer_bounds = self.layer_dimensions();
+        let layer_bounds = self.layer_dimensions(ctx);
 
         let mut text_pos = layer_bounds.point();
         text_pos.y -= self.text.height(ctx) as f32 / 2.0;

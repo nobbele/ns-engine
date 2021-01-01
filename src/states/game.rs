@@ -10,13 +10,16 @@ use crate::{
         stackcontainer::StackContainer, ui::MenuButtonId, ui::UI, Update,
     },
 };
-use ggez::{GameResult, graphics::{self, DrawParam}};
 use ggez::{
     self,
     event::{KeyCode, KeyMods, MouseButton},
     Context,
 };
 use ggez::{audio::SoundSource, graphics::Drawable};
+use ggez::{
+    graphics::{self, DrawParam},
+    GameResult,
+};
 
 use super::StateEventHandler;
 
@@ -117,7 +120,7 @@ impl GameState {
         {
             state.screen.ui.menu.children.push((
                 Button::new(
-                    &resources.button,
+                    ctx,
                     state.screen.ui.menu.get_rect_for(n as f32),
                     d.0.into(),
                     state.audio.ui_sfx.clone(),
@@ -141,16 +144,15 @@ pub struct SaveData {
 
 pub struct Resources {
     pub text_box: graphics::Image,
-    pub button: graphics::Image,
 }
 
 pub fn consume_node(
-    ctx: &mut Context, 
-    node: &novelscript::SceneNodeUser, 
-    screen: &mut GameScreen, 
-    resources: &'static Resources, 
+    ctx: &mut Context,
+    node: &novelscript::SceneNodeUser,
+    screen: &mut GameScreen,
+    resources: &'static Resources,
     config: &'static Config,
-    audio: &mut Audio
+    audio: &mut Audio,
 ) -> GameResult {
     match node {
         novelscript::SceneNodeUser::Data(node) => {
@@ -185,7 +187,7 @@ impl GameState {
         };
         if let Some(node) = node {
             consume_node(
-                ctx, 
+                ctx,
                 node,
                 &mut self.screen,
                 &self.resources,

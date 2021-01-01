@@ -1,7 +1,4 @@
-use ggez::{
-    graphics,
-    Context,
-};
+use ggez::{graphics, Context};
 use ggez::{
     graphics::{DrawParam, Drawable},
     mint,
@@ -28,7 +25,8 @@ impl Drawable for CharacterContainer {
                 y: height,
             };
 
-            let x_position = (crate::helpers::target_size().x as f32 / (self.current.len() as f32 + 1.0))
+            let x_position = (crate::helpers::target_size().x as f32
+                / (self.current.len() as f32 + 1.0))
                 * (n as f32 + 1.0)
                 - (target_size.x / 2.0);
 

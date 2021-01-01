@@ -151,7 +151,7 @@ pub fn load_data_node(
         for (n, d) in choices.iter().enumerate() {
             stack.children.push((
                 Button::new(
-                    &resources.button,
+                    ctx,
                     stack.get_rect_for(n as f32),
                     d.clone(),
                     ui_sfx.clone(),

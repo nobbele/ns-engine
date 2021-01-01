@@ -110,7 +110,6 @@ pub fn run(resource_data: Option<Vec<u8>>) -> ggez::GameResult {
 
     let resources = Box::leak(Box::new(Resources {
         text_box: graphics::Image::new(&mut ctx, "/TextBox.png")?,
-        button: graphics::Image::new(&mut ctx, "/Button.png")?,
     }));
 
     let state = State::Splash(SplashState::new(&mut ctx, resources, config));

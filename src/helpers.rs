@@ -1,12 +1,9 @@
-use ggez::{
-    graphics,
-    Context,
-};
+use ggez::{graphics, Context};
 
 pub const fn target_size() -> glam::Vec2 {
     glam::Vec2 {
         x: 1280.0,
-        y: 720.0
+        y: 720.0,
     }
 }
 
@@ -55,10 +52,22 @@ fn test_position() {
         h: 720.0,
     };
 
-    assert_eq!(Position::Center.add_in_from(&canvas, glam::Vec2::new(0.0, 0.0)), glam::Vec2::new(1280.0 / 2.0, 720.0 / 2.0));
-    assert_eq!(Position::TopRight.add_in_from(&canvas, glam::Vec2::new(0.0, 0.0)), glam::Vec2::new(1280.0, 0.0));
-    assert_eq!(Position::TopRight.add_in_from(&canvas, glam::Vec2::new(10.0, 10.0)), glam::Vec2::new(1270.0, 10.0));
-    assert_eq!(Position::BottomLeft.add_in_from(&canvas, glam::Vec2::new(10.0, 10.0)), glam::Vec2::new(10.0, 710.0));
+    assert_eq!(
+        Position::Center.add_in_from(&canvas, glam::Vec2::new(0.0, 0.0)),
+        glam::Vec2::new(1280.0 / 2.0, 720.0 / 2.0)
+    );
+    assert_eq!(
+        Position::TopRight.add_in_from(&canvas, glam::Vec2::new(0.0, 0.0)),
+        glam::Vec2::new(1280.0, 0.0)
+    );
+    assert_eq!(
+        Position::TopRight.add_in_from(&canvas, glam::Vec2::new(10.0, 10.0)),
+        glam::Vec2::new(1270.0, 10.0)
+    );
+    assert_eq!(
+        Position::BottomLeft.add_in_from(&canvas, glam::Vec2::new(10.0, 10.0)),
+        glam::Vec2::new(10.0, 710.0)
+    );
 }
 
 pub fn points_to_rect(a: glam::Vec2, b: glam::Vec2) -> graphics::Rect {
