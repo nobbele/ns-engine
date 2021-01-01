@@ -19,7 +19,7 @@ name = "nsengine-dist"
 path = "src/main_dist.rs"
 
 [dependencies]
-ggez = { git = "https://github.com/nobbele/ns-engine-ggez", branch = "devel" }
+ggez = { git = "https://github.com/nobbele/ggez", branch = "devel" }
 novelscript = { git = "https://github.com/nobbele/novelscript" }
 nsconfig = { git = "https://github.com/nobbele/ns-config" }
 serde_json = "1.0"
