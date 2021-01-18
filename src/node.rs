@@ -1,6 +1,6 @@
 use std::{cell::RefCell, rc::Rc};
 
-use ggez::{audio::SoundSource, graphics, Context};
+use ggez::{graphics, Context};
 use novelscript::SceneNodeLoad;
 
 use crate::{
@@ -112,9 +112,8 @@ pub fn load_load_node(
             "music" => music,
             _ => panic!(),
         };
-        let mut new_src = ggez::audio::Source::new(ctx, format!("/audio/{}.mp3", name)).unwrap();
-        new_src.play(ctx).unwrap();
-        *src = Some(new_src);
+        println!("Loading {} {}", name, channel);
+        src.replace(ggez::audio::Source::new(ctx, format!("/audio/{}.mp3", name)).unwrap());
     } else if let novelscript::SceneNodeLoad::RemoveCharacter { name } = node {
         if let Some(idx) = screen
             .current_characters

@@ -103,7 +103,6 @@ impl MainMenuState {
                 d.1,
             ))
         }
-        state.music.play(ctx).unwrap();
         state
     }
 }
@@ -229,11 +228,17 @@ impl StateEventHandler for MainMenuState {
             self.config.user.borrow().master_volume
                 * self.config.user.borrow().channel_volumes.0["music"],
         );
-        if let Some(audio) = &mut *self.ui_sfx.borrow_mut() {
+        if !self.music.playing() {
+            self.music.play(ctx)?;
+        }
+        if let Some(audio) = self.ui_sfx.borrow_mut().as_mut() {
             audio.set_volume(
                 self.config.user.borrow().master_volume
                     * self.config.user.borrow().channel_volumes.0["sfx"],
-            )
+            );
+            if !audio.playing() && audio.elapsed().as_millis() < 1 {
+                audio.play(ctx)?;
+            }
         }
         Ok(())
     }

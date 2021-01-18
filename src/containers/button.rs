@@ -1,7 +1,6 @@
 use std::{cell::RefCell, rc::Rc};
 
 use ggez::{
-    audio::SoundSource,
     graphics::{self, Color, DrawParam, Drawable, Rect},
     mint, Context,
 };
@@ -75,9 +74,7 @@ impl Button {
         };
         if self.last_state != is_hovered {
             if is_hovered {
-                let mut audio = ggez::audio::Source::new(ctx, "/audio/ui_select.wav").unwrap();
-                audio.play(ctx).unwrap();
-                self.ui_sfx.replace(Some(audio));
+                self.ui_sfx.replace(Some(ggez::audio::Source::new(ctx, "/audio/ui_select.wav").unwrap()));
             }
 
             self.last_state = is_hovered;
@@ -87,9 +84,7 @@ impl Button {
     pub fn click_event(&self, ctx: &mut Context, x: f32, y: f32) -> bool {
         let rect = self.layer_dimensions(ctx);
         if rect.contains(mint::Point2 { x, y }) {
-            let mut audio = ggez::audio::Source::new(ctx, "/audio/ui_confirm.wav").unwrap();
-            audio.play(ctx).unwrap();
-            self.ui_sfx.replace(Some(audio));
+            self.ui_sfx.replace(Some(ggez::audio::Source::new(ctx, "/audio/ui_confirm.wav").unwrap()));
             true
         } else {
             false

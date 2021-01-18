@@ -304,13 +304,29 @@ impl StateEventHandler for GameState {
             audio.set_volume(
                 self.config.user.borrow().master_volume
                     * self.config.user.borrow().channel_volumes.0["music"],
-            )
+            );
+            if !audio.playing() {
+                audio.play(ctx)?;
+            }
         }
         if let Some(audio) = self.audio.ui_sfx.borrow_mut().as_mut() {
             audio.set_volume(
                 self.config.user.borrow().master_volume
                     * self.config.user.borrow().channel_volumes.0["sfx"],
-            )
+            );
+            // Check elapsed time to make sure we aren't trying to replay a ui sfx
+            if !audio.playing() && audio.elapsed().as_millis() < 1 {
+                audio.play(ctx)?;
+            }
+        }
+        if let Some(audio) = &mut self.audio.sfx {
+            audio.set_volume(
+                self.config.user.borrow().master_volume
+                    * self.config.user.borrow().channel_volumes.0["sfx"],
+            );
+            if !audio.playing() {
+                audio.play(ctx)?;
+            }
         }
         Ok(())
     }
