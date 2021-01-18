@@ -1,23 +1,13 @@
 use std::{cell::RefCell, rc::Rc};
 
-use ggez::{graphics, Context};
+use ggez::Context;
 use novelscript::SceneNodeLoad;
 
-use crate::{
-    config::Config,
-    containers::{background::BackgroundContainer, gamescreen::GameScreen},
-    containers::{button::Button, gamescreen::Action, stackcontainer::StackContainer},
-    draw::load_text,
-    helpers::Position,
-    states::game::Character,
-    states::game::{Background, Placement},
-    tween::TargetTweener,
-    tween::TransitionTweener,
-    Resources,
-};
+use crate::{containers::{background::BackgroundContainer, gamescreen::GameScreen}, containers::{button::Button, gamescreen::Action, stackcontainer::StackContainer}, draw::load_text, helpers::Position, resource_manager::ResourceManager, states::game::Character, states::game::{Background, Placement}, tween::TargetTweener, tween::TransitionTweener};
 
 pub fn load_character_tween(
     ctx: &mut Context,
+    resources: &'static ResourceManager,
     name: String,
     expression: String,
     placement: &str,
@@ -26,7 +16,7 @@ pub fn load_character_tween(
         0.75,
         Character {
             alpha: 0.0,
-            image: graphics::Image::new(ctx, format!("/char/{}/{}.png", name, expression))?,
+            image: resources.get_image(ctx, &format!("/char/{}/{}.png", name, expression)),
             name,
             expression,
             position: match &placement[..] {
@@ -43,6 +33,7 @@ pub fn load_character_tween(
 
 pub fn load_background_tween(
     ctx: &mut Context,
+    resources: &'static ResourceManager,
     prev: Option<Background>,
     name: String,
 ) -> ggez::GameResult<
@@ -62,7 +53,7 @@ pub fn load_background_tween(
         (
             prev,
             Background::new(
-                graphics::Image::new(ctx, format!("/bg/{}.png", name))?,
+                resources.get_image(ctx, &format!("/bg/{}.png", name)),
                 name,
             ),
         ),
@@ -77,6 +68,7 @@ pub fn load_background_tween(
 
 pub fn load_load_node(
     ctx: &mut Context,
+    resources: &'static ResourceManager,
     screen: &mut GameScreen,
     node: SceneNodeLoad,
     sfx: &mut Option<ggez::audio::Source>,
@@ -88,7 +80,7 @@ pub fn load_load_node(
         placement,
     } = node
     {
-        let tween = load_character_tween(ctx, character, expression, &placement)?;
+        let tween = load_character_tween(ctx, resources, character, expression, &placement)?;
         screen.current_characters.current.insert(
             match tween.current.position {
                 Some(Placement::Left) => 0,
@@ -103,7 +95,7 @@ pub fn load_load_node(
             .take()
             .map(|n| n.current.take_final_box().1);
         screen.current_background = Some(BackgroundContainer {
-            current: Box::new(load_background_tween(ctx, prev, name)?),
+            current: Box::new(load_background_tween(ctx, resources, prev, name)?),
         });
     } else if let novelscript::SceneNodeLoad::PlaySound { name, channel } = node {
         let channel = channel.as_deref().unwrap_or("sfx");
@@ -113,7 +105,7 @@ pub fn load_load_node(
             _ => panic!(),
         };
         println!("Loading {} {}", name, channel);
-        src.replace(ggez::audio::Source::new(ctx, format!("/audio/{}.mp3", name)).unwrap());
+        src.replace(resources.get_sound_source(ctx, &format!("/audio/{}", name)));
     } else if let novelscript::SceneNodeLoad::RemoveCharacter { name } = node {
         if let Some(idx) = screen
             .current_characters
@@ -131,12 +123,11 @@ pub fn load_data_node(
     ctx: &mut Context,
     screen: &mut GameScreen,
     node: &novelscript::SceneNodeData,
-    resources: &'static Resources,
+    resources: &'static ResourceManager,
     ui_sfx: Rc<RefCell<Option<ggez::audio::Source>>>,
-    config: &'static Config,
 ) -> ggez::GameResult {
     if let novelscript::SceneNodeData::Text { speaker, content } = node {
-        load_text(ctx, screen, resources, speaker, content, config)?;
+        load_text(ctx, screen, resources, speaker, content)?;
     } else if let novelscript::SceneNodeData::Choice(choices) = node {
         let mut stack = StackContainer::new(
             Position::Center.add_in(
@@ -151,10 +142,10 @@ pub fn load_data_node(
             stack.children.push((
                 Button::new(
                     ctx,
+                    resources,
                     stack.get_rect_for(n as f32),
                     d.clone(),
                     ui_sfx.clone(),
-                    &config,
                 )
                 .unwrap(),
                 n as u32,

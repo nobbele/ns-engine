@@ -8,7 +8,7 @@ use crate::tween::TweenBox;
 use super::{sprite::Sprite, Update};
 
 pub struct TextBox {
-    pub layer: Sprite<&'static graphics::Image>,
+    pub layer: Sprite<graphics::Image>,
     pub speaker: Option<Sprite<graphics::Text>>,
     pub content: Sprite<TweenBox<graphics::Text>>,
 }

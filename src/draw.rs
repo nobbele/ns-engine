@@ -1,14 +1,8 @@
-use crate::{
-    config::Config,
-    containers::{
+use crate::{containers::{
         gamescreen::{Action, GameScreen},
         sprite::Sprite,
         textbox::TextBox,
-    },
-    helpers::{points_to_rect, Position},
-    tween::Tweener,
-    Resources,
-};
+    }, helpers::{points_to_rect, Position}, resource_manager::ResourceManager, tween::Tweener};
 use ggez::{
     graphics::{self, DrawParam},
     Context,
@@ -17,16 +11,15 @@ use ggez::{
 pub fn load_text(
     ctx: &mut Context,
     screen: &mut GameScreen,
-    resources: &'static Resources,
+    resources: &'static ResourceManager,
     speaker: &Option<String>,
     content: &str,
-    config: &'static Config,
 ) -> ggez::GameResult {
     let layer_bounds = points_to_rect(
         Position::BottomLeft.add_in(ctx, glam::Vec2::new(0.0, 240.0)),
         Position::BottomRight.add_in(ctx, glam::Vec2::new(0.0, 40.0)),
     );
-    let layer_image = &resources.text_box;
+    let layer_image = resources.get_image(ctx, "/TextBox");
     let layer_params = graphics::DrawParam::new()
         .dest([layer_bounds.x, layer_bounds.y])
         .scale([
@@ -40,7 +33,7 @@ pub fn load_text(
         let speaker_text_params = DrawParam::new()
             .dest(Position::TopLeft.add_in_from(&layer_bounds, glam::Vec2::new(15.0, 20.0)))
             .color(
-                config
+                resources.get_config()
                     .characters
                     .get(speaker)
                     .copied()

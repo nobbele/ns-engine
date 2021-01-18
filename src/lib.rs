@@ -7,7 +7,8 @@ use ggez::{
     graphics,
 };
 use log::error;
-use states::{game::Resources, splash::SplashState, State, StateManager};
+use resource_manager::ResourceManager;
+use states::{splash::SplashState, State, StateManager};
 
 mod config;
 mod containers;
@@ -16,6 +17,7 @@ mod helpers;
 mod node;
 mod states;
 mod tween;
+mod resource_manager;
 
 pub fn run(resource_data: Option<Vec<u8>>) -> ggez::GameResult {
     simple_logging::log_to_file("run.log", log::LevelFilter::Info).unwrap();
@@ -69,7 +71,7 @@ pub fn run(resource_data: Option<Vec<u8>>) -> ggez::GameResult {
         user_config
     };
 
-    let config = Box::leak(Box::new(Config {
+    let config = Config {
         characters: char_config
             .into_iter()
             .map(|(name, m)| {
@@ -106,13 +108,11 @@ pub fn run(resource_data: Option<Vec<u8>>) -> ggez::GameResult {
             ),
         },
         user: Rc::new(RefCell::new(user_config)),
-    }));
+    };
 
-    let resources = Box::leak(Box::new(Resources {
-        text_box: graphics::Image::new(&mut ctx, "/TextBox.png")?,
-    }));
+    let resources = Box::leak(Box::new(ResourceManager::new(config)));
 
-    let state = State::Splash(SplashState::new(&mut ctx, resources, config));
+    let state = State::Splash(SplashState::new(&mut ctx, resources));
     let manager = StateManager::new(&mut ctx, state);
     event::run(ctx, event_loop, manager)
 }

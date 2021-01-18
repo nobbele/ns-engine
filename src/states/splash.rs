@@ -1,12 +1,9 @@
 use ggez::{graphics, graphics::Drawable, mint, Context, GameResult};
 use graphics::DrawParam;
 
-use crate::{
-    config::Config,
-    tween::{TargetTweener, TweenBox},
-};
+use crate::{resource_manager::ResourceManager, tween::{TargetTweener, TweenBox}};
 
-use super::{game::Resources, mainmenu::MainMenuState, State, StateEventHandler};
+use super::{mainmenu::MainMenuState, State, StateEventHandler};
 
 #[derive(PartialEq, Debug)]
 pub enum SplashAnimState {
@@ -18,16 +15,15 @@ pub struct SplashState {
     anim_state: SplashAnimState,
     splash_img: graphics::Image,
     splash: TweenBox<DrawParam>,
-    resources: &'static Resources,
-    config: &'static Config,
+    resources: &'static ResourceManager,
 }
 
 impl SplashState {
-    pub fn new(ctx: &mut Context, resources: &'static Resources, config: &'static Config) -> Self {
+    pub fn new(ctx: &mut Context, resources: &'static ResourceManager) -> Self {
         Self {
             anim_state: SplashAnimState::Enter,
             resources,
-            splash_img: graphics::Image::new(ctx, "/Splash.png").unwrap(),
+            splash_img: resources.get_image(ctx, "/Splash.png"),
             splash: Box::new(TargetTweener::new(
                 3.0,
                 DrawParam::new(),
@@ -36,7 +32,6 @@ impl SplashState {
                     param.scale = mint::Vector2 { x: scale, y: scale };
                 },
             )),
-            config,
         }
     }
 }
@@ -47,7 +42,6 @@ impl StateEventHandler for SplashState {
             Some(State::MainMenu(MainMenuState::new(
                 ctx,
                 self.resources,
-                self.config,
             )))
         } else {
             None

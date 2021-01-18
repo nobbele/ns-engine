@@ -1,9 +1,8 @@
 use std::{cell::RefCell, rc::Rc};
 
-use crate::helpers::Position;
+use crate::{helpers::Position, resource_manager::ResourceManager};
 use crate::node::{load_background_tween, load_character_tween};
 use crate::{
-    config::Config,
     containers::{
         background::BackgroundContainer, button::Button, character::CharacterContainer,
         gamescreen::Action, gamescreen::GameScreen, stackcontainer::Direction,
@@ -69,11 +68,10 @@ pub struct Audio {
 pub struct GameState {
     pub novel: novelscript::Novel,
     pub state: novelscript::NovelState,
-    pub resources: &'static Resources,
+    pub resources: &'static ResourceManager,
     pub continue_method: ContinueMethod,
     pub screen: GameScreen,
     pub audio: Audio,
-    pub config: &'static Config,
     pub is_end: bool,
 }
 
@@ -81,8 +79,7 @@ impl GameState {
     pub fn new(
         ctx: &mut Context,
         novel: novelscript::Novel,
-        resources: &'static Resources,
-        config: &'static Config,
+        resources: &'static ResourceManager,
     ) -> GameState {
         let mut state = GameState {
             state: novel.new_state("start"),
@@ -108,7 +105,6 @@ impl GameState {
                 },
                 is_screenshot: false,
             },
-            config,
             is_end: false,
         };
         for (n, d) in [
@@ -123,10 +119,10 @@ impl GameState {
             state.screen.ui.menu.children.push((
                 Button::new(
                     ctx,
+                    resources,
                     state.screen.ui.menu.get_rect_for(n as f32),
                     d.0.into(),
                     state.audio.ui_sfx.clone(),
-                    config,
                 )
                 .unwrap(),
                 d.1,
@@ -144,16 +140,11 @@ pub struct SaveData {
     pub current_characters: Vec<(String, String)>,
 }
 
-pub struct Resources {
-    pub text_box: graphics::Image,
-}
-
 pub fn consume_node(
     ctx: &mut Context,
     node: &novelscript::SceneNodeUser,
     screen: &mut GameScreen,
-    resources: &'static Resources,
-    config: &'static Config,
+    resources: &'static ResourceManager,
     audio: &mut Audio,
 ) -> GameResult {
     match node {
@@ -164,12 +155,12 @@ pub fn consume_node(
                 node,
                 resources,
                 audio.ui_sfx.clone(),
-                config,
             )?;
         }
         novelscript::SceneNodeUser::Load(node) => {
             crate::node::load_load_node(
                 ctx,
+                resources,
                 screen,
                 node.clone(),
                 &mut audio.sfx,
@@ -192,8 +183,7 @@ impl GameState {
                 ctx,
                 node,
                 &mut self.screen,
-                &self.resources,
-                &self.config,
+                self.resources,
                 &mut self.audio,
             )?;
             if let novelscript::SceneNodeUser::Load(..) = node {
@@ -240,14 +230,14 @@ impl GameState {
             self.state = savedata.state;
             self.screen.current_characters.current = Vec::new();
             for (name, expression) in savedata.current_characters {
-                let character = load_character_tween(ctx, name, expression, "").unwrap();
+                let character = load_character_tween(ctx, self.resources, name, expression, "").unwrap();
                 self.screen
                     .current_characters
                     .current
                     .push(Box::new(character));
             }
             if let Some(name) = savedata.current_background {
-                let background = load_background_tween(ctx, None, name).unwrap();
+                let background = load_background_tween(ctx, self.resources, None, name).unwrap();
                 self.screen.current_background = Some(BackgroundContainer {
                     current: Box::new(background),
                 });
@@ -281,7 +271,6 @@ impl StateEventHandler for GameState {
             Some(super::State::MainMenu(super::MainMenuState::new(
                 ctx,
                 self.resources,
-                self.config,
             )))
         } else {
             None
@@ -316,10 +305,11 @@ impl StateEventHandler for GameState {
             }
         }
         self.screen.update(dt);
+        let config = self.resources.get_config();
         if let Some(audio) = &mut self.audio.music {
             audio.set_volume(
-                self.config.user.borrow().master_volume
-                    * self.config.user.borrow().channel_volumes.0["music"],
+                config.user.borrow().master_volume
+                    *config.user.borrow().channel_volumes.0["music"],
             );
             if !audio.playing() {
                 audio.play(ctx)?;
@@ -327,8 +317,8 @@ impl StateEventHandler for GameState {
         }
         if let Some(audio) = self.audio.ui_sfx.borrow_mut().as_mut() {
             audio.set_volume(
-                self.config.user.borrow().master_volume
-                    * self.config.user.borrow().channel_volumes.0["sfx"],
+                config.user.borrow().master_volume
+                    * config.user.borrow().channel_volumes.0["sfx"],
             );
             // Check elapsed time to make sure we aren't trying to replay a ui sfx
             if !audio.playing() && audio.elapsed().as_millis() < 1 {
@@ -337,8 +327,8 @@ impl StateEventHandler for GameState {
         }
         if let Some(audio) = &mut self.audio.sfx {
             audio.set_volume(
-                self.config.user.borrow().master_volume
-                    * self.config.user.borrow().channel_volumes.0["sfx"],
+                config.user.borrow().master_volume
+                    * config.user.borrow().channel_volumes.0["sfx"],
             );
             if !audio.playing() {
                 audio.play(ctx)?;

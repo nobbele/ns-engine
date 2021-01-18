@@ -6,7 +6,7 @@ use ggez::{
 };
 use graphics::Mesh;
 
-use crate::config::Config;
+use crate::resource_manager::ResourceManager;
 
 use super::sprite::Sprite;
 
@@ -16,19 +16,19 @@ pub struct Button {
     pub text: graphics::Text,
     pub ui_sfx: Rc<RefCell<Option<ggez::audio::Source>>>,
     pub last_state: bool,
-    pub color: &'static Color,
-    pub on_hover_color: &'static Color,
-    pub on_click_color: &'static Color,
-    pub config: &'static Config,
+    pub color: Color,
+    pub on_hover_color: Color,
+    pub on_click_color: Color,
+    pub resources: &'static ResourceManager,
 }
 
 impl Button {
     pub fn new(
         ctx: &mut Context,
+        resources: &'static ResourceManager,
         rect: Rect,
         text: String,
         ui_sfx: Rc<RefCell<Option<ggez::audio::Source>>>,
-        config: &'static Config,
     ) -> ggez::GameResult<Self> {
         let mut text = graphics::Text::new(text);
         text.set_bounds(
@@ -38,6 +38,7 @@ impl Button {
             },
             graphics::Align::Center,
         );
+        let config = resources.get_config();
         Ok(Self {
             layer: Sprite {
                 content: Mesh::new_rounded_rectangle(
@@ -53,10 +54,10 @@ impl Button {
             text,
             ui_sfx,
             last_state: false,
-            color: &config.ui.button_color,
-            on_hover_color: &config.ui.button_highlight_color,
-            on_click_color: &config.ui.button_pressed_color,
-            config,
+            color: config.ui.button_color,
+            on_hover_color: config.ui.button_highlight_color,
+            on_click_color: config.ui.button_pressed_color,
+            resources,
         })
     }
 
@@ -68,9 +69,9 @@ impl Button {
         let rect = self.layer_dimensions(ctx);
         let is_hovered = rect.contains(mint::Point2 { x, y });
         self.layer.param.color = if is_hovered {
-            *self.on_hover_color
+            self.on_hover_color
         } else {
-            *self.color
+            self.color
         };
         if self.last_state != is_hovered {
             if is_hovered {
