@@ -74,6 +74,7 @@ pub struct GameState {
     pub screen: GameScreen,
     pub audio: Audio,
     pub config: &'static Config,
+    pub is_end: bool,
 }
 
 impl GameState {
@@ -108,6 +109,7 @@ impl GameState {
                 is_screenshot: false,
             },
             config,
+            is_end: false,
         };
         for (n, d) in [
             ("Save", MenuButtonId::Save),
@@ -197,6 +199,8 @@ impl GameState {
             if let novelscript::SceneNodeUser::Load(..) = node {
                 self.continue_text(ctx, true).unwrap();
             }
+        } else {
+            self.is_end = true;
         }
         Ok(())
     }
@@ -272,6 +276,18 @@ impl GameState {
 }
 
 impl StateEventHandler for GameState {
+    fn change_state(&mut self, ctx: &mut Context) -> Option<super::State> {
+        if self.is_end {
+            Some(super::State::MainMenu(super::MainMenuState::new(
+                ctx,
+                self.resources,
+                self.config,
+            )))
+        } else {
+            None
+        }
+    }
+
     fn update(&mut self, ctx: &mut Context) -> ggez::GameResult {
         let dt = ggez::timer::delta(ctx).as_secs_f32();
         if let Action::Text(textbox) = &self.screen.action {
