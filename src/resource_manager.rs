@@ -74,7 +74,7 @@ fn find_image(ctx: &mut Context, path: &str) -> Image {
         warn!("Not prepending / in file name wastes performance");
         s.insert(0, '/');
     }
-    if s.contains(".") {
+    if s.contains('.') {
         if ggez::filesystem::exists(ctx, &s) {
             return Image::new(ctx, s).unwrap();
         }
