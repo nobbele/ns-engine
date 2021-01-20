@@ -6,7 +6,6 @@ use crate::{
         config_window::{ConfigWindow, VolumeControl},
         mainmenuscreen::MainMenuScreen,
         mainmenuscreen::{MenuButtonId, Window},
-        rich_text::RichText,
         slider::Slider,
         sprite::Sprite,
         stackcontainer::Direction,
@@ -42,7 +41,6 @@ impl MainMenuState {
             resources,
             clicked_event: None,
             screen: MainMenuScreen {
-                text: RichText::new("Hello World [link](https://www.google.com)"),
                 background: resources.get_image(ctx, "/MainMenuBackground"),
                 panel: graphics::Mesh::new_rectangle(
                     ctx,
@@ -274,8 +272,6 @@ impl StateEventHandler for MainMenuState {
             }) {
                 self.clicked_event = Some(*e);
             }
-
-            self.screen.text.mouse_button_up_event(ctx, button, x, y);
         } else if let Window::Options(window) = &mut self.screen.window {
             for (slider, _) in &mut window.volume_controls.children {
                 slider.1.mouse_button_up_event(ctx, button, x, y);
