@@ -3,7 +3,17 @@ use std::{cell::RefCell, rc::Rc};
 use ggez::Context;
 use novelscript::SceneNodeLoad;
 
-use crate::{containers::{background::BackgroundContainer, gamescreen::GameScreen}, containers::{button::Button, gamescreen::Action, stackcontainer::StackContainer}, draw::load_text, helpers::Position, resource_manager::ResourceManager, states::game::Character, states::game::{Background, Placement}, tween::TargetTweener, tween::TransitionTweener};
+use crate::{
+    containers::{background::BackgroundContainer, gamescreen::GameScreen},
+    containers::{button::Button, gamescreen::Action, stackcontainer::StackContainer},
+    draw::load_text,
+    helpers::Position,
+    resource_manager::ResourceManager,
+    states::game::Character,
+    states::game::{Background, Placement},
+    tween::TargetTweener,
+    tween::TransitionTweener,
+};
 
 pub fn load_character_tween(
     ctx: &mut Context,
@@ -19,9 +29,9 @@ pub fn load_character_tween(
             image: resources.get_image(ctx, &format!("/char/{}/{}.png", name, expression)),
             name,
             expression,
-            position: match &placement[..] {
-                "Left" => Some(Placement::Left),
-                "Right" => Some(Placement::Right),
+            position: match placement[..].to_lowercase().as_str() {
+                "left" => Some(Placement::Left),
+                "right" => Some(Placement::Right),
                 _ => None,
             },
         },
@@ -52,10 +62,7 @@ pub fn load_background_tween(
         0.5,
         (
             prev,
-            Background::new(
-                resources.get_image(ctx, &format!("/bg/{}.png", name)),
-                name,
-            ),
+            Background::new(resources.get_image(ctx, &format!("/bg/{}.png", name)), name),
         ),
         |prev: &mut Option<Background>, to: &mut Background, progress| {
             if let Some(prev) = prev {
@@ -80,15 +87,26 @@ pub fn load_load_node(
         placement,
     } = node
     {
-        let tween = load_character_tween(ctx, resources, character, expression, &placement)?;
-        screen.current_characters.current.insert(
-            match tween.current.position {
-                Some(Placement::Left) => 0,
-                Some(Placement::Right) => screen.current_characters.current.len(),
-                None => 0,
-            },
-            Box::new(tween),
-        );
+        // TODO use this until a proper change character command is added to novelscript
+        if let Some(c) = screen
+            .current_characters
+            .current
+            .iter_mut()
+            .find(|c| c.get_current().name == character)
+        {
+            *c = Box::new(load_character_tween(ctx, resources, character, expression, &placement)?);
+            c.finish();
+        } else {
+            let tween = load_character_tween(ctx, resources, character, expression, &placement)?;
+            screen.current_characters.current.insert(
+                match tween.current.position {
+                    Some(Placement::Left) => 0,
+                    Some(Placement::Right) => screen.current_characters.current.len(),
+                    None => 0,
+                },
+                Box::new(tween),
+            );
+        }
     } else if let novelscript::SceneNodeLoad::Background { name } = node {
         let prev = screen
             .current_background

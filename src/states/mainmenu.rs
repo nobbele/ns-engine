@@ -1,6 +1,7 @@
 use std::{cell::RefCell, io::Read, path::PathBuf, rc::Rc};
 
-use crate::{containers::{
+use crate::{
+    containers::{
         button::Button,
         config_window::{ConfigWindow, VolumeControl},
         mainmenuscreen::MainMenuScreen,
@@ -10,7 +11,10 @@ use crate::{containers::{
         sprite::Sprite,
         stackcontainer::Direction,
         stackcontainer::StackContainer,
-    }, helpers::{points_to_rect, Position}, resource_manager::ResourceManager};
+    },
+    helpers::{points_to_rect, Position},
+    resource_manager::ResourceManager,
+};
 use ggez::{
     audio::SoundSource,
     event::{self, MouseButton},
@@ -21,10 +25,7 @@ use ggez::{
 };
 use graphics::{FillOptions, Rect, Text};
 
-use super::{
-    game::{GameState},
-    State, StateEventHandler,
-};
+use super::{game::GameState, State, StateEventHandler};
 
 pub struct MainMenuState {
     pub resources: &'static ResourceManager,
@@ -117,11 +118,7 @@ impl StateEventHandler for MainMenuState {
                 novel.add_scene(name, &data);
             }
 
-            Some(State::Game(GameState::new(
-                ctx,
-                novel,
-                self.resources,
-            )))
+            Some(State::Game(GameState::new(ctx, novel, self.resources)))
         } else {
             None
         }
@@ -172,11 +169,7 @@ impl StateEventHandler for MainMenuState {
                     };
                     for (n, &(d, v, s)) in [
                         ("Master", config.user.borrow().master_volume, "master"),
-                        (
-                            "SFX",
-                            config.user.borrow().channel_volumes.0["sfx"],
-                            "sfx",
-                        ),
+                        ("SFX", config.user.borrow().channel_volumes.0["sfx"], "sfx"),
                         (
                             "BGM",
                             config.user.borrow().channel_volumes.0["music"],
@@ -219,16 +212,14 @@ impl StateEventHandler for MainMenuState {
             }
         }
         self.music.set_volume(
-            config.user.borrow().master_volume
-                * config.user.borrow().channel_volumes.0["music"],
+            config.user.borrow().master_volume * config.user.borrow().channel_volumes.0["music"],
         );
         if !self.music.playing() {
             self.music.play(ctx)?;
         }
         if let Some(audio) = self.ui_sfx.borrow_mut().as_mut() {
             audio.set_volume(
-                config.user.borrow().master_volume
-                    * config.user.borrow().channel_volumes.0["sfx"],
+                config.user.borrow().master_volume * config.user.borrow().channel_volumes.0["sfx"],
             );
             if !audio.playing() && audio.elapsed().as_millis() < 1 {
                 audio.play(ctx)?;

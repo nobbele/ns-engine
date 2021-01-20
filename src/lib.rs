@@ -15,9 +15,9 @@ mod containers;
 mod draw;
 mod helpers;
 mod node;
+mod resource_manager;
 mod states;
 mod tween;
-mod resource_manager;
 
 pub fn run(resource_data: Option<Vec<u8>>) -> ggez::GameResult {
     simple_logging::log_to_file("run.log", log::LevelFilter::Info).unwrap();

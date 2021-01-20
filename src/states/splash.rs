@@ -1,7 +1,10 @@
 use ggez::{graphics, graphics::Drawable, mint, Context, GameResult};
 use graphics::DrawParam;
 
-use crate::{resource_manager::ResourceManager, tween::{TargetTweener, TweenBox}};
+use crate::{
+    resource_manager::ResourceManager,
+    tween::{TargetTweener, TweenBox},
+};
 
 use super::{mainmenu::MainMenuState, State, StateEventHandler};
 
@@ -39,10 +42,7 @@ impl SplashState {
 impl StateEventHandler for SplashState {
     fn change_state(&mut self, ctx: &mut Context) -> Option<State> {
         if self.anim_state == SplashAnimState::Exit && self.splash.is_done() {
-            Some(State::MainMenu(MainMenuState::new(
-                ctx,
-                self.resources,
-            )))
+            Some(State::MainMenu(MainMenuState::new(ctx, self.resources)))
         } else {
             None
         }

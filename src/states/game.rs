@@ -1,14 +1,12 @@
 use std::{cell::RefCell, rc::Rc};
 
-use crate::{helpers::Position, resource_manager::ResourceManager};
-use crate::node::{load_background_tween, load_character_tween};
-use crate::{
-    containers::{
-        background::BackgroundContainer, button::Button, character::CharacterContainer,
-        gamescreen::Action, gamescreen::GameScreen, stackcontainer::Direction,
-        stackcontainer::StackContainer, ui::MenuButtonId, ui::UI, Update,
-    },
+use crate::containers::{
+    background::BackgroundContainer, button::Button, character::CharacterContainer,
+    gamescreen::Action, gamescreen::GameScreen, stackcontainer::Direction,
+    stackcontainer::StackContainer, ui::MenuButtonId, ui::UI, Update,
 };
+use crate::node::{load_background_tween, load_character_tween};
+use crate::{helpers::Position, resource_manager::ResourceManager};
 use ggez::{
     self,
     event::{KeyCode, KeyMods, MouseButton},
@@ -149,13 +147,7 @@ pub fn consume_node(
 ) -> GameResult {
     match node {
         novelscript::SceneNodeUser::Data(node) => {
-            crate::node::load_data_node(
-                ctx,
-                screen,
-                node,
-                resources,
-                audio.ui_sfx.clone(),
-            )?;
+            crate::node::load_data_node(ctx, screen, node, resources, audio.ui_sfx.clone())?;
         }
         novelscript::SceneNodeUser::Load(node) => {
             crate::node::load_load_node(
@@ -179,13 +171,7 @@ impl GameState {
             self.novel.current(&mut self.state)
         };
         if let Some(node) = node {
-            consume_node(
-                ctx,
-                node,
-                &mut self.screen,
-                self.resources,
-                &mut self.audio,
-            )?;
+            consume_node(ctx, node, &mut self.screen, self.resources, &mut self.audio)?;
             if let novelscript::SceneNodeUser::Load(..) = node {
                 self.continue_text(ctx, true).unwrap();
             }
@@ -230,7 +216,8 @@ impl GameState {
             self.state = savedata.state;
             self.screen.current_characters.current = Vec::new();
             for (name, expression) in savedata.current_characters {
-                let character = load_character_tween(ctx, self.resources, name, expression, "").unwrap();
+                let character =
+                    load_character_tween(ctx, self.resources, name, expression, "").unwrap();
                 self.screen
                     .current_characters
                     .current
@@ -309,7 +296,7 @@ impl StateEventHandler for GameState {
         if let Some(audio) = &mut self.audio.music {
             audio.set_volume(
                 config.user.borrow().master_volume
-                    *config.user.borrow().channel_volumes.0["music"],
+                    * config.user.borrow().channel_volumes.0["music"],
             );
             if !audio.playing() {
                 audio.play(ctx)?;
@@ -317,8 +304,7 @@ impl StateEventHandler for GameState {
         }
         if let Some(audio) = self.audio.ui_sfx.borrow_mut().as_mut() {
             audio.set_volume(
-                config.user.borrow().master_volume
-                    * config.user.borrow().channel_volumes.0["sfx"],
+                config.user.borrow().master_volume * config.user.borrow().channel_volumes.0["sfx"],
             );
             // Check elapsed time to make sure we aren't trying to replay a ui sfx
             if !audio.playing() && audio.elapsed().as_millis() < 1 {
@@ -327,8 +313,7 @@ impl StateEventHandler for GameState {
         }
         if let Some(audio) = &mut self.audio.sfx {
             audio.set_volume(
-                config.user.borrow().master_volume
-                    * config.user.borrow().channel_volumes.0["sfx"],
+                config.user.borrow().master_volume * config.user.borrow().channel_volumes.0["sfx"],
             );
             if !audio.playing() {
                 audio.play(ctx)?;

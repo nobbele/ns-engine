@@ -1,8 +1,13 @@
-use crate::{containers::{
+use crate::{
+    containers::{
         gamescreen::{Action, GameScreen},
         sprite::Sprite,
         textbox::TextBox,
-    }, helpers::{points_to_rect, Position}, resource_manager::ResourceManager, tween::Tweener};
+    },
+    helpers::{points_to_rect, Position},
+    resource_manager::ResourceManager,
+    tween::Tweener,
+};
 use ggez::{
     graphics::{self, DrawParam},
     Context,
@@ -33,7 +38,8 @@ pub fn load_text(
         let speaker_text_params = DrawParam::new()
             .dest(Position::TopLeft.add_in_from(&layer_bounds, glam::Vec2::new(15.0, 20.0)))
             .color(
-                resources.get_config()
+                resources
+                    .get_config()
                     .characters
                     .get(speaker)
                     .copied()

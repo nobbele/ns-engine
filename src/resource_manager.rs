@@ -1,6 +1,10 @@
 use std::{cell::RefCell, collections::HashMap, sync::Arc};
 
-use ggez::{Context, audio::{SoundData, Source}, graphics::Image};
+use ggez::{
+    audio::{SoundData, Source},
+    graphics::Image,
+    Context,
+};
 use log::warn;
 
 use crate::config::Config;
@@ -17,13 +21,11 @@ pub struct ResourceManager(RefCell<ResourceManagerImpl>);
 
 impl ResourceManager {
     pub fn new(config: Config) -> Self {
-        ResourceManager(
-            RefCell::new(ResourceManagerImpl {
-                image_cache: HashMap::new(),
-                sound_cache: HashMap::new(),
-                config: Arc::new(config),
-            })
-        )
+        ResourceManager(RefCell::new(ResourceManagerImpl {
+            image_cache: HashMap::new(),
+            sound_cache: HashMap::new(),
+            config: Arc::new(config),
+        }))
     }
 
     pub fn get_image(&self, ctx: &mut Context, path: &str) -> Image {
@@ -33,7 +35,10 @@ impl ResourceManager {
         } else {
             drop(imp);
             let image = find_image(ctx, path);
-            self.0.borrow_mut().image_cache.insert(path.to_owned(), image.clone());
+            self.0
+                .borrow_mut()
+                .image_cache
+                .insert(path.to_owned(), image.clone());
             image
         }
     }
@@ -45,7 +50,10 @@ impl ResourceManager {
         } else {
             drop(imp);
             let sound = find_sound(ctx, path);
-            self.0.borrow_mut().sound_cache.insert(path.to_owned(), sound.clone());
+            self.0
+                .borrow_mut()
+                .sound_cache
+                .insert(path.to_owned(), sound.clone());
             sound
         }
     }
@@ -76,7 +84,7 @@ fn find_image(ctx: &mut Context, path: &str) -> Image {
             return Image::new(ctx, s).unwrap();
         }
         s.truncate(s.len() - 4);
-        
+
         s.push_str(".jpg");
         if ggez::filesystem::exists(ctx, &s) {
             return Image::new(ctx, s).unwrap();
