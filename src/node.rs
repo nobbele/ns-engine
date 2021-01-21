@@ -120,7 +120,7 @@ pub fn load_load_node(
         let src = match channel {
             "sfx" => sfx,
             "music" => music,
-            _ => panic!(),
+            _ => panic!("invalid channel `{}` for sound `{}`", channel, name),
         };
         println!("Loading {} {}", name, channel);
         src.replace(resources.get_sound_source(ctx, &format!("/audio/{}", name)));
