@@ -19,6 +19,8 @@ mod resource_manager;
 mod states;
 mod tween;
 
+pub static mut CREDITS_TEXT: &str = "here are the credits";
+
 pub fn run(resource_data: Option<Vec<u8>>) -> ggez::GameResult {
     simple_logging::log_to_file("run.log", log::LevelFilter::Info).unwrap();
     let default_hook = std::panic::take_hook();
@@ -42,7 +44,7 @@ pub fn run(resource_data: Option<Vec<u8>>) -> ggez::GameResult {
         .window_mode(
             WindowMode::default()
                 .dimensions(1280.0, 720.0)
-                .resizable(true),
+                .resizable(false),
         );
     if let Some(data) = resource_data {
         cb = cb.add_zipfile_bytes(data);
