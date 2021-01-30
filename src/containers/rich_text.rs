@@ -1,7 +1,6 @@
 use ggez::{
-    event::MouseButton,
-    graphics::{Color, Drawable, Rect, Text, TextFragment},
-    mint, Context,
+    graphics::{Color, Drawable, Text, TextFragment},
+    Context,
 };
 
 #[derive(Debug)]
@@ -27,12 +26,12 @@ impl RichText {
 
         let mut chars_it = content.chars().enumerate();
 
-        // count newlines to offset the character index
-        let mut newline_count = 0;
+        // count newlines, link length and parse character to offset the character index
+        let mut skip_char_count = 0;
 
         while let Some((n, c)) = chars_it.by_ref().next() {
             if c == '\n' {
-                newline_count += 1;
+                skip_char_count += 1;
             }
             if c == '[' {
                 let link_text = chars_it
@@ -52,9 +51,10 @@ impl RichText {
                     .map(|(_, c)| c)
                     .take_while(|c| *c != ')')
                     .collect::<String>();
+                let link_url_len = link_url.len();
                 formatting.push(FormatEntry {
-                    start: n - newline_count,
-                    end: n + link_text.len() - newline_count,
+                    start: n - skip_char_count - 1, // skip first (
+                    end: n + link_text.len() - skip_char_count - 1, // skip first (
                     format: Format::Link(link_url),
                 });
                 for c in link_text.chars() {
@@ -62,6 +62,7 @@ impl RichText {
                     frag.color = Some(Color::from_rgb_u32(0xCC_66_00));
                     text.add(frag);
                 }
+                skip_char_count += link_url_len + 4 // []() is 4 characters
             } else {
                 text.add(c);
             }
@@ -69,6 +70,8 @@ impl RichText {
 
         Self { formatting, text }
     }
+
+    /* Mouse up is impl'd in sprite.rs */
 }
 
 impl Drawable for RichText {

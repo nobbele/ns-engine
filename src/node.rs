@@ -94,7 +94,9 @@ pub fn load_load_node(
             .iter_mut()
             .find(|c| c.get_current().name == character)
         {
-            *c = Box::new(load_character_tween(ctx, resources, character, expression, &placement)?);
+            *c = Box::new(load_character_tween(
+                ctx, resources, character, expression, &placement,
+            )?);
             c.finish();
         } else {
             let tween = load_character_tween(ctx, resources, character, expression, &placement)?;

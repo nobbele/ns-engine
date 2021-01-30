@@ -26,7 +26,9 @@ impl<T: Drawable> Drawable for Sprite<T> {
         new_param.scale.x *= param.scale.x;
         new_param.scale.y *= param.scale.y;
 
-        self.content.draw(ctx, new_param)
+        self.content.draw(ctx, new_param)?;
+
+        Ok(())
     }
 }
 
@@ -38,20 +40,12 @@ impl Sprite<RichText> {
         x: f32,
         y: f32,
     ) {
-        /*for pos in self.content.text.positions(ctx).iter() {
-            println!("{:?}", pos);
-        }*/
         for format in &self.content.formatting {
-            print!("{}..{} -> ", format.start, format.end);
             let positions = &self.content.text.positions(ctx)[format.start..format.end];
-            println!(
-                "{:?}",
-                (positions[0].y - 11.75862) / ggez::graphics::DEFAULT_FONT_SCALE
-            );
             let bounds = Rect {
                 x: positions[0].x + self.param.dest.x,
                 y: positions[0].y + self.param.dest.y - ggez::graphics::DEFAULT_FONT_SCALE,
-                w: positions[positions.len() - 1].x - positions[0].x,
+                w: (positions[positions.len() - 1].x + ggez::graphics::DEFAULT_FONT_SCALE) - positions[0].x,
                 h: positions[positions.len() - 1].y
                     - (positions[0].y - ggez::graphics::DEFAULT_FONT_SCALE),
             };
