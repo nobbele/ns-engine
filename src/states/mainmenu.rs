@@ -4,8 +4,10 @@ use crate::{
     containers::{
         button::Button,
         config_window::{ConfigWindow, VolumeControl},
+        credits_window::CreditsWindow,
         mainmenuscreen::MainMenuScreen,
         mainmenuscreen::{MenuButtonId, Window},
+        rich_text::RichText,
         slider::Slider,
         sprite::Sprite,
         stackcontainer::Direction,
@@ -13,6 +15,7 @@ use crate::{
     },
     helpers::{points_to_rect, Position},
     resource_manager::ResourceManager,
+    CREDITS_TEXT,
 };
 use ggez::{
     audio::SoundSource,
@@ -20,8 +23,10 @@ use ggez::{
     filesystem,
     graphics::DrawParam,
     graphics::{self, DrawMode, Drawable},
+    mint::Point2,
     Context,
 };
+use glam::vec2;
 use graphics::{FillOptions, Rect, Text};
 
 use super::{game::GameState, State, StateEventHandler};
@@ -79,6 +84,7 @@ impl MainMenuState {
         for (n, d) in [
             ("Start", MenuButtonId::Start),
             ("Options", MenuButtonId::Options),
+            ("Credits", MenuButtonId::Credits),
             ("Quit", MenuButtonId::Quit),
         ]
         .iter()
@@ -200,6 +206,53 @@ impl StateEventHandler for MainMenuState {
                     }
                     self.screen.window = Window::Options(config_window);
                 }
+                MenuButtonId::Credits => {
+                    let credits_window = CreditsWindow {
+                        panel: graphics::Mesh::new_rectangle(
+                            ctx,
+                            DrawMode::Fill(FillOptions::DEFAULT),
+                            Rect {
+                                x: 0.0,
+                                y: 0.0,
+                                w: crate::helpers::target_size().x,
+                                h: crate::helpers::target_size().y,
+                            },
+                            graphics::Color {
+                                r: 0.0,
+                                g: 0.0,
+                                b: 0.0,
+                                a: 0.9,
+                            },
+                        )
+                        .unwrap(),
+                        text: Sprite {
+                            content: RichText::new(unsafe { CREDITS_TEXT }, {
+                                let mut text = Text::default();
+                                text.set_bounds(
+                                    Point2 {
+                                        x: crate::helpers::target_size().x - 50.0,
+                                        y: crate::helpers::target_size().y - 50.0,
+                                    },
+                                    graphics::Align::Left,
+                                );
+                                text
+                            }),
+                            param: DrawParam::new().dest(vec2(50.0, 50.0)),
+                        },
+                        exit_button: Button::new(
+                            ctx,
+                            self.resources,
+                            points_to_rect(
+                                Position::TopRight.add_in(ctx, glam::Vec2::new(55.0, 5.0)),
+                                Position::TopRight.add_in(ctx, glam::Vec2::new(5.0, 55.0)),
+                            ),
+                            "X".into(),
+                            self.ui_sfx.clone(),
+                        )
+                        .unwrap(),
+                    };
+                    self.screen.window = Window::Credits(credits_window);
+                }
                 MenuButtonId::Quit => {
                     event::quit(ctx);
                 }
@@ -250,6 +303,8 @@ impl StateEventHandler for MainMenuState {
                     }
                 }
             }
+        } else if let Window::Credits(window) = &mut self.screen.window {
+            window.exit_button.mouse_motion_event(ctx, x, y);
         }
     }
 
@@ -276,6 +331,12 @@ impl StateEventHandler for MainMenuState {
             for (slider, _) in &mut window.volume_controls.children {
                 slider.1.mouse_button_up_event(ctx, button, x, y);
             }
+            if window.exit_button.click_event(ctx, x, y) {
+                self.resources.get_config().user.borrow().update_data(ctx);
+                self.screen.window = Window::None;
+            }
+        } else if let Window::Credits(window) = &mut self.screen.window {
+            window.text.mouse_button_up_event(ctx, button, x, y);
             if window.exit_button.click_event(ctx, x, y) {
                 self.resources.get_config().user.borrow().update_data(ctx);
                 self.screen.window = Window::None;

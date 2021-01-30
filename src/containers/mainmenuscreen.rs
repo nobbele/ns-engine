@@ -5,7 +5,7 @@ use ggez::{
 use graphics::DrawParam;
 
 use super::{
-    button::Button, config_window::ConfigWindow,
+    button::Button, config_window::ConfigWindow, credits_window::CreditsWindow,
     stackcontainer::StackContainer, Update,
 };
 
@@ -13,6 +13,7 @@ use super::{
 pub enum MenuButtonId {
     Start,
     Options,
+    Credits,
     Quit,
 }
 
@@ -20,6 +21,7 @@ pub enum MenuButtonId {
 pub enum Window {
     None,
     Options(ConfigWindow),
+    Credits(CreditsWindow),
 }
 
 pub struct MainMenuScreen {
@@ -48,7 +50,9 @@ impl Drawable for MainMenuScreen {
         }
 
         if let Window::Options(window) = &self.window {
-            window.draw(ctx, param).unwrap();
+            window.draw(ctx, param)?;
+        } else if let Window::Credits(window) = &self.window {
+            window.draw(ctx, param)?;
         }
 
         Ok(())

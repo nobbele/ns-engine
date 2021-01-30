@@ -1,13 +1,14 @@
 use ggez::{
-    event::MouseButton,
-    graphics::{Drawable, Rect, Text},
-    mint, Context,
+    graphics::{Color, Drawable, Text, TextFragment},
+    Context,
 };
 
+#[derive(Debug)]
 pub enum Format {
     Link(String), // the url
 }
 
+#[derive(Debug)]
 pub struct FormatEntry {
     pub format: Format,
     pub start: usize,
@@ -15,18 +16,23 @@ pub struct FormatEntry {
 }
 
 pub struct RichText {
-    formatting: Vec<FormatEntry>,
-    text: Text,
+    pub formatting: Vec<FormatEntry>,
+    pub text: Text,
 }
 
 impl RichText {
-    pub fn new(content: &str) -> Self {
-        let mut text = Text::default();
+    pub fn new(content: &str, mut text: Text) -> Self {
         let mut formatting = Vec::new();
 
         let mut chars_it = content.chars().enumerate();
 
+        // count newlines, link length and parse character to offset the character index
+        let mut skip_char_count = 0;
+
         while let Some((n, c)) = chars_it.by_ref().next() {
+            if c == '\n' {
+                skip_char_count += 1;
+            }
             if c == '[' {
                 let link_text = chars_it
                     .by_ref()
@@ -45,14 +51,18 @@ impl RichText {
                     .map(|(_, c)| c)
                     .take_while(|c| *c != ')')
                     .collect::<String>();
+                let link_url_len = link_url.len();
                 formatting.push(FormatEntry {
-                    start: n,
-                    end: n + link_text.len(),
+                    start: n - skip_char_count - 1, // skip first (
+                    end: n + link_text.len() - skip_char_count - 1, // skip first (
                     format: Format::Link(link_url),
                 });
                 for c in link_text.chars() {
-                    text.add(c);
+                    let mut frag: TextFragment = c.into();
+                    frag.color = Some(Color::from_rgb_u32(0xCC_66_00));
+                    text.add(frag);
                 }
+                skip_char_count += link_url_len + 4 // []() is 4 characters
             } else {
                 text.add(c);
             }
@@ -61,31 +71,7 @@ impl RichText {
         Self { formatting, text }
     }
 
-    pub fn mouse_button_up_event(
-        &mut self,
-        ctx: &mut Context,
-        _button: MouseButton,
-        x: f32,
-        y: f32,
-    ) {
-        for format in &self.formatting {
-            let positions = &self.text.positions(ctx)[format.start..format.end];
-            let bounds = Rect {
-                x: positions[0].x,
-                y: positions[0].y - ggez::graphics::DEFAULT_FONT_SCALE,
-                w: positions[positions.len() - 1].x - positions[0].x,
-                h: positions[positions.len() - 1].y
-                    - (positions[0].y - ggez::graphics::DEFAULT_FONT_SCALE),
-            };
-            if bounds.contains(mint::Point2 { x, y }) {
-                match &format.format {
-                    Format::Link(url) => {
-                        webbrowser::open(url).unwrap();
-                    }
-                }
-            }
-        }
-    }
+    /* Mouse up is impl'd in sprite.rs */
 }
 
 impl Drawable for RichText {
