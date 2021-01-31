@@ -90,6 +90,10 @@ pub fn run(resource_data: Option<Vec<u8>>) -> ggez::GameResult {
             })
             .collect(),
         ui: UIConfig {
+            title: ui_config
+                .get("title")
+                .cloned()
+                .unwrap_or_else(|| "Untitled game".to_string()),
             button_color: graphics::Color::from_rgb_u32(
                 ui_config
                     .get("button_color")

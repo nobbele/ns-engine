@@ -390,8 +390,20 @@ impl StateEventHandler for GameState {
             match e {
                 MenuButtonId::Save => self.on_save_click(ctx),
                 MenuButtonId::Load => self.on_load_click(ctx),
-                MenuButtonId::Skip => self.continue_method = ContinueMethod::Skip(0.0),
-                MenuButtonId::Auto => self.continue_method = ContinueMethod::Auto(0.0),
+                MenuButtonId::Skip => {
+                    self.continue_method = if let ContinueMethod::Skip(..) = self.continue_method {
+                        ContinueMethod::Normal
+                    } else {
+                        ContinueMethod::Skip(0.0)
+                    };
+                }
+                MenuButtonId::Auto => {
+                    self.continue_method = if let ContinueMethod::Auto(..) = self.continue_method {
+                        ContinueMethod::Normal
+                    } else {
+                        ContinueMethod::Auto(0.0)
+                    }
+                }
             }
             clicked_anything = true;
         }

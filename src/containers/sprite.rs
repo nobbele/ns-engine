@@ -45,7 +45,8 @@ impl Sprite<RichText> {
             let bounds = Rect {
                 x: positions[0].x + self.param.dest.x,
                 y: positions[0].y + self.param.dest.y - ggez::graphics::DEFAULT_FONT_SCALE,
-                w: (positions[positions.len() - 1].x + ggez::graphics::DEFAULT_FONT_SCALE) - positions[0].x,
+                w: (positions[positions.len() - 1].x + ggez::graphics::DEFAULT_FONT_SCALE)
+                    - positions[0].x,
                 h: positions[positions.len() - 1].y
                     - (positions[0].y - ggez::graphics::DEFAULT_FONT_SCALE),
             };

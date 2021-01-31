@@ -64,6 +64,16 @@ impl MainMenuState {
                     },
                 )
                 .unwrap(),
+                title: Sprite {
+                    content: Text::new(resources.get_config().ui.title.clone()),
+                    param: DrawParam::new().dest(Position::TopLeft.add_in(
+                        ctx,
+                        glam::Vec2::new(
+                            crate::helpers::target_size().x / (2.5 * 2.0) - (300.0 / 2.0),
+                            100.0,
+                        ),
+                    )),
+                },
                 menu: StackContainer::new(
                     Position::TopLeft.add_in(
                         ctx,

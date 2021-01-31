@@ -53,7 +53,7 @@ impl RichText {
                     .collect::<String>();
                 let link_url_len = link_url.len();
                 formatting.push(FormatEntry {
-                    start: n - skip_char_count - 1, // skip first (
+                    start: n - skip_char_count - 1,                 // skip first (
                     end: n + link_text.len() - skip_char_count - 1, // skip first (
                     format: Format::Link(link_url),
                 });

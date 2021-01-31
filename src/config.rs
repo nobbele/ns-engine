@@ -21,6 +21,7 @@ impl Default for CharacterConfig {
 
 #[derive(Debug)]
 pub struct UIConfig {
+    pub title: String,
     pub button_color: Color,
     pub button_pressed_color: Color,
     pub button_highlight_color: Color,

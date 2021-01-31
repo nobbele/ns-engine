@@ -2,10 +2,10 @@ use ggez::{
     graphics::{self, Drawable},
     mint, Context,
 };
-use graphics::DrawParam;
+use graphics::{DrawParam, Text};
 
 use super::{
-    button::Button, config_window::ConfigWindow, credits_window::CreditsWindow,
+    button::Button, config_window::ConfigWindow, credits_window::CreditsWindow, sprite::Sprite,
     stackcontainer::StackContainer, Update,
 };
 
@@ -27,6 +27,7 @@ pub enum Window {
 pub struct MainMenuScreen {
     pub background: graphics::Image,
     pub panel: graphics::Mesh,
+    pub title: Sprite<Text>,
     pub menu: StackContainer<Button, MenuButtonId>,
     pub window: Window,
 }
@@ -54,6 +55,8 @@ impl Drawable for MainMenuScreen {
         } else if let Window::Credits(window) = &self.window {
             window.draw(ctx, param)?;
         }
+
+        self.title.draw(ctx, param)?;
 
         Ok(())
     }
