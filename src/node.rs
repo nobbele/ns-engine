@@ -20,7 +20,7 @@ pub fn load_character_tween(
     resources: &'static ResourceManager,
     name: String,
     expression: String,
-    placement: &str,
+    placement: Placement,
 ) -> ggez::GameResult<TargetTweener<Character, impl Fn(&mut Character, f32)>> {
     Ok(TargetTweener::new(
         0.75,
@@ -29,11 +29,7 @@ pub fn load_character_tween(
             image: resources.get_image(ctx, &format!("/char/{}/{}.png", name, expression)),
             name,
             expression,
-            position: match placement[..].to_lowercase().as_str() {
-                "left" => Some(Placement::Left),
-                "right" => Some(Placement::Right),
-                _ => None,
-            },
+            position: placement,
         },
         |cur: &mut Character, progress| {
             cur.alpha = progress;
@@ -94,17 +90,31 @@ pub fn load_load_node(
             .iter_mut()
             .find(|c| c.get_current().name == character)
         {
+            let current = c.get_current();
             *c = Box::new(load_character_tween(
-                ctx, resources, character, expression, &placement,
+                ctx,
+                resources,
+                character,
+                expression.unwrap_or(current.expression.clone()),
+                placement
+                    .map(|s| Placement::parse(s.to_lowercase().as_str()))
+                    .unwrap_or(current.position),
             )?);
             c.finish();
         } else {
-            let tween = load_character_tween(ctx, resources, character, expression, &placement)?;
+            let tween = load_character_tween(
+                ctx,
+                resources,
+                character,
+                expression.unwrap_or_else(|| "Normal".to_owned()),
+                placement
+                    .map(|s| Placement::parse(s.to_lowercase().as_str()))
+                    .unwrap_or(Placement::Left),
+            )?;
             screen.current_characters.current.insert(
                 match tween.current.position {
-                    Some(Placement::Left) => 0,
-                    Some(Placement::Right) => screen.current_characters.current.len(),
-                    None => 0,
+                    Placement::Left => 0,
+                    Placement::Right => screen.current_characters.current.len(),
                 },
                 Box::new(tween),
             );
@@ -118,8 +128,7 @@ pub fn load_load_node(
             current: Box::new(load_background_tween(ctx, resources, prev, name)?),
         });
     } else if let novelscript::SceneNodeLoad::PlaySound { name, channel } = node {
-        let channel = channel.as_deref().unwrap_or("sfx");
-        let src = match channel {
+        let src = match channel.as_str() {
             "sfx" => sfx,
             "music" => music,
             _ => panic!("invalid channel `{}` for sound `{}`", channel, name),

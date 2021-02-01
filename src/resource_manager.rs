@@ -91,7 +91,7 @@ fn find_image(ctx: &mut Context, path: &str) -> Image {
         }
         s.truncate(s.len() - 4);
     }
-    panic!("Unable to find image");
+    panic!("Unable to find image {}", path);
 }
 
 fn find_sound(ctx: &mut Context, path: &str) -> SoundData {

@@ -20,16 +20,27 @@ use ggez::{
 
 use super::StateEventHandler;
 
+#[derive(Copy, Clone)]
 pub enum Placement {
     Left,
     Right,
+}
+
+impl Placement {
+    pub fn parse(v: &str) -> Self {
+        match v {
+            "left" => Placement::Left,
+            "right" => Placement::Right,
+            _ => Placement::Left,
+        }
+    }
 }
 
 pub struct Character {
     pub name: String,
     pub expression: String,
     pub image: graphics::Image,
-    pub position: Option<Placement>,
+    pub position: Placement,
     pub alpha: f32,
 }
 
@@ -217,7 +228,8 @@ impl GameState {
             self.screen.current_characters.current = Vec::new();
             for (name, expression) in savedata.current_characters {
                 let character =
-                    load_character_tween(ctx, self.resources, name, expression, "").unwrap();
+                    load_character_tween(ctx, self.resources, name, expression, Placement::Left)
+                        .unwrap();
                 self.screen
                     .current_characters
                     .current

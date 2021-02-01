@@ -1,12 +1,12 @@
-play walking sfx
+play walking on sfx
 
 _: “I try to always help people who look to be in need of help or comfort”
 
-load Yukio normal at Left
+load Yukio { }
 
 _: Hey there, how are you?
 
-load Souma normal at Left
+load Souma { }
 
 Girl: *sniffle* I’m fine.
 
