@@ -21,7 +21,7 @@ path = "src/main_dist.rs"
 [dependencies]
 ggez = { git = "https://github.com/nobbele/ggez", branch = "devel" }
 novelscript = { git = "https://github.com/nobbele/novelscript" }
-nsconfig = { git = "https://github.com/nobbele/ns-config" }
+rust-ini = "0.16"
 serde_json = "1.0"
 serde = "1.0.117"
 rodio = "0.13.0"

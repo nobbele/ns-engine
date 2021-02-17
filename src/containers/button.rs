@@ -45,7 +45,7 @@ impl Button {
                     ctx,
                     graphics::DrawMode::fill(),
                     rect,
-                    100.0,
+                    20.0,
                     graphics::WHITE,
                 )
                 .unwrap(),

@@ -1,4 +1,4 @@
-use std::{cell::RefCell, io::Read, rc::Rc};
+use std::{cell::RefCell, rc::Rc};
 
 use config::{CharacterConfig, Config, UIConfig, UserConfig};
 use ggez::event;
@@ -51,17 +51,15 @@ pub fn run(resource_data: Option<Vec<u8>>) -> ggez::GameResult {
     }
     let (mut ctx, event_loop) = cb.build()?;
 
-    let mut config_file = ggez::filesystem::open(&mut ctx, "/characters.nsconf").unwrap();
-    let mut config_content = String::new();
-    config_file.read_to_string(&mut config_content).unwrap();
-    let char_config = nsconfig::parse(&config_content).unwrap();
+    let mut config_file = ggez::filesystem::open(&mut ctx, "/characters.ini").unwrap();
+    let char_config = ini::Ini::read_from(&mut config_file).unwrap();
 
-    let mut config_file = ggez::filesystem::open(&mut ctx, "/engine.nsconf").unwrap();
-    let mut config_content = String::new();
-    config_file.read_to_string(&mut config_content).unwrap();
-    let engine_config = nsconfig::parse(&config_content).unwrap();
+    let mut config_file = ggez::filesystem::open(&mut ctx, "/engine.ini").unwrap();
+    let engine_config = ini::Ini::read_from(&mut config_file).unwrap();
 
-    let ui_config = &engine_config["UI"];
+    let ui_config = engine_config
+        .section(Some("UI"))
+        .expect("A UI Section must be declared");
 
     let user_config = if ggez::filesystem::exists(&ctx, "/config.json") {
         println!("Loading user config");
@@ -78,11 +76,11 @@ pub fn run(resource_data: Option<Vec<u8>>) -> ggez::GameResult {
             .into_iter()
             .map(|(name, m)| {
                 (
-                    name,
+                    name.expect("No support for nameless characters").to_owned(),
                     CharacterConfig {
                         color: graphics::Color::from_rgb_u32(
                             m.get("color")
-                                .map(|s| u32::from_str_radix(s.as_str(), 16).unwrap())
+                                .map(|s| u32::from_str_radix(s, 16).unwrap())
                                 .unwrap_or_default(),
                         ),
                     },
@@ -92,24 +90,24 @@ pub fn run(resource_data: Option<Vec<u8>>) -> ggez::GameResult {
         ui: UIConfig {
             title: ui_config
                 .get("title")
-                .cloned()
+                .map(|s| s.to_owned())
                 .unwrap_or_else(|| "Untitled game".to_string()),
             button_color: graphics::Color::from_rgb_u32(
                 ui_config
                     .get("button_color")
-                    .map(|s| u32::from_str_radix(s.as_str(), 16).unwrap())
+                    .map(|s| u32::from_str_radix(s, 16).unwrap())
                     .unwrap_or_default(),
             ),
             button_pressed_color: graphics::Color::from_rgb_u32(
                 ui_config
                     .get("button_pressed_color")
-                    .map(|s| u32::from_str_radix(s.as_str(), 16).unwrap())
+                    .map(|s| u32::from_str_radix(s, 16).unwrap())
                     .unwrap_or_default(),
             ),
             button_highlight_color: graphics::Color::from_rgb_u32(
                 ui_config
                     .get("button_highlight_color")
-                    .map(|s| u32::from_str_radix(s.as_str(), 16).unwrap())
+                    .map(|s| u32::from_str_radix(s, 16).unwrap())
                     .unwrap_or_default(),
             ),
         },
