@@ -15,7 +15,6 @@ use crate::{
     },
     helpers::{points_to_rect, Position},
     resource_manager::ResourceManager,
-    CREDITS_TEXT,
 };
 use ggez::{
     audio::SoundSource,
@@ -236,7 +235,7 @@ impl StateEventHandler for MainMenuState {
                         )
                         .unwrap(),
                         text: Sprite {
-                            content: RichText::new(unsafe { CREDITS_TEXT }, {
+                            content: RichText::new(&config.credits, {
                                 let mut text = Text::default();
                                 text.set_bounds(
                                     Point2 {

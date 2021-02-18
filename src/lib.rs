@@ -1,4 +1,4 @@
-use std::{cell::RefCell, rc::Rc};
+use std::{cell::RefCell, io::Read, rc::Rc};
 
 use config::{CharacterConfig, Config, UIConfig, UserConfig};
 use ggez::event;
@@ -18,8 +18,6 @@ mod node;
 mod resource_manager;
 mod states;
 mod tween;
-
-pub static mut CREDITS_TEXT: &str = "here are the credits";
 
 pub fn run(resource_data: Option<Vec<u8>>) -> ggez::GameResult {
     simple_logging::log_to_file("run.log", log::LevelFilter::Info).unwrap();
@@ -87,6 +85,11 @@ pub fn run(resource_data: Option<Vec<u8>>) -> ggez::GameResult {
                 )
             })
             .collect(),
+        credits: {
+            let mut content = String::new();
+            ggez::filesystem::open(&mut ctx, "/credits.txt")?.read_to_string(&mut content)?;
+            content
+        },
         ui: UIConfig {
             title: ui_config
                 .get("title")

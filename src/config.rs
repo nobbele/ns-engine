@@ -81,6 +81,7 @@ impl Default for UserConfig {
 #[derive(Debug)]
 pub struct Config {
     pub characters: HashMap<String, CharacterConfig>,
+    pub credits: String,
     pub ui: UIConfig,
     pub user: Rc<RefCell<UserConfig>>,
 }
