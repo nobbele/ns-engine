@@ -341,13 +341,21 @@ impl StateEventHandler for MainMenuState {
                 slider.1.mouse_button_up_event(ctx, button, x, y);
             }
             if window.exit_button.click_event(ctx, x, y) {
-                self.resources.get_config().user.borrow().update_data(ctx);
+                self.resources
+                    .get_config()
+                    .user
+                    .borrow()
+                    .update_data(ctx, &self.resources.get_config().short_game_name);
                 self.screen.window = Window::None;
             }
         } else if let Window::Credits(window) = &mut self.screen.window {
             window.text.mouse_button_up_event(ctx, button, x, y);
             if window.exit_button.click_event(ctx, x, y) {
-                self.resources.get_config().user.borrow().update_data(ctx);
+                self.resources
+                    .get_config()
+                    .user
+                    .borrow()
+                    .update_data(ctx, &self.resources.get_config().short_game_name);
                 self.screen.window = Window::None;
             }
         }

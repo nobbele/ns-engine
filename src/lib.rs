@@ -59,17 +59,27 @@ pub fn run(resource_data: Option<Vec<u8>>) -> ggez::GameResult {
         .section(Some("UI"))
         .expect("A UI Section must be declared");
 
-    let user_config = if ggez::filesystem::exists(&ctx, "/config.json") {
+    let root_config = engine_config
+        .section(None::<String>)
+        .expect("A root Section must be declared");
+
+    let short_game_name = root_config
+        .get("short_game_name")
+        .expect("Expected a short_game_name property");
+
+    let path = format!("/{}/config.json", short_game_name);
+    let user_config = if ggez::filesystem::exists(&ctx, &path) {
         println!("Loading user config");
-        let file = ggez::filesystem::open(&mut ctx, "/config.json").unwrap();
+        let file = ggez::filesystem::open(&mut ctx, path).unwrap();
         serde_json::from_reader(file).unwrap()
     } else {
         let user_config = UserConfig::default();
-        user_config.update_data(&mut ctx);
+        user_config.update_data(&mut ctx, short_game_name);
         user_config
     };
 
     let config = Config {
+        short_game_name: short_game_name.to_owned(),
         characters: char_config
             .into_iter()
             .map(|(name, m)| {

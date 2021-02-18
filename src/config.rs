@@ -1,4 +1,4 @@
-use std::{cell::RefCell, collections::HashMap, rc::Rc};
+use std::{cell::RefCell, collections::HashMap, path::PathBuf, rc::Rc};
 
 use ggez::{
     filesystem::OpenOptions,
@@ -50,12 +50,16 @@ pub struct UserConfig {
 }
 
 impl UserConfig {
-    pub fn update_data(&self, ctx: &mut Context) {
-        if ggez::filesystem::exists(ctx, "/config.json") {
+    pub fn update_data(&self, ctx: &mut Context, short_game_name: &str) {
+        let path = PathBuf::new()
+            .join("/")
+            .join(short_game_name)
+            .join("config.json");
+        if ggez::filesystem::exists(ctx, &path) {
             println!("Updating user config");
             let file = ggez::filesystem::open_options(
                 ctx,
-                "/config.json",
+                &path,
                 OpenOptions::new().write(true).truncate(true),
             )
             .unwrap();
@@ -63,7 +67,8 @@ impl UserConfig {
         } else {
             println!("Creating user config");
             let user_config = UserConfig::default();
-            let file = ggez::filesystem::create(ctx, "/config.json").unwrap();
+            ggez::filesystem::create_dir(ctx, path.parent().unwrap()).unwrap();
+            let file = ggez::filesystem::create(ctx, path).unwrap();
             serde_json::to_writer(file, &user_config).unwrap();
         };
     }
@@ -80,6 +85,7 @@ impl Default for UserConfig {
 
 #[derive(Debug)]
 pub struct Config {
+    pub short_game_name: String,
     pub characters: HashMap<String, CharacterConfig>,
     pub credits: String,
     pub ui: UIConfig,

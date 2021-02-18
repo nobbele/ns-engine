@@ -195,7 +195,11 @@ impl GameState {
     pub fn on_save_click(&mut self, ctx: &mut Context) {
         println!("Saving game");
         serde_json::to_writer(
-            ggez::filesystem::create(ctx, "/save.json").unwrap(),
+            ggez::filesystem::create(
+                ctx,
+                format!("/{}/save.json", self.resources.get_config().short_game_name),
+            )
+            .unwrap(),
             &SaveData {
                 state: self.state.clone(), // Must clone to be able to be serialized
                 current_characters: self
@@ -221,8 +225,9 @@ impl GameState {
 
     pub fn on_load_click(&mut self, ctx: &mut Context) {
         println!("Loading game!");
-        if ggez::filesystem::exists(ctx, "/save.json") {
-            let file = ggez::filesystem::open(ctx, "/save.json").unwrap();
+        let path = format!("/{}/save.json", self.resources.get_config().short_game_name);
+        if ggez::filesystem::exists(ctx, &path) {
+            let file = ggez::filesystem::open(ctx, &path).unwrap();
             let savedata: SaveData = serde_json::from_reader(file).unwrap();
             self.state = savedata.state;
             self.screen.current_characters.current = Vec::new();
